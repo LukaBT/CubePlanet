@@ -33,7 +33,8 @@ is wrong (unknown model, texture, sound, UI, too many state bits, two parts with
   then the old 2D ones), link UI, UI widgets).
 * **Block 3D** - the block of the list as a form: model and attach, rotation, placement facing, behaviour, UI; **face textures** with
   thumbnails in three modes (*all*, *top / side / bottom*, *six faces*; switching fills the new slots from the current look); render flags;
-  **geometry presets** (full, slabs, joining / upside-down stairs, connecting fence, fence post, door, bed, plant, no hitbox); sound slots; the **instance-state field editor** with
+  **geometry presets** (full, slabs, bottom / top slab, vertical slab, joining / upside-down stairs, connecting fence, fence post, door, bed,
+  plant, no hitbox); sound slots; the **instance-state field editor** with
   a live packed-bit counter (red above 16); the **multiblock part editor**; a **3D preview** with a picker per state field (facing, open,
   half...); **Generate item icon from block** (renders it isometrically into the item that places it, like the game's icons).
 * **Sounds**, **Recipes** (smelting), **Entities** (raw JSON list; the format is reserved by the game).

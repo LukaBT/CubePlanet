@@ -6260,7 +6260,7 @@
       "id_name": "oak_slab",
       "id": 118,
       "name": "Oak Slab",
-      "stateless": true,
+      "stateless": false,
       "group_tags": [],
       "textures": {
         "all": 31
@@ -6310,7 +6310,43 @@
                 "d": 1
               }
             ],
-            "state_overrides": []
+            "state_overrides": [
+              {
+                "when": {
+                  "half": "top"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "collision": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "selection": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ]
+              }
+            ]
           },
           "drops": [
             {
@@ -6320,7 +6356,16 @@
             }
           ]
         },
-        "instance_state": {}
+        "instance_state": {
+          "half": {
+            "type": "string",
+            "values": [
+              "bottom",
+              "top"
+            ],
+            "default": "bottom"
+          }
+        }
       }
     },
     {
@@ -6329,7 +6374,7 @@
       "id_name": "stone_slab",
       "id": 119,
       "name": "Stone Slab",
-      "stateless": true,
+      "stateless": false,
       "group_tags": [],
       "textures": {
         "all": 2
@@ -6379,7 +6424,43 @@
                 "d": 1
               }
             ],
-            "state_overrides": []
+            "state_overrides": [
+              {
+                "when": {
+                  "half": "top"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "collision": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "selection": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ]
+              }
+            ]
           },
           "drops": [
             {
@@ -6389,7 +6470,16 @@
             }
           ]
         },
-        "instance_state": {}
+        "instance_state": {
+          "half": {
+            "type": "string",
+            "values": [
+              "bottom",
+              "top"
+            ],
+            "default": "bottom"
+          }
+        }
       }
     },
     {
@@ -6398,7 +6488,7 @@
       "id_name": "cobblestone_slab",
       "id": 120,
       "name": "Cobblestone Slab",
-      "stateless": true,
+      "stateless": false,
       "group_tags": [],
       "textures": {
         "all": 35
@@ -6448,7 +6538,43 @@
                 "d": 1
               }
             ],
-            "state_overrides": []
+            "state_overrides": [
+              {
+                "when": {
+                  "half": "top"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "collision": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ],
+                "selection": [
+                  {
+                    "x": 0,
+                    "y": 0.5,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.5,
+                    "d": 1
+                  }
+                ]
+              }
+            ]
           },
           "drops": [
             {
@@ -6458,7 +6584,16 @@
             }
           ]
         },
-        "instance_state": {}
+        "instance_state": {
+          "half": {
+            "type": "string",
+            "values": [
+              "bottom",
+              "top"
+            ],
+            "default": "bottom"
+          }
+        }
       }
     },
     {
@@ -10525,6 +10660,216 @@
             "default": 0
           }
         }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_vertical_slab",
+      "id": 129,
+      "name": "Oak Vertical Slab",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.5
+            }
+          ],
+          "rotation": "horizontal",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_vertical_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "stone_vertical_slab",
+      "id": 130,
+      "name": "Stone Vertical Slab",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 2
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.5
+            }
+          ],
+          "rotation": "horizontal",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            125,
+            125,
+            125
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "stone_vertical_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cobblestone_vertical_slab",
+      "id": 131,
+      "name": "Cobblestone Vertical Slab",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 35
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.5
+            }
+          ],
+          "rotation": "horizontal",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            118,
+            118,
+            118
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.5
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cobblestone_vertical_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
       }
     }
   ]

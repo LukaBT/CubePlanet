@@ -134,4 +134,7 @@ texture_rows: 16
 131 gold_ingot 96 256
 132 copper_ingot 128 256
 133 oxygen_canister 160 256
+134 oak_vertical_slab 192 256
+135 stone_vertical_slab 224 256
+136 cobblestone_vertical_slab 256 256
 200 bucket 256 384

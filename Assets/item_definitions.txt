@@ -2391,6 +2391,61 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "oak_vertical_slab",
+      "id": 134,
+      "name": "Oak Vertical Slab",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oak_vertical_slab"
+          },
+          "fuel_time": 3.75
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "stone_vertical_slab",
+      "id": 135,
+      "name": "Stone Vertical Slab",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "stone_vertical_slab"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cobblestone_vertical_slab",
+      "id": 136,
+      "name": "Cobblestone Vertical Slab",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cobblestone_vertical_slab"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

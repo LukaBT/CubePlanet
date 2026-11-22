@@ -85,7 +85,9 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
   the full depth). Missing collision = full block for cubes, none for other models; missing selection = full block (none for liquids).
   Player collision, the targeted-block raycast, the highlight outline and block placement all use them.
 * `rotation` (none / horizontal / all) is read and checked; turning boxes by the block's facing needs per-block state, which comes in phase 4.
-* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence.
+* Example box blocks: oak / stone / cobblestone slab (`half` bottom / top, chosen like stairs from where you click), oak / stone /
+  cobblestone vertical slab (half-thick, rotating, stands against the side you look at), oak / stone brick stairs, oak fence.
+* Any block with a packed `half` field whose values are `bottom` and `top` is placed upside down by an upper-half click (BlockActions.Place).
 * **Stairs** (`behavior: stairs`): `half` bottom / top (placed upside down when you click the upper half of a side or the underside of a block)
   and `shape` straight / inner_left / inner_right / outer_left / outer_right, joined like Minecraft's from the neighbouring stairs; the boxes
   of each shape are state_overrides. **Fences** (`behavior: connecting`, `connects_to: ["fence"]`): `north` / `east` / `south` / `west`

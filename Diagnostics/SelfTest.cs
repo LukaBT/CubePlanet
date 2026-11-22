@@ -167,6 +167,15 @@ public static class SelfTest
         var st3 = Spot(32, 8);
         BlockActions.Place(st3, OakStairs, -az, out _, upperHalf: true);
         Check(StateText(st3).Contains("half=top") && Collides(OakStairs, st3.State, .5, .75, .75) && !Collides(OakStairs, st3.State, .5, .25, .75), "upside-down stairs: full on top, the step hangs below at the back");
+        // ---- slabs: bottom or top half from the click; vertical slabs stand against the side you look at
+        var sl1 = Spot(38, 0); BlockActions.Place(sl1, OakSlab, -az, out _);
+        var sl2 = Spot(38, 3); BlockActions.Place(sl2, OakSlab, -az, out _, upperHalf: true);
+        Check(StateText(sl1).Contains("half=bottom") && Collides(OakSlab, sl1.State, .5, .25, .5) && !Collides(OakSlab, sl1.State, .5, .75, .5), "bottom slab fills the lower half");
+        Check(StateText(sl2).Contains("half=top") && Collides(OakSlab, sl2.State, .5, .75, .5) && !Collides(OakSlab, sl2.State, .5, .25, .5), "slab placed from an upper-half click fills the upper half");
+        var vs = Spot(38, 6); BlockActions.Place(vs, OakVerticalSlab, -az, out _); // looking north
+        Check(Collides(OakVerticalSlab, vs.State, .5, .5, .25) && !Collides(OakVerticalSlab, vs.State, .5, .5, .75), $"vertical slab stands in the north half when placed looking north ({StateText(vs)})");
+        var vs2 = Spot(38, 9); BlockActions.Place(vs2, OakVerticalSlab, ax, out _); // looking east
+        Check(Collides(OakVerticalSlab, vs2.State, .75, .5, .5) && !Collides(OakVerticalSlab, vs2.State, .25, .5, .5), "vertical slab turns with the look direction (east half)");
         // ---- fences connect to fences and solid blocks
         var fa = Spot(35, 0); BlockActions.Place(fa, OakFence, -az, out _);
         Check(!StateText(fa).Contains("=true"), $"lone fence has no arms ({StateText(fa)})");

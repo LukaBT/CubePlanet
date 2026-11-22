@@ -64,6 +64,12 @@ GEOMETRY_PRESETS_3D = {
                      "geometry": {"collision": [box(0, 0, 0, 1, .5, 1)], "selection": [box(0, 0, 0, 1, .5, 1)], "state_overrides": []}},
     "Slab (upper)": {"model": "boxes", "boxes": [box(0, .5, 0, 1, .5, 1)],
                      "geometry": {"collision": [box(0, .5, 0, 1, .5, 1)], "selection": [box(0, .5, 0, 1, .5, 1)], "state_overrides": []}},
+    "Slab (bottom / top)": {"model": "boxes", "boxes": [box(0, 0, 0, 1, .5, 1)],
+                            "geometry": {"collision": [box(0, 0, 0, 1, .5, 1)], "selection": [box(0, 0, 0, 1, .5, 1)], "state_overrides": [
+                                {"when": {"half": "top"}, "boxes": [box(0, .5, 0, 1, .5, 1)], "collision": [box(0, .5, 0, 1, .5, 1)], "selection": [box(0, .5, 0, 1, .5, 1)]}]},
+                            "_state": {"half": {"type": "string", "values": ["bottom", "top"], "default": "bottom"}}},
+    "Vertical slab": {"model": "boxes", "rotation": "horizontal", "placement_facing": "away", "boxes": [box(0, 0, 0, 1, 1, .5)],
+                      "geometry": {"collision": [box(0, 0, 0, 1, 1, .5)], "selection": [box(0, 0, 0, 1, 1, .5)], "state_overrides": []}},
     "Stairs (joining, upside down)": stairs_preset(),
     "Fence (connecting)": fence_preset(),
     "Door (2 tall, opens)": {"model": "boxes", "rotation": "horizontal", "placement_facing": "away", "behavior": "door", "boxes": DOOR_CLOSED,
