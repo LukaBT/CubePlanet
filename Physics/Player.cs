@@ -8,6 +8,8 @@ public static class PlayerPhysics
 
     // ---------- player physics (radial gravity, voxel collision) ----------
     public const double EYE = 1.62, GRAV = 30, JUMP = 9, HW = .24;
+    /// <summary>Highest ledge the player walks up without jumping (stairs, slabs), like Minecraft's step height.</summary>
+    public const double STEP = .6;
 
     // Gravity always points at the planet centre. Its strength follows the shell theorem for a uniform planet: inverse-square above the surface (R/r)^2, linear in depth below it (r/R)
     public static double GravK(double r) => r >= R ? (R / r) * (R / r) : r / R;
@@ -72,14 +74,32 @@ public static class PlayerPhysics
         {
             var (tu, tv) = GridAx(P.p, g); Depenetrate(g, tu, tv); double uv = M.Dot(tu, tv), c = 1 - uv * uv, bu = M.Dot(vh, tu), bv = M.Dot(vh, tv), ca = (bu - uv * bv) / c, cb = (bv - uv * bu) / c;
             // velocity split along the block grid: a blocked axis only cancels its own part, so walking diagonally into a wall slides along it
-            if (!Mv(tu, ca * dt, false)) vh = vh - tu * ca;
-            if (!Mv(tv, cb * dt, false)) vh = vh - tv * cb;
+            if (!StepMv(tu, ca * dt, g)) vh = vh - tu * ca;
+            if (!StepMv(tv, cb * dt, g)) vh = vh - tv * cb;
             P.vh = vh; g = UpVec(P.p); P.gnd = false;
             if (!Mv(g, P.vu * dt, true)) { if (P.vu < 0) P.gnd = true; P.vu = 0; }
         }
         g = UpVec(P.p); P.gv = g;
         P.wet = Wet(GetAt(P.p.X + g.X * .9, P.p.Y + g.Y * .9, P.p.Z + g.Z * .9));
         P.head = Wet(GetAt(P.p.X + g.X * EYE, P.p.Y + g.Y * EYE, P.p.Z + g.Z * EYE));
+    }
+    /// <summary>
+    /// Horizontal move that walks up low ledges: when blocked while standing on the ground (not flying / swimming), try the same move lifted
+    /// by STEP; if that gets further, settle down onto the ledge. Full blocks (1 high) still stop the player.
+    /// </summary>
+    static bool StepMv(V3 ax, double dist, V3 g)
+    {
+        V3 start = P.p;
+        if (Mv(ax, dist, false)) return true;
+        if (!P.gnd || P.fly || P.wet || dist == 0) return false;
+        V3 blocked = P.p;
+        P.p = start;
+        if (Pcol(P.p + g * STEP, HW)) { P.p = blocked; return false; } // no head room to step up
+        P.p = P.p + g * STEP;
+        bool free = Mv(ax, dist, false);
+        if (M.Dot(P.p - blocked, ax) * Math.Sign(dist) < .01) { P.p = blocked; return false; } // the ledge is too high: no progress
+        Mv(g, -STEP, true); // settle onto the step
+        return free;
     }
     public static void PlayerUpdate(double dt, double fw, double sd, bool jump, bool sneak, bool ctrl)
     {
