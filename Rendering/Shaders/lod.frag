@@ -1,0 +1,3 @@
+in vec2 vA;in vec3 vC;in vec3 vP;in vec3 vN;uniform sampler2DArray uT;uniform float uD,uNear;out vec4 o;layout(location=1) out float oD;
+void main(){if(length(vP)<uNear)discard;float g=texture(uT,vec3(vA/uD,2.)).r*2.04;vec3 alb=pow(vC*(.6+.4*g),vec3(2.2)),n=normalize(vN),wp=vP+uC,up=normalize(wp);float dist=length(vP);vec3 V=vP/dist;alb=wxAlb(alb,n,up,1.);
+ vec3 col=lightIt(alb,n,up,wp,1.,shadowAt(vP,n),dist);col=mix(col,skyFog(V,up),1.-exp(-dist*uFog));o=vec4(tmap(col),1.);oD=dist;}

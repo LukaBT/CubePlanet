@@ -28,6 +28,27 @@ mouse wheel or 1-9,0 hotbar, LMB break (hold repeats), RMB place, MMB pick block
 V player / free camera, F fly (free cam: level), O planet orbit view (wheel / W,S zoom, zoom in to land),
 E block palette, Esc or Tab settings, F11 fullscreen, arrow keys also look.
 
+## Code layout
+The old single `static partial class W` is split into static classes by area; `GlobalUsings.cs` imports them all (`global using static`), so code
+keeps using short names (`R`, `chunks`, `Blk(...)`, `C`, `P`, `SET`, ...). A class's own members and locals still win over those imports.
+```
+Program.cs, Game.cs, Settings.cs, GlobalUsings.cs
+Blocks/                BlockTables (per-block property tables), ProceduralTextures (removed once textures load from Assets/)
+Worlds/                World (radius, bands, chunks, edits, world creation), BlockAccess (position <-> block, Blk / SetCell), Cube (face axes, seams),
+                       Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), Water (+ bucket), BlockEditing
+Generation/            Noise, Terrain (TerrainGen: heights + biomes), Caves, Columns (caches), Strata, Ores, ChunkGenerator, Features, Structures, GroundCover
+Physics/               Camera, Player (PlayerPhysics), Collision, camera / player state, RayHit
+Rendering/             Renderer (pipelines + frame), FrameUniforms, Highlight, Glsl (loads the embedded shaders)
+Rendering/Chunks/      Mesher, ChunkMeshes (upload + mesh jobs), LodTerrain, mesh types
+Rendering/Effects/     Sky (sun, time, atmosphere), Shadows, CloudNoise
+Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPasses, Descriptors, Memory, Images, Frame, ShaderCompiler, Pipelines
+Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
+UI/                    UI as partial files (Font, Draw2D, Hotbar, SettingsPanel, Compass, StartScreen) + Hud
+Util/                  V3, M (math)
+Diagnostics/           Fingerprint (--fingerprint), Png (screenshots)
+checks/                check.ps1, fingerprint references, reference screenshots
+```
+
 ## What was ported 1:1
 Terrain/biome/cave noise (same seed gives the same planet), column & cave caches, cube-face seam wrapping,
 band system, Cartesian core, features (trees, plants, 7 structure types), ground cover, mesher with skylight

@@ -1,0 +1,1 @@
+uniform vec4 uK;out vec4 o;void main(){o=uK;}

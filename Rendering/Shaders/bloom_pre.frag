@@ -1,0 +1,2 @@
+void main(){vec3 c=d13(uSrc,uvOf(),uO.xy);vec4 cl=cloudAt(uvOf());c=mix(c,cl.rgb,cl.a);float b=max(c.r,max(c.g,c.b)),th=.9,kn=.12,s=clamp(b-th+kn,0.,2.*kn);s=s*s/(4.*kn+1e-4);
+ o=vec4(c*max(s,b-th)/max(b,1e-4),1.);}

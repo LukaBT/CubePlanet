@@ -1,0 +1,1 @@
+layout(location=0)in vec3 aP;void main(){mat4 LM=uWt<1.5?uLV1:uLV2;gl_Position=LM*vec4(aP+uO,1.);gl_Position.z=gl_Position.z*.5+.5*gl_Position.w;}

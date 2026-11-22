@@ -1,0 +1,1 @@
+out vec2 vQ;void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));vQ=p*2.-1.;gl_Position=vec4(vQ.x,-vQ.y,0.,1.);}

@@ -1,0 +1,2 @@
+layout(location=0)in vec3 aP;layout(location=3)in float aI;uniform mat4 uVP;uniform vec3 uO,uC;uniform float uRW;out float vI;out vec3 vQ;
+void main(){vec3 q=aP+uO+uC;vec3 up=normalize(q);float sk=floor(aI*.25)*4.;q=up*(uRW-sk+waveSwell(up).x*(1.-smoothstep(250.,1200.,length(aP+uO))))-uC;vQ=q;gl_Position=uVP*vec4(q,1.);gl_Position.z*=.9985;vI=aI-sk;}

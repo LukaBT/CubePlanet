@@ -35,14 +35,14 @@ Work phase by phase. After every phase: build, run the checks listed below, and 
 
 ---
 
-## Phase 0 - Safety net
+## Phase 0 - Safety net (done)
 
 * Ask the user, then `git init` + commit the current state (there is no repo yet).
 * "World fingerprint": a bench-mode option that generates all chunks around spawn for a fixed radius/seed and prints a hash of their
   block data (and writes reference screenshots with the existing `--bench --shot`). Every later phase must keep the hash identical
   (after mapping old byte IDs to new IDs in phase 2).
 
-## Phase 1 - Restructure (no behaviour change)
+## Phase 1 - Restructure (no behaviour change) (done)
 
 Today almost everything is one big `static partial class W` spread over files, plus `Gpu` (Vulkan) and big GLSL strings.
 Target layout:
@@ -63,6 +63,8 @@ Rendering/Chunks/        Mesher, ChunkMesh, LodTerrain
 Rendering/Effects/       Shadows, Clouds, Sky, Water, PostProcess
 Rendering/Shaders/       .glsl files (instead of C# string constants), copied to output / embedded
 ```
+Status: done as folders + static classes (see README "Code layout"); `AssetLoading/`, `Items/`, `UI` definitions, `Sounds/` and `Entities/`
+arrive with phases 2 and 4. Fingerprint and shader sources are byte-identical to the baseline.
 Recommended depth (default): move code into these folders and smaller, well-named classes now; do NOT rewrite the world into instance
 objects (World/Chunk instances like PolarGame) in one go - do that gradually later. Fingerprint + screenshots must be unchanged.
 

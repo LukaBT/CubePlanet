@@ -32,4 +32,9 @@
     <PackageReference Include="Silk.NET.Shaderc.Native" Version="2.23.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- GLSL sources, embedded into the exe (Glsl.cs reads them as "shaders/<file>") -->
+    <EmbeddedResource Include="Rendering/Shaders/*" LogicalName="shaders/%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>
