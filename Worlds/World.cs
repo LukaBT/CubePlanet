@@ -5,7 +5,7 @@ namespace CubePlanet;
 /// <summary>World state shared by every system: planet radius and height scaling, bands, loaded chunks, player edits; world creation and spawn.</summary>
 public static class World
 {
-    public const int CS = 32, CORE = 96, FC0 = 6, NT = 118;
+    public const int CS = 32, CORE = 96, FC0 = 6;
     public const double PI = Math.PI;
     public static double R;
     public static int BC, OUTER, RD = 6, MAXL = 8, MINL = 2;

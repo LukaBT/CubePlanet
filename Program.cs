@@ -23,13 +23,6 @@ public static class Program
             if (args[i] == "--set") Overrides.Add(args[i + 1]); // e.g. --set ao=0 (for this run only, not saved)
             if (args[i] == "--bench" && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double bs)) Bench = bs;
         }
-        if (Array.IndexOf(args, "--export-assets") >= 0)
-        {   // one-time: write the procedural blocks as AssetEditor files into the project's Assets folder
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "CubePlanet.csproj"))) dir = dir.Parent;
-            AssetExporter.Run(Path.Combine(dir?.FullName ?? AppContext.BaseDirectory, "Assets"));
-            return;
-        }
         // everything (generation, meshing, UI) uses the block tables, so the asset files are loaded before anything else
         try { GameAssets.Load(); }
         catch (Exception e) when (e is IOException || e is InvalidDataException || e is KeyNotFoundException)

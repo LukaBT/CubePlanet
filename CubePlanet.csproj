@@ -34,6 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- AssetEditor files: copied next to the exe (also for publish, as loose files beside the single-file exe) -->
+    <None Update="Assets/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- GLSL sources, embedded into the exe (Glsl.cs reads them as "shaders/<file>") -->
     <EmbeddedResource Include="Rendering/Shaders/*" LogicalName="shaders/%(Filename)%(Extension)" />
   </ItemGroup>

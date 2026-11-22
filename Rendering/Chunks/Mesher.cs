@@ -362,7 +362,7 @@ public static class Mesher
                         }
                         else sky = LightAt(nx, ny, nz);
                         if (id == 75 || id == 85 || id == 88) sky = 1; // lava, magma and sea lanterns are self-lit
-                        int lay = id < NT ? id : 0;
+                        int lay = TEX[id];
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)
@@ -447,7 +447,7 @@ public static class Mesher
                         if (OPQ[nb] != 0 || (TGR[id] != 0 && TGR[nb] == TGR[id])) continue;
                         var cn = CN[fc]; var pp = new double[4][];
                         for (int i = 0; i < 4; i++) pp[i] = new double[] { x + cn[i * 3] - 16, y + cn[i * 3 + 1] - 16, z + cn[i * 3 + 2] - 16 };
-                        Quad(pp, id < NT ? id : 0, DX[fc], DY[fc], DZ[fc], false);
+                        Quad(pp, TEX[id], DX[fc], DY[fc], DZ[fc], false);
                     }
                 }
         if (ix.Count == 0) return null;

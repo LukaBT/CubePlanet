@@ -39,12 +39,14 @@ public static class Renderer
         Gpu.pBloomUp = Gpu.MakePipe("bloom_up", Glsl.FSV, Glsl.POST_COMMON + Glsl.BLOOM_UP, new PipeCfg { layout = VL.None, pass = RP.PostAdd, depthTest = false, depthWrite = false, blend = BlendMode.Add });
         Gpu.pComposite = Gpu.MakePipe("composite", Glsl.FSV, Glsl.POST_COMMON + Glsl.COMPOSITE, new PipeCfg { layout = VL.None, pass = RP.Final, depthTest = false, depthWrite = false });
         pHlLine = Gpu.MakePipe("highlight_lines", Glsl.PHL_VS, Glsl.PHL_FS, new PipeCfg { layout = VL.Pos3, topo = PrimitiveTopology.LineList, cmp = CompareOp.GreaterOrEqual, depthWrite = false, blend = BlendMode.Alpha });
-        // block texture array with a CPU-built mip chain (16 -> 1), sampled nearest / mip-linear like before
-        var img = Tex.BuildAtlas(); var mips = new List<byte[]> { img }; int sz = 16;
+        // block texture array from Assets/ (layer = block texture ID) with a CPU-built mip chain (16 -> 1), sampled nearest / mip-linear
+        int NL = GameAssets.BlockLayerCount, TW = GameAssets.BlockTexW;
+        if (TW != GameAssets.BlockTexH || (TW & (TW - 1)) != 0) throw new InvalidDataException("block textures must be square with a power-of-two size, got " + TW + "x" + GameAssets.BlockTexH);
+        var img = GameAssets.BlockLayers; var mips = new List<byte[]> { img }; int sz = TW;
         while (sz > 1)
         {
-            int ns = sz / 2; var prev = mips[^1]; var nx = new byte[ns * ns * NT * 4];
-            for (int l = 0; l < NT; l++)
+            int ns = sz / 2; var prev = mips[^1]; var nx = new byte[ns * ns * NL * 4];
+            for (int l = 0; l < NL; l++)
                 for (int y = 0; y < ns; y++)
                     for (int x = 0; x < ns; x++)
                         for (int c = 0; c < 4; c++)
@@ -54,11 +56,11 @@ public static class Renderer
                         }
             mips.Add(nx); sz = ns;
         }
-        Gpu.texBlocks = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, 16, 16, 1, NT, mips.ToArray(), Filter.Nearest, Filter.Nearest, SamplerMipmapMode.Linear, SamplerAddressMode.Repeat);
+        Gpu.texBlocks = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, (uint)TW, (uint)TW, 1, (uint)NL, mips.ToArray(), Filter.Nearest, Filter.Nearest, SamplerMipmapMode.Linear, SamplerAddressMode.Repeat);
         // 128^3 cloud noise (cached on disk after the first start)
         Gpu.texCloud = Gpu.MakeTexture(ImageType.Type3D, ImageViewType.Type3D, Format.R8G8B8A8Unorm, 4, CloudNoise.S, CloudNoise.S, CloudNoise.S, 1, new[] { CloudNoise.Get(Gpu.Cache) }, Filter.Linear, Filter.Linear, SamplerMipmapMode.Nearest, SamplerAddressMode.Repeat);
         // 64^3 tiling noise (does not depend on the seed, so it is built once at startup)
-        Gpu.texNoise = Gpu.MakeTexture(ImageType.Type3D, ImageViewType.Type3D, Format.R8Unorm, 1, 64, 64, 64, 1, new[] { Tex.BuildNoise3D() }, Filter.Linear, Filter.Linear, SamplerMipmapMode.Nearest, SamplerAddressMode.Repeat);
+        Gpu.texNoise = Gpu.MakeTexture(ImageType.Type3D, ImageViewType.Type3D, Format.R8Unorm, 1, 64, 64, 64, 1, new[] { NoiseVolume.Build() }, Filter.Linear, Filter.Linear, SamplerMipmapMode.Nearest, SamplerAddressMode.Repeat);
         // highlight box indices (36 triangle + 24 line indices)
         ushort[] hi = { 0, 2, 6, 0, 6, 4, 1, 3, 7, 1, 7, 5, 0, 1, 5, 0, 5, 4, 2, 3, 7, 2, 7, 6, 0, 1, 3, 0, 3, 2, 4, 5, 7, 4, 7, 6, 0, 1, 2, 3, 4, 5, 6, 7, 0, 2, 1, 3, 4, 6, 5, 7, 0, 4, 1, 5, 2, 6, 3, 7 };
         hlIdx = Gpu.Upload(hi, hi.Length, Array.Empty<byte>(), 0);

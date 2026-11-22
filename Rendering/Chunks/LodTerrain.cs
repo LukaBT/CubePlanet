@@ -49,7 +49,7 @@ public static class LodTerrain
                 int ci = Math.Min(Math.Max(gi - 1, 0), G), cj = Math.Min(Math.Max(gj - 1, 0), G); bool edge = gi == 0 || gj == 0 || gi == S - 1 || gj == S - 1;
                 double au = u0 + ci * a / G, av = v0 + cj * a / G; V3 t = GpA(f, au, av, 1);
                 Terrain(t.X, t.Y, t.Z, lw);
-                double rd = R + gH - 2.2 - (edge ? sk : 0); var c = Tex.TileColor(gT);
+                double rd = R + gH - 2.2 - (edge ? sk : 0); var c = TileColor(gT);
                 double kk = (gB == 6 || gB == 14 || gB == 26 || gB == 28) ? .8 : (gB == 2 || gB == 3 || gB == 4 || gB == 10 || gB == 19) ? .86 : 1;
                 double x = t.X * rd - o.X, y = t.Y * rd - o.Y, z = t.Z * rd - o.Z; int q = (gi * S + gj) * 3;
                 pp[q] = x; pp[q + 1] = y; pp[q + 2] = z;
