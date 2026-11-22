@@ -222,6 +222,15 @@ public static class SelfTest
         }
         var (hp, dpw) = Walk(wp, .8);
         Check(dpw < .75, $"walking into a lone fence post is blocked (moved {dpw:0.00})");
+        // ---- climbing out of deep water onto the bank (forward + jump), like Minecraft
+        var wpool = Spot(44, 0);
+        for (int k = 1; k <= 3; k++)
+            for (int a = -1; a <= 1; a++) for (int c = -1; c <= 1; c++)
+                    if (wpool.TryOffset(a, -k, c, out var q)) { if (a == 0 && c == 0) SetCell(q.B, q.F, q.X, q.Y, q.Z, Water); else if (k > 1) q.Set(Stone); }
+        if (wpool.TryOffset(0, -4, 0, out var pfloor)) pfloor.Set(Stone);
+        wpool.TryOffset(0, -3, 0, out var deep);
+        var (hw2, dw2) = Walk(deep, 4.0, jump: true);
+        Check(hw2 > 2.95 && dw2 > .5, $"swims up and climbs out of 3 deep water onto the bank (highest {hw2:0.00} of 3, moved {dw2:0.00})");
 
         // ---- fences connect to fences and solid blocks
         var fa = Spot(35, 0); BlockActions.Place(fa, OakFence, -az, out _);

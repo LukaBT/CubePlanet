@@ -72,20 +72,27 @@ public static class PlayerPhysics
             if (jump && !P.head) P.vu = Math.Max(P.vu, 6.5);
         }
         else { P.vu = Math.Max(-55, P.vu - GRAV * gs * dt); if (jump && P.gnd) P.vu = JUMP; }
+        // climbing out of water like Minecraft: feet still in water, pushing against a wall (the bank) and jump held -> rise at climbing speed,
+        // which lifts the feet over a 1 block high edge (the chest leaves the water earlier, so the swim lift alone stops too low)
+        if (!P.fly && jump && feetWet && pushBlocked) P.vu = Math.Max(P.vu, 6);
         if (P.core) CoreMove(dt, g, vh, Math.Abs(fw) + Math.Abs(sd) > .01);
         else
         {
             var (tu, tv) = GridAx(P.p, g); Depenetrate(g, tu, tv); double uv = M.Dot(tu, tv), c = 1 - uv * uv, bu = M.Dot(vh, tu), bv = M.Dot(vh, tv), ca = (bu - uv * bv) / c, cb = (bv - uv * bu) / c;
             // velocity split along the block grid: a blocked axis only cancels its own part, so walking diagonally into a wall slides along it
-            if (!StepMv(tu, ca * dt, g)) vh = vh - tu * ca;
-            if (!StepMv(tv, cb * dt, g)) vh = vh - tv * cb;
+            bool bu2 = !StepMv(tu, ca * dt, g), bv2 = !StepMv(tv, cb * dt, g);
+            if (bu2) vh = vh - tu * ca;
+            if (bv2) vh = vh - tv * cb;
+            pushBlocked = (bu2 && Math.Abs(ca) > .01) || (bv2 && Math.Abs(cb) > .01); // walking / swimming into a wall
             P.vh = vh; g = UpVec(P.p); P.gnd = false;
             if (!Mv(g, P.vu * dt, true)) { if (P.vu < 0) P.gnd = true; P.vu = 0; }
         }
         g = UpVec(P.p); P.gv = g;
         P.wet = Wet(GetAt(P.p.X + g.X * .9, P.p.Y + g.Y * .9, P.p.Z + g.Z * .9));
         P.head = Wet(GetAt(P.p.X + g.X * EYE, P.p.Y + g.Y * EYE, P.p.Z + g.Z * EYE));
+        feetWet = Wet(GetAt(P.p.X + g.X * .1, P.p.Y + g.Y * .1, P.p.Z + g.Z * .1));
     }
+    static bool feetWet, pushBlocked;
     /// <summary>
     /// Horizontal move that walks up low ledges: when blocked while standing on the ground (not flying / swimming), try the same move lifted
     /// by STEP; if that gets further, settle down onto the ledge. Full blocks (1 high) still stop the player.
