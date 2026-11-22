@@ -190,6 +190,12 @@ public static partial class UI
         var items = GameAssets.ItemReg.All; int cols = 11; double cs = (pw - 8 * k) / cols; int rows = (items.Count + cols - 1) / cols;
         double top = y0 + 12 * k, view = ph - 16 * k, maxScroll = Math.Max(0, rows * cs - view);
         if (In(x0, y0, pw, ph)) { paletteScroll = Math.Clamp(paletteScroll - scroll * cs, 0, maxScroll); scroll = 0; }
+        if (maxScroll > 0)
+        {   // scrollbar: the whole list does not fit (mouse wheel scrolls)
+            double bh = view * view / (rows * cs), by = top + (view - bh) * paletteScroll / maxScroll;
+            Rect(x0 + pw - 3 * k, top, 2 * k, view, 1, 1, 1, .12f); Rect(x0 + pw - 3 * k, by, 2 * k, bh, 1, 1, 1, .6f);
+            Text("WHEEL: MORE ITEMS", x0 + pw - TextW("WHEEL: MORE ITEMS", k * .5) - 6 * k, y0 + 3.5 * k, k * .5, .6f, .7f, .8f);
+        }
         bool inside = In(x0, top, pw, view);
         if (inside && (clicked || rclicked) && cursor != null && !cursor.IsEmpty) { cursor = null; clicked = rclicked = false; } // trash
         for (int i = 0; i < items.Count; i++)

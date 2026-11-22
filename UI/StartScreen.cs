@@ -48,7 +48,8 @@ public static partial class UI
         }
         if (Button("CREATE", lx + 90 * s, y + 2 * s, 80 * s, rh, .3f, .5f, .8f)) { OnStart?.Invoke(null); return; }
         y += rh + 14 * s;
-        Text("TAB SWITCHES FIELD, ENTER CREATES (RADIUS 200-10000000). WORLDS SAVE EVERY MINUTE AND ON EXIT.", cx, y, s, .6f, .8f, .6f, 1, true); y += 20 * s;
+        Text("TAB SWITCHES FIELD, ENTER CREATES (RADIUS 200-10000000). WORLDS SAVE EVERY MINUTE AND ON EXIT.", cx, y, s, .6f, .8f, .6f, 1, true); y += 13 * s;
+        Text("SAVED IN " + WorldSave.Root.ToUpperInvariant(), cx, y, s * .9, .5f, .6f, .7f, 1, true); y += 20 * s;
         string[] help = { "WASD WALK  SPACE JUMP (DOUBLE TAP = FLY)  CTRL OR DOUBLE TAP W SPRINT  SHIFT SNEAK/DOWN",
             "WHEEL OR 1-9,0 HOTBAR   LMB BREAK   RMB PLACE / USE   MMB PICK BLOCK   E INVENTORY", "V PLAYER/FREE CAMERA   F FLY   O PLANET ORBIT VIEW",
             "ESC / TAB = SETTINGS (RENDER DISTANCE, LOD, FOV, TIME, WATER...)   F11 FULLSCREEN" };

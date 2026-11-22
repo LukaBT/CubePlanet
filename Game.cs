@@ -158,7 +158,7 @@ public class Game : GameWindow
         if (Program.Bench > 0) return;
         if (UI.startScreen) return;
         double deltaY = -e.OffsetY * 100;
-        if (UI.settingsOpen) UI.scroll += e.OffsetY;
+        if (UI.settingsOpen || UI.invOpen) UI.scroll += e.OffsetY; // settings panel / item palette scroll; the hotbar stays put
         else if (Camera.C.orbit) Camera.Zoom(Math.Pow(1.002, deltaY));
         else if (PlayerPhysics.P.on) UI.Pick((PlayerInventory.Selected + (deltaY > 0 ? 1 : 9)) % 10 + 1);
         else Camera.spd = Math.Max(.05, Math.Min(5000, Camera.spd * Math.Pow(1.2, -Math.Sign(deltaY))));
@@ -166,9 +166,9 @@ public class Game : GameWindow
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
         base.OnMouseDown(e);
-        if (UI.startScreen) return;
-        if (e.Button == MouseButton.Left) UI.clicked = true;
+        if (e.Button == MouseButton.Left) UI.clicked = true; // the start screen needs clicks too (PLAY / DELETE / CREATE)
         if (e.Button == MouseButton.Right) UI.rclicked = true;
+        if (UI.startScreen) return;
         if (Captured && e.Button == MouseButton.Middle) BlockEditing.PickBlock();
     }
     protected override void OnMouseMove(MouseMoveEventArgs e)
