@@ -209,6 +209,19 @@ public static class SelfTest
         for (int a = -1; a <= 1; a++) if (wf.TryOffset(a, 0, -1, out var fq)) BlockActions.Place(fq, OakFence, -az, out _);
         var (hf, dfw) = Walk(wf, 1.5, jump: true);
         Check(dfw < .8, $"jumping at a fence row does not get over it (moved {dfw:0.00}, highest {hf:0.00})");
+        // a lone post: landing on it from above, and walking into it head-on (the hitbox must not slip around a 0.25 wide post)
+        var wp = Spot(41, 16); wp.TryOffset(0, 0, -1, out var post); BlockActions.Place(post, OakFence, -az, out _);
+        {
+            Band PBd = bands[post.B]; V3 pc = Gp(PBd, post.F, post.Z + .5, post.X + .5, PBd.inner + post.Y), pu = M.Nrm(pc);
+            for (int a = -1; a <= 1; a++) for (int c = -1; c <= 1; c++) for (int k = 1; k <= 5; k++) if (post.TryOffset(a, k, c, out var air)) air.Set(0); // room for the 1.8 high player
+            var cam = (C.x, C.y, C.z, C.f, C.u);
+            P.on = true; P.ready = true; P.fly = false; P.core = false; P.vu = 0; P.vh = new V3(); P.p = pc + pu * 2.2; // inside the cleared space above the post
+            for (int i = 0; i < 60; i++) PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false);
+            double feetP = M.Dot(P.p - pc, pu); P.on = false; (C.x, C.y, C.z, C.f, C.u) = cam;
+            Check(Math.Abs(feetP - 1.5) < .06 && P.gnd, $"dropped onto a fence post, the player stands on it (feet {feetP:0.00})");
+        }
+        var (hp, dpw) = Walk(wp, .8);
+        Check(dpw < .75, $"walking into a lone fence post is blocked (moved {dpw:0.00})");
 
         // ---- fences connect to fences and solid blocks
         var fa = Spot(35, 0); BlockActions.Place(fa, OakFence, -az, out _);

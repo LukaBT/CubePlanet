@@ -5,7 +5,10 @@ public static class Collision
 {
     internal static readonly double[] PH = { .001, .6, 1.2, 1.75 };
     internal static readonly V3[] AXV = { new(1, 0, 0), new(0, 1, 0), new(0, 0, 1) };
-    internal static readonly int[][] HOF = { new[] { -1, -1 }, new[] { 0, -1 }, new[] { 1, -1 }, new[] { -1, 0 }, new[] { 1, 0 }, new[] { -1, 1 }, new[] { 0, 1 }, new[] { 1, 1 } };
+    // hitbox sample points (multiples of the half width): a 5x5 grid, spacing 0.12 blocks, finer than the thinnest collision part (0.125 fence
+    // arms), so a fence post (0.25 wide) cannot slip between them when landing on it or walking into it. The edge points come first (most hits).
+    internal static readonly double[][] HOF = new[] { -1, -.5, 0, .5, 1 }.SelectMany(a => new[] { -1, -.5, 0, .5, 1 }.Select(b => new[] { a, b }))
+        .OrderByDescending(o => Math.Max(Math.Abs(o[0]), Math.Abs(o[1]))).ToArray();
     internal static readonly double[] RCS = Enumerable.Range(0, 12).Select(k => Math.Cos(k * PI / 6)).ToArray(), RSN = Enumerable.Range(0, 12).Select(k => Math.Sin(k * PI / 6)).ToArray();
 
     // solid = inside one of the block's collision boxes (geometry.collision; full block for cubes, nothing for plants and liquids)
@@ -36,15 +39,16 @@ public static class Collision
         if (P.core)
         {
             var (e1, e2) = CoreFrame(g); double rr = hw * 1.12; // round hitbox
-            for (int k = 0; k < 12; k++)
+            for (int k = 0; k < 25; k++) // outer ring, inner ring at half the radius, centre
             {
-                double s1 = RCS[k] * rr, s2 = RSN[k] * rr; V3 b = p + e1 * s1 + e2 * s2;
+                double rk = k < 12 ? rr : k < 24 ? rr * .5 : 0; int a = k % 12;
+                double s1 = RCS[a] * rk, s2 = RSN[a] * rk; V3 b = p + e1 * s1 + e2 * s2;
                 for (int i = 0; i < 4; i++) { double h = PH[i]; if (SolidAt(b.X + g.X * h, b.Y + g.Y * h, b.Z + g.Z * h)) return true; }
             }
             return false;
         }
         var (a1, a2) = GridAx(p, g);
-        for (int k = 0; k < 8; k++)
+        for (int k = 0; k < HOF.Length; k++)
         {
             double s1 = HOF[k][0] * hw, s2 = HOF[k][1] * hw; V3 b = p + a1 * s1 + a2 * s2;
             for (int i = 0; i < 4; i++) { double h = PH[i]; if (SolidAt(b.X + g.X * h, b.Y + g.Y * h, b.Z + g.Z * h)) return true; }
