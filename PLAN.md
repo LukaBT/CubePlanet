@@ -139,7 +139,11 @@ edit list. Saved chunks replace generation for those chunks. Self-test: save -> 
   Untouched chunks are regenerated from the seed instead of stored (keeps saves small).
 * Autosave every minute and on exit. Start screen: world list (continue / new / delete).
 
-## Phase 6 - AssetEditor for 3D (Python/Tkinter, same app)
+## Phase 6 - AssetEditor for 3D (Python/Tkinter, same app) (done)
+
+Status: done in `AssetEditor/` (copied from the reference zip and extended). Headless tests: `test_editor.py` (game assets load, 3D rules
+match the game, generated icons equal the game icons, old 2D project loads, export) and `test_gui.py` (hidden windows, Block 3D tab).
+The game run on the editor export gives identical fingerprints and passes --selftest. The editor window layout was not looked at.
 
 * Block definition form: model picker, 6 face-texture slots with thumbnails (+ "all" and "top/side/bottom" shortcuts), and a 3D
   isometric preview of the block with its textures, including state variants (door open/closed).

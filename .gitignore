@@ -1,3 +1,5 @@
 bin/
 obj/
 checks/out/
+AssetEditor/__pycache__/
+AssetEditor/projects/

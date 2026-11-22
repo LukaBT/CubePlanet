@@ -61,6 +61,7 @@ UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windo
 Util/                  V3, M (math)
 Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), Png (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
+AssetEditor/           the Python / Tkinter asset editor (block3d.py = 3D rules + icon renderer, editor3d_tabs.py = Block 3D / Sounds / Recipes / Entities)
 ```
 
 ## Assets (blocks, items, textures)
@@ -110,8 +111,10 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
   name sounds in `properties.definition.sounds {break, place, step, use}`; nothing plays yet), `entity_definitions.txt` (reserved, empty).
 * New content: oak door, red bed, chest, furnace, oxygen generator; items coal, iron / gold / copper ingot, oxygen canister.
 * Shaders no longer know block IDs: the mesher writes material flags (sway, emissive, no shadow, ice) into each vertex.
-* Editing: open the `Assets` folder in the AssetEditor ("Open project folder"), change things, then **Export** into `Assets/`
-  (Save also works but adds the editor's own per-texture PNG folders and project_settings.json there).
+* Editing: `AssetEditor/` in this repo is the Python editor extended for 3D blocks (Block 3D tab with face-texture thumbnails, a 3D preview
+  per state, state / multiblock / geometry editors, item icons from blocks; Sounds, Recipes, Entities tabs). File > Open Cube Planet Assets
+  folder, edit, File > Export into `Assets/`. See `AssetEditor/README.md` (every key, complete examples). `python AssetEditor/test_editor.py`
+  exports to a temp folder; `CubePlanet --assets <folder> --selftest` runs the game on such an export.
 
 ## Saving
 `%APPDATA%/CubePlanet/worlds/<name>/`: `world.json` (name, version, seed, radius, camera, player, sun angle, inventory, and the block / item ID
@@ -192,7 +195,7 @@ patches to the far plane, where the sky was drawn over them: the white seam line
 `--radius N --seed N`, `--msaa 0|2|4|8`, `--novsync`, and for testing: `--bench SECONDS` (starts immediately with a fixed free camera,
 ignores input, prints FPS + chunk pipeline timings, does not save settings), `--shot file.png`, `--set name=value` (any settings field,
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
-`--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
+`--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 

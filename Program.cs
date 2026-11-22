@@ -13,6 +13,7 @@ public static class Program
     public static void Main(string[] args)
     {
         // everything (generation, meshing, UI) uses the block tables, and static tables (hotbar, palettes, ore lists) are built from the named block IDs, so the asset files are loaded before anything else
+        int ai = Array.IndexOf(args, "--assets"); if (ai >= 0 && ai + 1 < args.Length) AssetPaths.Directory = Path.GetFullPath(args[ai + 1]); // --assets DIR: load another asset folder (e.g. an editor export)
         try { GameAssets.Load(); }
         catch (Exception e) when (e is IOException || e is InvalidDataException || e is KeyNotFoundException)
         {
