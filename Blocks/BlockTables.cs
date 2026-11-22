@@ -32,6 +32,8 @@ public static partial class Blocks
     public static readonly BlockDefinition[] DEFS = new BlockDefinition[N];
     /// <summary>Blocks whose look / geometry depends on their state word (rotation, state_overrides): use <see cref="Variant"/>.</summary>
     public static readonly bool[] HASVAR = new bool[N];
+    /// <summary>Blocks with collision boxes above y = 1 (fences): they also block the lower part of the cell above. AnyTall: some block has them.</summary>
+    public static readonly bool[] TALL = new bool[N]; public static bool AnyTall;
     static readonly BlockVariant[][] VARS = new BlockVariant[N][];
     /// <summary>Behaviour of each block (null = none).</summary>
     public static readonly BlockBehavior[] BEH = new BlockBehavior[N];
@@ -95,6 +97,7 @@ public static partial class Blocks
             MBOX[i] = b.Model == "boxes" ? b.Boxes : null;
             COLL[i] = b.Collision; SEL[i] = b.Selection; DEFS[i] = b;
             HASVAR[i] = b.HasVariants;
+            TALL[i] = (b.Collision?.Any(c => c.Y1 > 1) ?? false) || b.Overrides.Any(o => o.Collision?.Any(c => c.Y1 > 1) ?? false); AnyTall |= TALL[i];
             BEH[i] = b.Behavior.Length > 0 ? BlockBehavior.Create(b.Behavior, $"{AssetPaths.BlockDefinitions}: block {b.FullName}") : null;
             if (HASVAR[i])
             {   // the default state (word 0) also fills the plain tables, so code that ignores state still sees the default look

@@ -10,6 +10,8 @@ public static class PlayerPhysics
     public const double EYE = 1.62, GRAV = 30, JUMP = 9, HW = .24;
     /// <summary>Highest ledge the player walks up without jumping (stairs, slabs), like Minecraft's step height.</summary>
     public const double STEP = .6;
+    /// <summary>How far the camera still trails a step-up (glides to 0).</summary>
+    public static double stepLag;
 
     // Gravity always points at the planet centre. Its strength follows the shell theorem for a uniform planet: inverse-square above the surface (R/r)^2, linear in depth below it (r/R)
     public static double GravK(double r) => r >= R ? (R / r) * (R / r) : r / R;
@@ -27,7 +29,8 @@ public static class PlayerPhysics
 
     public static void SyncCam()
     {
-        double m = Math.Max(P.p.Len, 12), k = EYE / m; C.x = P.p.X + P.p.X * k; C.y = P.p.Y + P.p.Y * k; C.z = P.p.Z + P.p.Z * k;
+        // stepLag: the camera lags behind a step-up and glides after it, so walking up stairs looks smooth (the body moved up at once)
+        double m = Math.Max(P.p.Len, 12), k = (EYE - stepLag) / m; C.x = P.p.X + P.p.X * k; C.y = P.p.Y + P.p.Y * k; C.z = P.p.Z + P.p.Z * k;
     }
     public static void ToPlayer()
     {
@@ -99,12 +102,14 @@ public static class PlayerPhysics
         bool free = Mv(ax, dist, false);
         if (M.Dot(P.p - blocked, ax) * Math.Sign(dist) < .01) { P.p = blocked; return false; } // the ledge is too high: no progress
         Mv(g, -STEP, true); // settle onto the step
+        stepLag = Math.Min(stepLag + Math.Max(0, M.Dot(P.p - start, g)), 1.2); // the camera follows smoothly (SyncCam)
         return free;
     }
     public static void PlayerUpdate(double dt, double fw, double sd, bool jump, bool sneak, bool ctrl)
     {
         int n = Math.Max(1, (int)Math.Ceiling(dt / .017)); double h = dt / n;
         for (int i = 0; i < n; i++) PStep(h, fw, sd, jump, sneak, ctrl);
+        stepLag *= Math.Exp(-dt * 14); if (stepLag < 1e-3) stepLag = 0;
         SyncCam();
     }
 }

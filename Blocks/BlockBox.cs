@@ -4,6 +4,7 @@ namespace CubePlanet;
 
 /// <summary>
 /// An axis-aligned box in block-local units (0..1; x / z along the block grid, y = up, away from the planet centre).
+/// A box may reach up to y = 1.5 (fence collision, like Minecraft: you cannot jump over it).
 /// JSON: {"x","y","z","w","h","d"} (3D) or the AssetEditor's 2D form {"x","y","width","height"}, which spans the full depth.
 /// </summary>
 public readonly struct BlockBox
@@ -17,7 +18,7 @@ public readonly struct BlockBox
     {
         double N(string a, string b, double def) => DefinitionFile.Get(e, a) is { ValueKind: JsonValueKind.Number } v ? v.GetDouble() : DefinitionFile.Get(e, b) is { ValueKind: JsonValueKind.Number } v2 ? v2.GetDouble() : def;
         double x = N("x", "x", 0), y = N("y", "y", 0), z = N("z", "z", 0), w = N("w", "width", 1), h = N("h", "height", 1), d = N("d", "depth", 1);
-        return new BlockBox(Math.Clamp(x, 0, 1), Math.Clamp(y, 0, 1), Math.Clamp(z, 0, 1), Math.Clamp(x + w, 0, 1), Math.Clamp(y + h, 0, 1), Math.Clamp(z + d, 0, 1));
+        return new BlockBox(Math.Clamp(x, 0, 1), Math.Clamp(y, 0, 1), Math.Clamp(z, 0, 1), Math.Clamp(x + w, 0, 1), Math.Clamp(y + h, 0, 1.5), Math.Clamp(z + d, 0, 1));
     }
     /// <summary>A JSON list of boxes, or null when the key is missing.</summary>
     public static BlockBox[] ParseList(JsonElement? e) => e is { ValueKind: JsonValueKind.Array } a ? a.EnumerateArray().Select(Parse).ToArray() : null;

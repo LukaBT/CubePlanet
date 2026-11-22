@@ -177,20 +177,25 @@ public static class SelfTest
         var vs2 = Spot(38, 9); BlockActions.Place(vs2, OakVerticalSlab, ax, out _); // looking east
         Check(Collides(OakVerticalSlab, vs2.State, .75, .5, .5) && !Collides(OakVerticalSlab, vs2.State, .25, .5, .5), "vertical slab turns with the look direction (east half)");
         // ---- walking up stairs and slabs (step-up), but not up a full block
-        (double h, double dist) Walk(BlockPos at, double secs)
+        double maxLag = 0;
+        (double h, double dist) Walk(BlockPos at, double secs, bool jump = false)
         {
             Band WB = bands[at.B]; V3 c0 = Gp(WB, at.F, at.Z + .5, at.X + .5, WB.inner + at.Y), up0 = M.Nrm(c0), fw0 = M.Nrm(-at.Axes().z);
             var cam = (C.x, C.y, C.z, C.f, C.u); // the camera follows the player: put it back so later test spots stay where they were
             P.on = true; P.ready = true; P.fly = false; P.core = false; P.vu = 0; P.vh = new V3(); P.gnd = true; P.p = c0 + up0 * .01;
             C.f = fw0; C.u = up0;
             double top = -9; // highest the feet got (the walk may carry on past the obstacle and drop down behind it)
-            for (double t = 0; t < secs; t += .05) { PlayerPhysics.PlayerUpdate(.05, 1, 0, false, false, false); top = Math.Max(top, M.Dot(P.p - c0, up0)); }
+            maxLag = 0;
+            for (double t = 0; t < secs; t += .05) { PlayerPhysics.PlayerUpdate(.05, 1, 0, jump, false, false); top = Math.Max(top, M.Dot(P.p - c0, up0)); maxLag = Math.Max(maxLag, PlayerPhysics.stepLag); }
             V3 d = P.p - c0; P.on = false; (C.x, C.y, C.z, C.f, C.u) = cam; return (top, M.Dot(d, fw0));
         }
         var w1 = Spot(41, 0); w1.TryOffset(0, 0, -1, out var s1a); w1.TryOffset(0, 0, -2, out var s1b);
         BlockActions.Place(s1a, OakSlab, -az, out _); BlockActions.Place(s1b, OakSlab, -az, out _);
         var (h1, d1w) = Walk(w1, .6);
         Check(Math.Abs(h1 - .5) < .06 && d1w > .9, $"walks up onto slabs without jumping (highest {h1:0.00}, moved {d1w:0.00})");
+        Check(maxLag > .2, $"the camera glides after a step-up instead of jumping (camera lag up to {maxLag:0.00})");
+        for (int i = 0; i < 20; i++) PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false);
+        Check(PlayerPhysics.stepLag < .01, "the camera catches up with the body");
         var w2 = Spot(41, 4); w2.TryOffset(0, 0, -1, out var s2a); w2.TryOffset(0, 0, -2, out var s2b);
         BlockActions.Place(s2a, OakStairs, -az, out _); s2b.Set(Stone); // stairs rising away from the player, then a block at the top height
         var (h2, d2w) = Walk(w2, 1.0);
@@ -198,6 +203,12 @@ public static class SelfTest
         var w3 = Spot(41, 8); w3.TryOffset(0, 0, -1, out var s3a); s3a.Set(Stone);
         var (h3, d3w) = Walk(w3, .6);
         Check(h3 < .06 && d3w < .5, $"a full block still blocks (highest {h3:0.00}, moved {d3w:0.00})");
+
+        // ---- fences are 1.5 high for collision: jumping does not get over them
+        var wf = Spot(41, 12);
+        for (int a = -1; a <= 1; a++) if (wf.TryOffset(a, 0, -1, out var fq)) BlockActions.Place(fq, OakFence, -az, out _);
+        var (hf, dfw) = Walk(wf, 1.5, jump: true);
+        Check(dfw < .8, $"jumping at a fence row does not get over it (moved {dfw:0.00}, highest {hf:0.00})");
 
         // ---- fences connect to fences and solid blocks
         var fa = Spot(35, 0); BlockActions.Place(fa, OakFence, -az, out _);

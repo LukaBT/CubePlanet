@@ -47,13 +47,14 @@ _ARM = {"north": (.4375, 0, .125, .375), "south": (.4375, .625, .125, .375), "ea
 def fence_preset():
     import itertools
     rails = lambda ds: [_POST] + [box(x, y, z, w, .1875, d) for dn in ds for (x, z, w, d) in [_ARM[dn]] for y in (.375, .75)]
-    solid = lambda ds: [_POST] + [box(x, 0, z, w, 1, d) for dn in ds for (x, z, w, d) in [_ARM[dn]]]
+    tall = box(.375, 0, .375, .25, 1.5, .25)  # collision 1.5 high like Minecraft: fences cannot be jumped over
+    solid = lambda ds: [tall] + [box(x, 0, z, w, 1.5, d) for dn in ds for (x, z, w, d) in [_ARM[dn]]]
     ovs = []
     for combo in itertools.product([False, True], repeat=4):
         ds = [dn for dn, on in zip(("north", "east", "south", "west"), combo) if on]
         if ds: ovs.append({"when": dict(zip(("north", "east", "south", "west"), combo)), "boxes": rails(ds), "collision": solid(ds), "selection": rails(ds)})
     return {"model": "boxes", "behavior": "connecting", "connects_to": ["fence"], "boxes": rails([]),
-            "geometry": {"collision": [_POST], "selection": [_POST], "state_overrides": ovs},
+            "geometry": {"collision": [tall], "selection": [_POST], "state_overrides": ovs},
             "_state": {dn: {"type": "boolean", "default": False} for dn in ("north", "east", "south", "west")}, "_tags": ["fence"]}
 
 
@@ -136,7 +137,7 @@ def norm_box(b):
     """A box in 3D form (accepts the editor's 2D {x, y, width, height} too)."""
     w = b.get("w", b.get("width", 1)); h = b.get("h", b.get("height", 1)); dd = b.get("d", b.get("depth", 1))
     x, y, z = b.get("x", 0), b.get("y", 0), b.get("z", 0)
-    return (max(0, x), max(0, y), max(0, z), min(1, x + w), min(1, y + h), min(1, z + dd))
+    return (max(0, x), max(0, y), max(0, z), min(1, x + w), min(1.5, y + h), min(1, z + dd))  # collision may reach 1.5 (fences)
 
 
 # ---------------------------------------------------------------- state (packed bits like the game)

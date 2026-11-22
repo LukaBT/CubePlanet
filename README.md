@@ -141,7 +141,8 @@ and all wave settings).
 
 ## Player collision
 The player walks up ledges up to 0.6 blocks high without jumping (stairs, slabs), like Minecraft's step height: when walking is blocked on
-the ground, the move is tried 0.6 higher and the player settles onto the step if that gets further. Full blocks still need a jump.
+the ground, the move is tried 0.6 higher and the player settles onto the step if that gets further. Full blocks still need a jump. The camera glides up after
+the step (the body moves at once), so stairs feel smooth. Collision boxes may reach y = 1.5: fences use that, so they cannot be jumped over.
 Falling uses the same hitbox width as walking (it used to be 0.03 narrower per side, which let you drop into gaps the walking box does not
 fit through, e.g. digging down while standing near a block's edge, and then you were stuck inside the walls). As a safety net, a player found
 overlapping blocks (a chunk finished loading around them, an edit) is pushed out by the smallest free move: sideways first, then upwards.

@@ -12,8 +12,12 @@ public static class Collision
     internal static bool SolidAt(double x, double y, double z)
     {
         int b = LocalAt(x, y, z, out double lx, out double ly, out double lz);
-        if (!HASVAR[b]) return Collides(b, lx, ly, lz);
-        BlockPos.TryAt(x, y, z, out var p); return Collides(b, p.State, lx, ly, lz); // doors, stairs...: geometry depends on the state
+        if (HASVAR[b] ? (BlockPos.TryAt(x, y, z, out var p) && Collides(b, p.State, lx, ly, lz)) : Collides(b, lx, ly, lz)) return true; // doors, stairs: geometry depends on the state
+        if (!AnyTall || ly >= .5) return false;
+        // a fence below reaches up into this cell (collision up to 1.5 high)
+        if (!BlockPos.TryAt(x, y, z, out var here) || here.Core || !here.TryOffset(0, -1, 0, out var below)) return false;
+        int bb = below.Id;
+        return TALL[bb] && Collides(bb, HASVAR[bb] ? below.State : 0, lx, ly + 1, lz);
     }
 
     internal static (V3, V3) CoreFrame(V3 g)
