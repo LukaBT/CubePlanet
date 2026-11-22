@@ -68,8 +68,10 @@ arrive with phases 2 and 4. Fingerprint and shader sources are byte-identical to
 Recommended depth (default): move code into these folders and smaller, well-named classes now; do NOT rewrite the world into instance
 objects (World/Chunk instances like PolarGame) in one go - do that gradually later. Fingerprint + screenshots must be unchanged.
 
-## Phase 2 - Assets and definitions drive everything
+## Phase 2 - Assets and definitions drive everything (done)
 
+Status: done. Exporter ran once (commit "Phase 2a", then removed), tables + textures load from Assets/, named IDs in Blocks/BlockIds.cs,
+`ushort` chunk data, shader material flags (checked: identical to the old layer rules on 50M vertices). Fingerprints unchanged.
 * One-time exporter `--export-assets`: writes today's 117 procedurally generated blocks (`Textures.cs`, `Textures.Biomes.cs`) as the 7
   editor files into `Assets/`: block texture atlas (16x16), block definitions, item definitions, item icons (32x32, rendered from the
   block). Afterwards textures load from `Assets/` and the procedural texture code is removed.

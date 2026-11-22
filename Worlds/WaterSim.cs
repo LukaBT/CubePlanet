@@ -17,8 +17,8 @@ public static class WaterSim
     internal static readonly Random wrng = new();
     internal static double wAcc;
 
-    internal static bool Wfree(int id) => id == 0 || (SPC[id] != 0 && id != 51 && id != 52 && !UWP[id]);
-    internal static int Wl(WC c) => c.id == 9 ? (WL.TryGetValue(c.k, out int v) ? v : 8) : 0;
+    internal static bool Wfree(int id) => id == 0 || (SPC[id] != 0 && ATT[id] == 0 && !UWP[id]);
+    internal static int Wl(WC c) => c.id == Water ? (WL.TryGetValue(c.k, out int v) ? v : 8) : 0;
     internal static void Wput(WC c, int l) => SetCell(c.b, c.F, c.X, c.Y, c.Z, l > 0 ? 9 : 0, l);
 
     internal static WC Wcell(int bi, int f, int x, int y, int z)
@@ -26,7 +26,7 @@ public static class WaterSim
         if (!Norm(bi, f, x, y, z)) return default;
         int b = NB, F = NF, X = NX, Y = NY, Z = NZ; long k = ek(); int id;
         if (chunks.TryGetValue(ck(b, F, X >> 5, Y >> 5, Z >> 5), out var ch) && ch.d != null) id = ch.d[(X & 31) + 32 * ((Z & 31) + 32 * (Y & 31))];
-        else id = edits.TryGetValue(k, out byte e) ? e : Gen(bands[b], F, X, Y, Z);
+        else id = edits.TryGetValue(k, out ushort e) ? e : Gen(bands[b], F, X, Y, Z);
         return new WC { ok = true, k = k, b = b, F = F, X = X, Y = Y, Z = Z, id = id };
     }
     internal static void Wake(int b, int f, int x, int y, int z)
@@ -34,20 +34,20 @@ public static class WaterSim
         for (int d = -1; d < 6; d++)
         {
             var c = d < 0 ? Wcell(b, f, x, y, z) : Wcell(b, f, x + DX[d], y + DY[d], z + DZ[d]);
-            if (c.ok && c.id == 9 && !WAct.ContainsKey(c.k)) { WAct[c.k] = (c.b, c.F, c.X, c.Y, c.Z); wactQ.Enqueue(c.k); }
+            if (c.ok && c.id == Water && !WAct.ContainsKey(c.k)) { WAct[c.k] = (c.b, c.F, c.X, c.Y, c.Z); wactQ.Enqueue(c.k); }
         }
     }
 
     /// <summary>A placed water block adds 8 units: it tops up this cell and whatever doesn't fit rises into the cells above.</summary>
     public static void PlaceWater(double x, double y, double z, int amt = 8)
     {
-        if (x * x + y * y + z * z < CORE * CORE) { CoreSet(x, y, z, 9); return; }
+        if (x * x + y * y + z * z < CORE * CORE) { CoreSet(x, y, z, Water); return; }
         int bi = P2b(x, y, z); if (bi < 0) return;
         var c = Wcell(bi, PF, PX, PY, PZ); if (!c.ok) return;
         int add = amt > 0 ? amt : 8;
         for (int i = 0; i < 200 && add > 0 && c.ok; i++)
         {
-            if (c.id != 9 && !Wfree(c.id)) break;
+            if (c.id != Water && !Wfree(c.id)) break;
             int l = Wl(c), t = Math.Min(8, l + add);
             if (t > l) { SetCell(c.b, c.F, c.X, c.Y, c.Z, 9, t); add -= t - l; }
             c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z);
@@ -61,7 +61,7 @@ public static class WaterSim
         WC hi = default, lo = default, loUp = default; int hiS = 0, hiLv = 0, loS = 0, loLv = 0; bool hasHi = false, hasLo = false;
         for (int qi = 0; qi < q.Count && q.Count < 256; qi++)
         {
-            var c = q[qi]; int lv = Wl(c); var up = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); bool upW = up.ok && up.id == 9;
+            var c = q[qi]; int lv = Wl(c); var up = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); bool upW = up.ok && up.id == Water;
             if (!upW && c.b == st.b)
             {
                 int S = c.Y * 8 + lv;
@@ -72,7 +72,7 @@ public static class WaterSim
             {
                 if (d == 2 && !upW) continue;
                 var n = d == 2 ? up : Wcell(c.b, c.F, c.X + DX[d], c.Y + DY[d], c.Z + DZ[d]);
-                if (n.ok && n.id == 9 && !seen.Contains(n.k)) { seen.Add(n.k); q.Add(n); }
+                if (n.ok && n.id == Water && !seen.Contains(n.k)) { seen.Add(n.k); q.Add(n); }
             }
         }
         if (hasHi && hasLo && hiS - loS >= 2)
@@ -95,9 +95,9 @@ public static class WaterSim
                     int dx = N4[(i + ro) & 3][0], dz = N4[(i + ro) & 3][1];
                     var n = Wcell(o.c.b, o.c.F, o.c.X + dx, o.c.Y, o.c.Z + dz);
                     if (!n.ok || seen.Contains(n.k)) continue; seen.Add(n.k);
-                    if (!(Wfree(n.id) || (n.id == 9 && Wl(n) < 8))) continue;
+                    if (!(Wfree(n.id) || (n.id == Water && Wl(n) < 8))) continue;
                     var d0 = o.d ?? new[] { dx, dz }; var bl = Wcell(n.b, n.F, n.X, n.Y - 1, n.Z);
-                    if (bl.ok && (Wfree(bl.id) || (bl.id == 9 && Wl(bl) < 8))) return d0;
+                    if (bl.ok && (Wfree(bl.id) || (bl.id == Water && Wl(bl) < 8))) return d0;
                     nx.Add((n, d0));
                 }
             fr = nx;
@@ -111,19 +111,19 @@ public static class WaterSim
         while (n++ < 400 && wactQ.Count > 0)
         {
             long k = wactQ.Dequeue(); if (!WAct.Remove(k, out var co)) continue;
-            var cur = Wcell(co.b, co.f, co.x, co.y, co.z); if (!cur.ok || cur.id != 9) continue;
+            var cur = Wcell(co.b, co.f, co.x, co.y, co.z); if (!cur.ok || cur.id != Water) continue;
             int l = Wl(cur), l0 = l;
             var dn = Wcell(cur.b, cur.F, cur.X, cur.Y - 1, cur.Z);
             if (dn.ok)
             {
                 if (Wfree(dn.id)) { Wput(dn, l); Wput(cur, 0); continue; }
-                if (dn.id == 9) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
+                if (dn.id == Water) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
             }
             int ro = wrng.Next(4); var dd = Wdrop(cur, ro);
             if (dd != null)
             {
                 var nc = Wcell(cur.b, cur.F, cur.X + dd[0], cur.Y, cur.Z + dd[1]);
-                if (nc.ok && (nc.id == 9 || Wfree(nc.id)))
+                if (nc.ok && (nc.id == Water || Wfree(nc.id)))
                 {
                     int ln = Wl(nc), m = Math.Min(l, 8 - ln);
                     if (m > 0) { Wput(nc, ln + m); l -= m; Wput(cur, l); continue; }
@@ -133,13 +133,13 @@ public static class WaterSim
             {
                 int dx = N4[(ni + ro) & 3][0], dz = N4[(ni + ro) & 3][1];
                 var nc = Wcell(cur.b, cur.F, cur.X + dx, cur.Y, cur.Z + dz);
-                if (!nc.ok || (nc.id != 9 && !Wfree(nc.id))) continue;
+                if (!nc.ok || (nc.id != Water && !Wfree(nc.id))) continue;
                 int lo = Wl(nc);
                 if (l - lo >= 2) { int m = (l - lo) >> 1; l -= m; Wput(nc, lo + m); }
                 else if (l - lo == 1 && lo > 0)
                 {
                     var n2 = Wcell(cur.b, cur.F, cur.X + 2 * dx, cur.Y, cur.Z + 2 * dz);
-                    if (n2.ok && (n2.id == 9 || Wfree(n2.id)) && Wl(n2) < lo) { l -= 1; Wput(nc, lo + 1); }
+                    if (n2.ok && (n2.id == Water || Wfree(n2.id)) && Wl(n2) < lo) { l -= 1; Wput(nc, lo + 1); }
                 }
             }
             if (l != l0) { Wput(cur, l); continue; }
@@ -166,7 +166,7 @@ public static class WaterSim
             if (x * x + y * y + z * z < CORE * CORE) return default;
             int bi = P2b(x, y, z); if (bi < 0) continue;
             int f = PF, bx = PX, by = PY, bz = PZ, b = Blk(bi, f, bx, by, bz);
-            if (b == 9) return Wcell(bi, f, bx, by, bz);
+            if (b == Water) return Wcell(bi, f, bx, by, bz);
             if (b != 0 && SPC[b] == 0) return default;
         }
         return default;

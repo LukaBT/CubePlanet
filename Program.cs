@@ -7,6 +7,13 @@ public static class Program
     public static bool NoVsync; public static double Bench; public static string Shot; // --bench N: start right away, quit after N seconds and print FPS (--shot file.png saves the last frame)
     public static void Main(string[] args)
     {
+        // everything (generation, meshing, UI) uses the block tables, and static tables (hotbar, palettes, ore lists) are built from the named block IDs, so the asset files are loaded before anything else
+        try { GameAssets.Load(); }
+        catch (Exception e) when (e is IOException || e is InvalidDataException || e is KeyNotFoundException)
+        {
+            Console.Error.WriteLine("Could not load the game assets from " + AssetPaths.Directory + ":\n" + e.Message);
+            Environment.ExitCode = 1; return;
+        }
         // optional: CubePlanet --radius 1200 --seed 1337 --msaa 0|2|4|8 --novsync
         foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--showsettings") UI.settingsOpen = true; }
         for (int i = 0; i + 1 < args.Length; i++)
@@ -22,13 +29,6 @@ public static class Program
             if (args[i] == "--pitch") double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out Pitch);
             if (args[i] == "--set") Overrides.Add(args[i + 1]); // e.g. --set ao=0 (for this run only, not saved)
             if (args[i] == "--bench" && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double bs)) Bench = bs;
-        }
-        // everything (generation, meshing, UI) uses the block tables, so the asset files are loaded before anything else
-        try { GameAssets.Load(); }
-        catch (Exception e) when (e is IOException || e is InvalidDataException || e is KeyNotFoundException)
-        {
-            Console.Error.WriteLine("Could not load the game assets from " + AssetPaths.Directory + ":\n" + e.Message);
-            Environment.ExitCode = 1; return;
         }
         if (Array.IndexOf(args, "--fingerprint") >= 0)
         {   // headless world fingerprint (no window): --fingerprint [--radius N] [--seed N] [--fprd CHUNKS]

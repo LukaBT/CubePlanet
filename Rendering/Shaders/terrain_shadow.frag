@@ -1,1 +1,1 @@
-in vec2 vUv;flat in float vL;uniform sampler2DArray uT;void main(){if((vL>42.5&&vL<55.5)||(vL>103.5&&vL<117.5))discard;if(texture(uT,vec3(vUv,vL)).a<.5)discard;}
+in vec2 vUv;flat in float vL;flat in uint vF;uniform sampler2DArray uT;void main(){if((vF&16u)!=0u)discard;if(texture(uT,vec3(vUv,vL)).a<.5)discard;}

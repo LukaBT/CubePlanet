@@ -28,7 +28,7 @@ public static class ChunkGenerator
     internal static void GenerateCore(Chunk ch)
     {
         Band B = bands[ch.band]; int f = ch.face;
-        var d = new byte[32768];
+        var d = new ushort[32768];
         bool has; lock (EditLock) has = ecount.ContainsKey(ch.key);
         Col c = ColsOf(B, f, ch.cx, ch.cz);
         double r0 = B.inner + ch.cy * CS; int salt = ch.cx * 7919 + ch.cz * 104729;
@@ -44,11 +44,11 @@ public static class ChunkGenerator
             {
                 // buried below every cave: solid stone turning to deepslate, plus ore veins
                 double sMin = R + c.lo - (r0 + CS), sMax = R + c.hi - r0;
-                if (sMin >= 72) Array.Fill(d, (byte)66);
-                else if (sMax < 56) Array.Fill(d, (byte)2);
+                if (sMin >= 72) Array.Fill(d, (ushort)Deepslate);
+                else if (sMax < 56) Array.Fill(d, (ushort)Stone);
                 else
                     for (int z = 0; z < CS; z++) for (int x = 0; x < CS; x++) for (int y = 0; y < CS; y++)
-                            { int i = x + CS * z; double r = r0 + y + .5; d[x + CS * (z + CS * y)] = (byte)StoneAt(R + c.h[i] - r, i, r, salt); }
+                            { int i = x + CS * z; double r = r0 + y + .5; d[x + CS * (z + CS * y)] = (ushort)StoneAt(R + c.h[i] - r, i, r, salt); }
                 ApplyOres(ch, d, c, r0, f); ch.solid = true; Volatile.Write(ref ch.d, d); return;
             }
         }
@@ -78,10 +78,10 @@ public static class ChunkGenerator
                         int kx2 = x >> 2, ky2 = y >> 2, kz2 = z >> 2, q = (ky2 * 9 + kz2) * 9 + kx2;
                         if (Tri(NG[q], NG[q + 1], NG[q + 81], NG[q + 82], NG[q + 9], NG[q + 10], NG[q + 90], NG[q + 91], (x & 3) / 4.0, (y & 3) / 4.0, (z & 3) / 4.0) > 0)
                         {
-                            double rel = r - R; id = rel < -(CAVB - 20) ? 75 : rel < aq[(z >> 4) * 2 + (x >> 4)] ? 9 : 0; // lava lakes at the bottom, flooded caves, else air
+                            double rel = r - R; id = rel < -(CAVB - 20) ? Lava : rel < aq[(z >> 4) * 2 + (x >> 4)] ? Water : 0; // lava lakes at the bottom, flooded caves, else air
                         }
                     }
-                    d[x + CS * (z + CS * y)] = (byte)id;
+                    d[x + CS * (z + CS * y)] = (ushort)id;
                 }
             }
         ApplyOres(ch, d, c, r0, f);
@@ -94,7 +94,7 @@ public static class ChunkGenerator
                 for (int z = 0; z < CS; z++) for (int x = 0; x < CS; x++) for (int y = 0; y < CS; y++)
                         {
                             long k = ekOf(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
-                            if (edits.TryGetValue(k, out byte e)) d[x + CS * (z + CS * y)] = e;
+                            if (edits.TryGetValue(k, out ushort e)) d[x + CS * (z + CS * y)] = e;
                         }
         Volatile.Write(ref ch.d, d);
     }

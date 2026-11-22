@@ -31,7 +31,7 @@ public static class Columns
                 V3 t = GpA(f, -PI / 4 + (cz * CS + z + .5) * B.d, -PI / 4 + (cx * CS + x + .5) * B.d, 1);
                 Terrain(t.X, t.Y, t.Z, 0);
                 int i = x + CS * z;
-                c.h[i] = (float)gH; c.t[i] = (byte)gT; c.f[i] = (byte)gF; c.fd[i] = (byte)gFD; c.ice[i] = (byte)gI; c.b[i] = (byte)gB;
+                c.h[i] = (float)gH; c.t[i] = (ushort)gT; c.f[i] = (ushort)gF; c.fd[i] = (byte)gFD; c.ice[i] = (byte)gI; c.b[i] = (byte)gB;
                 if (gH > c.hi) c.hi = gH; if (gH < c.lo) c.lo = gH;
             }
         colCache[key] = c; return c;

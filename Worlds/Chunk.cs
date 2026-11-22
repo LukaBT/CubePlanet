@@ -4,7 +4,7 @@ namespace CubePlanet;
 public class Chunk
 {
     public long key; public int band, face, cx, cy, cz;
-    public byte[] d; public bool dirty = true, built, emp, solid, core, empty;
+    public ushort[] d; public bool dirty = true, built, emp, solid, core, empty; // d = block IDs (2 bytes), index x + 32 * (z + 32 * y)
     public int gst; public bool gfail; // generation claim: 0 free, 1 claimed by a worker or the main thread; gfail = a worker threw, the main thread retries
     public Mesh mesh, wmesh;
     public double mx, my, mz, cr;

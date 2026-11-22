@@ -3,7 +3,7 @@ namespace CubePlanet;
 /// <summary>Hotbar and block palette.</summary>
 public static partial class UI
 {
-    public static readonly int[] HB = { 1, 2, 3, 4, 5, 6, 7, 8, WaterSim.BK, 9 };
+    public static readonly int[] HB = { Grass, Stone, Dirt, OakLog, OakLeaves, Ice, Sand, Snow, WaterSim.BK, Water };
 
     // ---------- hotbar / palette ----------
     public static void SetSlotBlock(int id)

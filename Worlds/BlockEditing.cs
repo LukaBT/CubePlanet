@@ -3,7 +3,7 @@ namespace CubePlanet;
 /// <summary>Breaking, placing and picking blocks with the selected hotbar block.</summary>
 public static class BlockEditing
 {
-    public static int sel = 2, slot = 2; // selected block id, selected hotbar slot (1..10)
+    public static int sel = Stone, slot = 2; // selected block id, selected hotbar slot (1..10)
 
     // ---------- editing ----------
     /// <summary>March along the view ray; returns the first solid block hit plus the empty cell just before it.</summary>
@@ -16,14 +16,14 @@ public static class BlockEditing
             if (x * x + y * y + z * z < CORE * CORE)
             {
                 int id = CoreAt(x, y, z);
-                if (id != 0 && id != 9) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, core = true, id = id, ci = (int)Math.Floor(x), cj = (int)Math.Floor(y), ck = (int)Math.Floor(z) };
+                if (id != 0 && id != Water) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, core = true, id = id, ci = (int)Math.Floor(x), cj = (int)Math.Floor(y), ck = (int)Math.Floor(z) };
                 px = x; py = y; pz = z; continue;
             }
             int bi = P2b(x, y, z);
             if (bi >= 0)
             {
                 int f = PF, bx = PX, by = PY, bz = PZ, hb = Blk(bi, f, bx, by, bz);
-                if (hb != 0 && hb != 9) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, bi = bi, f = f, bx = bx, by = by, bz = bz };
+                if (hb != 0 && hb != Water) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, bi = bi, f = f, bx = bx, by = by, bz = bz };
             }
             px = x; py = y; pz = z;
         }
@@ -42,7 +42,7 @@ public static class BlockEditing
             for (int k = 1; k < 6; k++)
             {
                 double X = T.x + g.X * k, Y = T.y + g.Y * k, Z = T.z + g.Z * k; int b = GetAt(X, Y, Z);
-                if (SPC[b] != 0 && b != 51 && b != 52) { SetAt(X, Y, Z, 0); if (UWP[b]) PlaceWater(X, Y, Z); } else break;
+                if (SPC[b] != 0 && ATT[b] == 0) { SetAt(X, Y, Z, 0); if (UWP[b]) PlaceWater(X, Y, Z); } else break;
             }
         }
         else if (plc)
@@ -51,7 +51,7 @@ public static class BlockEditing
             double X = rp ? T.x : T.px, Y = rp ? T.y : T.py, Z = rp ? T.z : T.pz;
             if ((X - C.x) * (X - C.x) + (Y - C.y) * (Y - C.y) + (Z - C.z) * (Z - C.z) > 1)
             {
-                int prev = GetAt(X, Y, Z); if (sel == 9) PlaceWater(X, Y, Z); else SetAt(X, Y, Z, sel);
+                int prev = GetAt(X, Y, Z); if (sel == Water) PlaceWater(X, Y, Z); else SetAt(X, Y, Z, sel);
                 if (P.on && Pcol(P.p, HW)) SetAt(X, Y, Z, prev);
             }
         }
@@ -60,7 +60,7 @@ public static class BlockEditing
     {
         var T = Raycast(P.on ? 6 : 10); if (T == null) return;
         int id = T.core ? T.id : Blk(T.bi, T.f, T.bx, T.by, T.bz);
-        if (id == 0 || id == 9) return;
+        if (id == 0 || id == Water) return;
         UI.SetSlotBlock(id);
     }
 }

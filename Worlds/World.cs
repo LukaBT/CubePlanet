@@ -13,7 +13,7 @@ public static class World
     public static Dictionary<long, Chunk> chunks = new();   // main thread (iteration)
     public static readonly System.Collections.Concurrent.ConcurrentDictionary<long, Chunk> chunkMap = new(); // same content, for lookups from worker threads
     public static void AddChunk(Chunk ch) { chunks[ch.key] = ch; chunkMap[ch.key] = ch; }
-    public static Dictionary<long, byte> edits = new();
+    public static Dictionary<long, ushort> edits = new();
     public static Dictionary<long, int> ecount = new();
     public static double HS = 1, HMAX = 100, MH = 70, OD = 24, DEP = 48, CAVB = 100;
     /// <summary>World-size scaling: biome regions (BSC), landforms such as mountains/rivers/ocean relief (LSC) and continent wavelength (LCN, blocks).</summary>
@@ -46,7 +46,7 @@ public static class World
         {
             double y = 1 - 2 * (i + .5) / n0, rr = Math.Sqrt(1 - y * y), th = ga * i, x = Math.Cos(th) * rr, z = Math.Sin(th) * rr;
             Terrain(x, y, z, 200);
-            if (gH > 3 && gH < 14 && gT == 1 && Math.Abs(y) < .6) { best = new[] { x, y, z, gH }; break; }
+            if (gH > 3 && gH < 14 && gT == Grass && Math.Abs(y) < .6) { best = new[] { x, y, z, gH }; break; }
             if (any == null && gH > 2) any = new[] { x, y, z, gH };
         }
         var s = best ?? any ?? new[] { 0, 1, 0, 0.0 };

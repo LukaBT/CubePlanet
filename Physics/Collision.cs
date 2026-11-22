@@ -8,7 +8,7 @@ public static class Collision
     internal static readonly int[][] HOF = { new[] { -1, -1 }, new[] { 0, -1 }, new[] { 1, -1 }, new[] { -1, 0 }, new[] { 1, 0 }, new[] { -1, 1 }, new[] { 0, 1 }, new[] { 1, 1 } };
     internal static readonly double[] RCS = Enumerable.Range(0, 12).Select(k => Math.Cos(k * PI / 6)).ToArray(), RSN = Enumerable.Range(0, 12).Select(k => Math.Sin(k * PI / 6)).ToArray();
 
-    internal static bool SolidAt(double x, double y, double z) { int b = GetAt(x, y, z); return b != 0 && b != 9 && SPC[b] == 0; }
+    internal static bool SolidAt(double x, double y, double z) { int b = GetAt(x, y, z); return b != 0 && b != Water && SPC[b] == 0; }
 
     internal static (V3, V3) CoreFrame(V3 g)
     {

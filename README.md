@@ -20,7 +20,7 @@ dotnet publish -c Release            # Windows: win-x64 is the default
 dotnet publish -c Release -r linux-x64   # or osx-arm64, osx-x64, win-arm64 ...
 ```
 Output: `bin/Release/net8.0/<rid>/publish/CubePlanet.exe` - one self-contained file (no .NET install needed, glfw3.dll is
-embedded and unpacked to a temp folder on first launch, no .pdb). Delete the old `bin/` and `obj/` folders first if you built before.
+embedded and unpacked to a temp folder on first launch, no .pdb) plus the `Assets` folder next to it (ship both). Delete the old `bin/` and `obj/` folders first if you built before.
 
 ## Controls
 WASD walk, Space jump (double-tap = fly), Ctrl / double-tap W sprint, Shift sneak / fly down,
@@ -33,26 +33,45 @@ The old single `static partial class W` is split into static classes by area; `G
 keeps using short names (`R`, `chunks`, `Blk(...)`, `C`, `P`, `SET`, ...). A class's own members and locals still win over those imports.
 ```
 Program.cs, Game.cs, Settings.cs, GlobalUsings.cs
-Blocks/                BlockTables (per-block property tables), ProceduralTextures (removed once textures load from Assets/)
+Assets/                the 7 AssetEditor files (blocks, items, UIs, both atlases + their indexes), copied next to the exe
+AssetLoading/          AssetPaths, DefinitionFile (tolerant JSON), TextureDefinitionFile, AtlasLoader, GameAssets (loads everything at startup)
+Blocks/                BlockDefinition, BlockRegistry, BlockTables (per-block arrays built from the definitions), BlockIds (named IDs: Stone, Water, ...)
+Items/                 ItemDefinition, ItemRegistry
 Worlds/                World (radius, bands, chunks, edits, world creation), BlockAccess (position <-> block, Blk / SetCell), Cube (face axes, seams),
-                       Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), Water (+ bucket), BlockEditing
+                       Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), WaterSim (+ bucket), BlockEditing
 Generation/            Noise, Terrain (TerrainGen: heights + biomes), Caves, Columns (caches), Strata, Ores, ChunkGenerator, Features, Structures, GroundCover
 Physics/               Camera, Player (PlayerPhysics), Collision, camera / player state, RayHit
 Rendering/             Renderer (pipelines + frame), FrameUniforms, Highlight, Glsl (loads the embedded shaders)
 Rendering/Chunks/      Mesher, ChunkMeshes (upload + mesh jobs), LodTerrain, mesh types
-Rendering/Effects/     Sky (sun, time, atmosphere), Shadows, CloudNoise
+Rendering/Effects/     Sky (sun, time, atmosphere), Shadows, CloudNoise, NoiseVolume
 Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPasses, Descriptors, Memory, Images, Frame, ShaderCompiler, Pipelines
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
-UI/                    UI as partial files (Font, Draw2D, Hotbar, SettingsPanel, Compass, StartScreen) + Hud
+UI/                    UI as partial files (Font, Draw2D, Hotbar, SettingsPanel, Compass, StartScreen) + Hud, UiRegistry (ui_definitions, drawn from phase 4)
 Util/                  V3, M (math)
 Diagnostics/           Fingerprint (--fingerprint), Png (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 ```
 
+## Assets (blocks, items, textures)
+Everything about blocks comes from `Assets/`, in exactly the format the Python AssetEditor exports: `block_texture_atlas.png`,
+`item_texture_atlas.png`, `block_texture_definitions.txt`, `item_texture_definitions.txt`, `block_definitions.txt`, `item_definitions.txt`,
+`ui_definitions.txt`. They are loaded before anything else; a broken file stops the game with a message naming the file and the problem,
+an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture ID without a texture shows a magenta / black checkerboard.
+* Block IDs are 2 bytes (1..65535, 0 = air); chunk data is `ushort[]`. Item IDs are a separate space; item texture ID = item ID.
+* Texture layer = block texture ID; atlas rows are flipped on load (row 0 = bottom of a face). Textures must be square, power-of-two sized.
+* Today's 117 blocks were exported once from the old procedural textures (identical bytes); each block has an item that places it, plus `bucket`.
+* Game keys in `properties.definition` (all optional): `model` (cube / cross / liquid / attached + `attach`: vine / pod), `random_offset`,
+  `waterlogged` (underwater plants), `lod_color`, `render.layer` (opaque / cutout / translucent / liquid), `render.connect_group`
+  (faces between equal groups are hidden: leaves, glass, ice), `render.sway` (none / leaves / plant / underwater), `render.emissive`,
+  `render.casts_shadow`. `group_tags` used: `log`, `leaves`. Textures: `textures.all` (per-face slots come with 3D models, phase 3).
+* Shaders no longer know block IDs: the mesher writes material flags (sway, emissive, no shadow, ice) into each vertex.
+* Editing: open the `Assets` folder in the AssetEditor ("Open project folder"), change things, then **Export** into `Assets/`
+  (Save also works but adds the editor's own per-texture PNG folders and project_settings.json there).
+
 ## What was ported 1:1
 Terrain/biome/cave noise (same seed gives the same planet), column & cave caches, cube-face seam wrapping,
 band system, Cartesian core, features (trees, plants, 7 structure types), ground cover, mesher with skylight
-propagation and band-seam handling, procedural 16x16 texture atlas, all original GLSL (sky, clouds, aurora,
+propagation and band-seam handling, procedural 16x16 texture atlas (now exported to Assets/), all original GLSL (sky, clouds, aurora,
 water waves/foam, glass & ice, LOD terrain + sea, shadow map, atmosphere), LOD quadtree, camera, orbit mode,
 player & free-cam physics, editing, HUD, compass / UP-DOWN markers, hotbar, palette, settings panel
 (render distance, LOD, FOV, sensitivity, fly speed, shadows, clouds, fog, time of day, day length, axial tilt,

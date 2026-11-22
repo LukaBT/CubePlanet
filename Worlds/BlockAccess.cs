@@ -98,7 +98,7 @@ public static class BlockAccess
         if (k == blkKey && blkCh != null) ch = blkCh; // one-entry cache: consecutive lookups almost always hit the same chunk
         else { chunkMap.TryGetValue(k, out ch); if (ch != null) { blkKey = k; blkCh = ch; } }
         if (ch != null && ch.d != null) return ch.d[(NX & 31) + 32 * ((NZ & 31) + 32 * (NY & 31))];
-        byte e; bool he; lock (EditLock) he = edits.TryGetValue(ek(), out e);
+        ushort e; bool he; lock (EditLock) he = edits.TryGetValue(ek(), out e);
         if (he) return e;
         return Gen(bands[NB], NF, NX, NY, NZ);
     }
@@ -120,9 +120,9 @@ public static class BlockAccess
         bi = NB; f = NF; bx = NX; by = NY; bz = NZ;
         long kk = ek();
         long k = ck(bi, f, bx >> 5, by >> 5, bz >> 5);
-        lock (EditLock) { edits[kk] = (byte)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
+        lock (EditLock) { edits[kk] = (ushort)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
         if (!chunks.ContainsKey(k)) lastScan = new V3(1e9, 0, 0); // chunk was skipped as deep solid: make the loader create it now
-        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; ch.d[(bx & 31) + 32 * ((bz & 31) + 32 * (by & 31))] = (byte)id; ch.dirty = true; }
+        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; ch.d[(bx & 31) + 32 * ((bz & 31) + 32 * (by & 31))] = (ushort)id; ch.dirty = true; }
         for (int d = 0; d < 6; d++)
             if (Norm(bi, f, bx + DX[d] * 8, by + DY[d] * 8, bz + DZ[d] * 8))
             {
@@ -130,7 +130,7 @@ public static class BlockAccess
                 if (!ecount.ContainsKey(k2)) { lock (EditLock) ecount[k2] = 0; if (!chunks.ContainsKey(k2)) lastScan = new V3(1e9, 0, 0); }
                 if (chunks.TryGetValue(k2, out var nc)) nc.dirty = true;
             }
-        lock (WL) { if (id == 9 && lvl > 0) WL[kk] = lvl; else if (WL.Count > 0) WL.Remove(kk); }
+        lock (WL) { if (id == Water && lvl > 0) WL[kk] = lvl; else if (WL.Count > 0) WL.Remove(kk); }
         Wake(bi, f, bx, by, bz);
     }
 }

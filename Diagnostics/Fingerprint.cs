@@ -47,7 +47,7 @@ public static class Fingerprint
         foreach (var ch in list)
         {
             for (int s = 0; s < 64; s += 8) Add((byte)(ch.key >> s));
-            foreach (byte v in ch.d) { Add(v); if (v != 0) blocks++; }
+            foreach (ushort v in ch.d) { Add((byte)v); if (v > 255) Add((byte)(v >> 8)); if (v != 0) blocks++; } // low byte (+ high byte when used): same hash as the old 1-byte data
         }
         Console.WriteLine($"FINGERPRINT radius {World.R} seed {seed} rd {rd}: {list.Count} chunks, {blocks} non-air blocks, hash {h:X16} ({sw.Elapsed.TotalSeconds:0.0} s)");
     }

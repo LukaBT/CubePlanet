@@ -8,7 +8,7 @@ public static class Mesher
         new[]{1,0,3}, new[]{-1,0,3}, new[]{0,1,3}, new[]{0,-1,3}, new[]{1,0,6}, new[]{-1,0,6}, new[]{0,1,6}, new[]{0,-1,6},
         new[]{1,1,4}, new[]{1,-1,4}, new[]{-1,1,4}, new[]{-1,-1,4}
     };
-    internal static bool Cul(int v, bool wt, int id) => wt ? (v == 9 || UWP[v] || OPQ[v] != 0 || TGR[v] >= 2) : (OPQ[v] != 0 || (TGR[id] != 0 && TGR[v] == TGR[id]));
+    internal static bool Cul(int v, bool wt, int id) => wt ? (v == Water || UWP[v] || OPQ[v] != 0 || TGR[v] >= 2) : (OPQ[v] != 0 || (TGR[id] != 0 && TGR[v] == TGR[id]));
     // scratch buffers reused by every Build on the same thread (meshing runs on the worker threads) so meshing doesn't churn the GC
     [ThreadStatic] internal static List<float> pVs, pWv, pGv;
     [ThreadStatic] internal static List<uint> pIx, pWi, pGi;
@@ -23,7 +23,7 @@ public static class Mesher
     }
 
     internal static short Q16(double v) => (short)Math.Clamp(Math.Round(v), -32767, 32767);
-    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u carries 4*(3-ao)) into the packed GPU format.</summary>
+    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u carries 4*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.</summary>
     internal static unsafe MeshData Pack(ReadOnlySpan<float> v, ReadOnlySpan<uint> ix)
     {
         int nv = v.Length / 10; var vb = new byte[nv * 16];
@@ -31,11 +31,11 @@ public static class Mesher
             for (int k = 0; k < nv; k++)
             {
                 int o = k * 10; short* s = (short*)(pb + k * 16);
-                s[0] = Q16(v[o] * 256); s[1] = Q16(v[o + 1] * 256); s[2] = Q16(v[o + 2] * 256); s[3] = (short)v[o + 5];
+                s[0] = Q16(v[o] * 256); s[1] = Q16(v[o + 1] * 256); s[2] = Q16(v[o + 2] * 256); int lf = (int)v[o + 5]; s[3] = (short)(lf & 0xFFFF);
                 ushort* u = (ushort*)(pb + k * 16 + 8);
                 u[0] = (ushort)Math.Clamp(Math.Round(v[o + 6] * 120), 0, 65535);
                 int ui = (int)v[o + 3], ao = 3 - ((ui >> 2) & 3);
-                u[1] = (ushort)((ui & 1) | (((int)v[o + 4] & 1) << 1) | (ao << 2));
+                u[1] = (ushort)((ui & 1) | (((int)v[o + 4] & 1) << 1) | (ao << 2) | ((lf >> 16) << 4)); // bits: u, v, ao (2), material flags (Blocks.Mat*)
                 sbyte* nn = (sbyte*)(pb + k * 16 + 12);
                 nn[0] = (sbyte)Math.Round(v[o + 7] * 127); nn[1] = (sbyte)Math.Round(v[o + 8] * 127); nn[2] = (sbyte)Math.Round(v[o + 9] * 127); nn[3] = 0;
             }
@@ -57,7 +57,7 @@ public static class Mesher
         Ensure(ch);
         if (ch.emp && !ed) return null;
         if (ch.solid && !ed && R0 + CS <= R - CAVB - 1) return null; // buried stone: no visible faces
-        byte[] d = ch.d;
+        ushort[] d = ch.d;
         var tu = new double[CS + 1]; var tv = new double[CS + 1];
         for (int i = 0; i <= CS; i++) { tu[i] = Math.Tan(-PI / 4 + (ch.cz * CS + i) * B.d); tv[i] = Math.Tan(-PI / 4 + (ch.cx * CS + i) * B.d); }
         V3 Pt(double x, double y, double z)
@@ -191,7 +191,7 @@ public static class Mesher
         V3 org = Pt(0, 0, 0);
         var vs = pVs; var ix = pIx; var wv = pWv; var wi = pWi; var gv = pGv; var gi2 = pGi; vs.Clear(); ix.Clear(); wv.Clear(); wi.Clear(); gv.Clear(); gi2.Clear();
         V3 Pw(double a, double b, double c) { V3 t = Pt(a, b, c); return new V3(t.X - org.X, t.Y - org.Y, t.Z - org.Z); }
-        void PQ(V3[] p, bool rev, int lay, double sky, V3 nn)
+        void PQ(V3[] p, bool rev, float lay, double sky, V3 nn)
         {
             uint first = (uint)(vs.Count / 10);
             for (int i = 0; i < 4; i++)
@@ -202,41 +202,41 @@ public static class Mesher
             }
             ix.Add(first); ix.Add(first + 1); ix.Add(first + 2); ix.Add(first); ix.Add(first + 2); ix.Add(first + 3);
         }
-        void Two(V3[] p, int lay, double sky, V3 nn) { PQ(p, false, lay, sky, nn); PQ(new[] { p[3], p[2], p[1], p[0] }, true, lay, sky, nn); }
+        void Two(V3[] p, float lay, double sky, V3 nn) { PQ(p, false, lay, sky, nn); PQ(new[] { p[3], p[2], p[1], p[0] }, true, lay, sky, nn); }
         int Gb(int x, int y, int z) => x >= 0 && x < CS && y >= 0 && y < CS && z >= 0 && z < CS ? d[x + CS * (z + CS * y)] : Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
 
         // plants (crossed quads), vines (thin planes on supporting sides) and cocoa pods (small boxes)
         void Special(int id, int x, int y, int z)
         {
             double sky = LightAt(x, y, z); V3 up = M.Nrm(Pt(x + .5, y + .5, z + .5));
-            if (id == 51)
+            if (ATT[id] == 1) // vine
             {
                 bool any = false;
                 foreach (int fc in new[] { 0, 1, 4, 5 })
                 {
                     bool ok = false;
-                    for (int k = 0; k < 8; k++) { if (k != 0 && Gb(x, y + k, z) != 51) break; if (Sup(Gb(x + DX[fc], y + k, z + DZ[fc]))) { ok = true; break; } }
+                    for (int k = 0; k < 8; k++) { if (k != 0 && Gb(x, y + k, z) != id) break; if (Sup(Gb(x + DX[fc], y + k, z + DZ[fc]))) { ok = true; break; } }
                     if (ok)
                     {
                         any = true; var c = CN[fc]; var p = new V3[4];
                         for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3] - DX[fc] * .06, y + c[i * 3 + 1], z + c[i * 3 + 2] - DZ[fc] * .06);
-                        Two(p, 51, sky, up);
+                        Two(p, Lay(id), sky, up);
                     }
                 }
                 if (Sup(Gb(x, y + 1, z)))
                 {
                     any = true; var c = CN[2]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3], y + c[i * 3 + 1] - .06, z + c[i * 3 + 2]);
-                    Two(p, 51, sky, up);
+                    Two(p, Lay(id), sky, up);
                 }
                 if (!any)
                 {
                     var c = CN[0]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3] - .06, y + c[i * 3 + 1], z + c[i * 3 + 2]);
-                    Two(p, 51, sky, up);
+                    Two(p, Lay(id), sky, up);
                 }
             }
-            else if (id == 52)
+            else if (ATT[id] == 2) // pod (cocoa)
             {
                 double sx = 0, sz = 0;
                 foreach (int fc in new[] { 0, 1, 4, 5 }) if (LOGID[Gb(x + DX[fc], y, z + DZ[fc])]) { sx = DX[fc] * .25; sz = DZ[fc] * .25; break; }
@@ -246,14 +246,14 @@ public static class Mesher
                     var c = CN[fc]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + (c[i * 3] != 0 ? x1 : x0), y + (c[i * 3 + 1] != 0 ? y1 : y0), z + (c[i * 3 + 2] != 0 ? z1 : z0));
                     double ax = p[2].X - p[0].X, ay = p[2].Y - p[0].Y, az = p[2].Z - p[0].Z, bx = p[3].X - p[1].X, by = p[3].Y - p[1].Y, bz = p[3].Z - p[1].Z;
-                    PQ(p, false, 52, sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)));
+                    PQ(p, false, Lay(id), sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)));
                 }
             }
             else
             {
-                double jit = (id == 55 || id == 108 || id == 110 || id == 111) ? 0 : .3, X = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 77) - .5) * jit, Z = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 78) - .5) * jit, lo = .1, hi = .9;
-                Two(new[] { Pw(x + lo + X, y, z + lo + Z), Pw(x + hi + X, y, z + hi + Z), Pw(x + hi + X, y + 1, z + hi + Z), Pw(x + lo + X, y + 1, z + lo + Z) }, id, sky, up);
-                Two(new[] { Pw(x + lo + X, y, z + hi + Z), Pw(x + hi + X, y, z + lo + Z), Pw(x + hi + X, y + 1, z + lo + Z), Pw(x + lo + X, y + 1, z + hi + Z) }, id, sky, up);
+                double jit = JIT[id] ? .3 : 0, X = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 77) - .5) * jit, Z = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 78) - .5) * jit, lo = .1, hi = .9;
+                Two(new[] { Pw(x + lo + X, y, z + lo + Z), Pw(x + hi + X, y, z + hi + Z), Pw(x + hi + X, y + 1, z + hi + Z), Pw(x + lo + X, y + 1, z + lo + Z) }, Lay(id), sky, up);
+                Two(new[] { Pw(x + lo + X, y, z + hi + Z), Pw(x + hi + X, y, z + lo + Z), Pw(x + hi + X, y + 1, z + lo + Z), Pw(x + lo + X, y + 1, z + hi + Z) }, Lay(id), sky, up);
             }
         }
         // water surface openness (used to fade waves in small ponds): ocean-like if most of the surrounding surface is water
@@ -271,7 +271,7 @@ public static class Mesher
                     if (!Wet(w) || Wet(u) || OPQ[u] != 0 || TGR[u] >= 2) { oc[k] = 0; return 0; }
                 }
             int cnt = 0;
-            foreach (var pr in OPN_PR) { int dx = pr[0], dz = pr[1], r = pr[2]; if (Gb(vx + dx * r - (dx < 0 ? 1 : 0), vy - 1, vz + dz * r - (dz < 0 ? 1 : 0)) == 9) cnt++; }
+            foreach (var pr in OPN_PR) { int dx = pr[0], dz = pr[1], r = pr[2]; if (Gb(vx + dx * r - (dx < 0 ? 1 : 0), vy - 1, vz + dz * r - (dz < 0 ? 1 : 0)) == Water) cnt++; }
             vv = (int)M.JsRound(8 * M.Sm(.7, 1, cnt / 12.0));
             oc[k] = vv; return vv;
         }
@@ -303,10 +303,10 @@ public static class Mesher
                     {
                         Special(id, x, y, z);
                         if (!UWP[id]) continue;
-                        id = 9; // an underwater plant sits inside water: give its cell the water faces too (otherwise it leaves a hole in the surface)
+                        id = Water; // an underwater plant sits inside water: give its cell the water faces too (otherwise it leaves a hole in the surface)
                     }
                     if (ch.solid && x > 0 && x < CS - 1 && y > 0 && y < CS - 1 && z > 0 && z < CS - 1) continue;
-                    bool wt = id == 9;
+                    bool wt = id == Water;
                     for (int fc = 0; fc < 6; fc++)
                     {
                         int nx = x + DX[fc], ny = y + DY[fc], nz = z + DZ[fc];
@@ -331,7 +331,7 @@ public static class Mesher
                             wallW = xFull && !Wet(u2) && OPQ[u2] == 0 && TGR[u2] < 2;
                         }
                         if (Cul(nb, wt, id) && !wallW) continue;
-                        bool isT = id == 6 || id == 38;
+                        bool isT = TGR[id] >= 2; // glass / ice
                         var A = wt ? wv : isT ? gv : vs; var I = wt ? wi : isT ? gi2 : ix;
                         uint first = (uint)(A.Count / 10); var c = CN[fc];
                         int ua = wt ? Gb(x, y + 1, z) : 0;
@@ -361,8 +361,8 @@ public static class Mesher
                             else sky = .5;
                         }
                         else sky = LightAt(nx, ny, nz);
-                        if (id == 75 || id == 85 || id == 88) sky = 1; // lava, magma and sea lanterns are self-lit
-                        int lay = TEX[id];
+                        if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
+                        float lay = Lay(id);
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)
@@ -408,9 +408,9 @@ public static class Mesher
     {
         CoreEnsure(ch);
         if (ch.empty) return null;
-        byte[] d = ch.d; int a = ch.cc[0] * 32, b = ch.cc[1] * 32, c = ch.cc[2] * 32; var org = new V3(a + 16, b + 16, c + 16);
+        ushort[] d = ch.d; int a = ch.cc[0] * 32, b = ch.cc[1] * 32, c = ch.cc[2] * 32; var org = new V3(a + 16, b + 16, c + 16);
         var vs = new List<float>(); var ix = new List<uint>(); const float SK = .3f;
-        void Quad(double[][] p, int lay, double nx, double ny, double nz, bool rev)
+        void Quad(double[][] p, float lay, double nx, double ny, double nz, bool rev)
         {
             uint f0 = (uint)(vs.Count / 10);
             for (int i = 0; i < 4; i++)
@@ -426,11 +426,11 @@ public static class Mesher
                 for (int x = 0; x < 32; x++)
                 {
                     int id = d[x + 32 * (z + 32 * y)];
-                    if (id == 0 || id == 9) continue;
+                    if (id == 0 || id == Water) continue;
                     if (SPC[id] != 0)
                     {
                         int X = x - 16, Y = y - 16, Z = z - 16; double lo = .1, hi = .9;
-                        void Pl(double[][] qq) { Quad(qq, id, 0, 1, 0, false); Quad(new[] { qq[3], qq[2], qq[1], qq[0] }, id, 0, 1, 0, true); }
+                        void Pl(double[][] qq) { Quad(qq, Lay(id), 0, 1, 0, false); Quad(new[] { qq[3], qq[2], qq[1], qq[0] }, Lay(id), 0, 1, 0, true); }
                         Pl(new[] { new[] { X + lo, (double)Y, Z + lo }, new[] { X + hi, (double)Y, Z + hi }, new[] { X + hi, Y + 1.0, Z + hi }, new[] { X + lo, Y + 1.0, Z + lo } });
                         Pl(new[] { new[] { X + lo, (double)Y, Z + hi }, new[] { X + hi, (double)Y, Z + lo }, new[] { X + hi, Y + 1.0, Z + lo }, new[] { X + lo, Y + 1.0, Z + hi } });
                         continue;
@@ -442,12 +442,12 @@ public static class Mesher
                         else
                         {
                             int gi = a + nx, gj = b + ny, gk = c + nz; nb = CoreCell(gi, gj, gk);
-                            if (nb == 0 && !coreEd.ContainsKey(cEk(gi, gj, gk)) && CoreOpqFar(gi, gj, gk)) nb = 2;
+                            if (nb == 0 && !coreEd.ContainsKey(cEk(gi, gj, gk)) && CoreOpqFar(gi, gj, gk)) nb = Stone;
                         }
                         if (OPQ[nb] != 0 || (TGR[id] != 0 && TGR[nb] == TGR[id])) continue;
                         var cn = CN[fc]; var pp = new double[4][];
                         for (int i = 0; i < 4; i++) pp[i] = new double[] { x + cn[i * 3] - 16, y + cn[i * 3 + 1] - 16, z + cn[i * 3 + 2] - 16 };
-                        Quad(pp, TEX[id], DX[fc], DY[fc], DZ[fc], false);
+                        Quad(pp, Lay(id), DX[fc], DY[fc], DZ[fc], false);
                     }
                 }
         if (ix.Count == 0) return null;

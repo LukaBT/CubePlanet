@@ -10,7 +10,10 @@ public static class TerrainGen
     // per-thread result slots (Terrain() / BaseBlk() are called from the chunk worker threads as well)
     [ThreadStatic] public static double gH, gS;
     [ThreadStatic] public static int gT, gF, gFD, gI, gB;
-    internal static readonly int[] BANDS = { 13, 14, 13, 13, 15, 13, 16, 13, 17, 13, 14, 13, 18, 13, 15, 16, 13, 14, 17, 13, 13, 14, 13, 16 };
+    // terracotta strata of badlands / red canyon walls, one entry per block of height (repeats every 24)
+    internal static readonly int[] BANDS = { Terracotta, OrangeTerracotta, Terracotta, Terracotta, YellowTerracotta, Terracotta, WhiteTerracotta, Terracotta, RedTerracotta, Terracotta, OrangeTerracotta, Terracotta, BrownTerracotta, Terracotta, YellowTerracotta, WhiteTerracotta, Terracotta, OrangeTerracotta, RedTerracotta, Terracotta, Terracotta, OrangeTerracotta, Terracotta, WhiteTerracotta };
+    /// <summary>Filler value meaning "terracotta bands by height" (BaseBlk picks the band); 0 is never a real filler.</summary>
+    public const int FillBands = 0;
     public static readonly string[] BNM = { "Ocean", "Plains", "Forest", "Birch Forest", "Taiga", "Snowy Plains", "Jungle", "Savanna", "Desert", "Badlands", "Swamp", "Mountains", "Beach", "Snowy Peaks",
         "Lush Forest", "Cherry Grove", "Oasis", "Red Canyon", "Snowy Taiga", "Old Growth Taiga", "Glacier Peaks", "Coral Reef", "Kelp Forest", "Frozen Ocean", "Deep Ocean", "Tropical Beach", "Tropical Island", "Stony Shore", "Bamboo Jungle", "Flower Meadow", "Volcano", "Warm Ocean" };
 
@@ -106,7 +109,7 @@ public static class TerrainGen
         if (oas > .1 && H < 8)
         {
             bi = 16;
-            if (H < -.1) { gT = 7; gF = 7; gFD = 3; } else { gT = 1; gF = 3; }
+            if (H < -.1) { gT = Sand; gF = Sand; gFD = 3; } else { gT = Grass; gF = Dirt; }
         }
         else if (H < 0)
         {
@@ -114,7 +117,7 @@ public static class TerrainGen
             if (l >= 0)
             {   // river / lake / pond
                 bi = 0;
-                if (H > -6) { gT = 7; gF = 7; gFD = 2; } else if (H > -15) { gT = 10; gF = 7; gFD = 2; } else { gT = 3; gF = 3; gFD = 2; }
+                if (H > -6) { gT = Sand; gF = Sand; gFD = 2; } else if (H > -15) { gT = Gravel; gF = Sand; gFD = 2; } else { gT = Dirt; gF = Dirt; gFD = 2; }
             }
             else
             {
@@ -122,102 +125,102 @@ public static class TerrainGen
                 if (tm < .1)
                 {
                     bi = 23;
-                    if (icb > .1) { gT = 79; gF = 79; gFD = 26; }
-                    else if (dep < 7) { gT = 10; gF = 10; gFD = 2; } else { gT = 3; gF = 3; gFD = 2; }
+                    if (icb > .1) { gT = PackedIce; gF = PackedIce; gFD = 26; }
+                    else if (dep < 7) { gT = Gravel; gF = Gravel; gFD = 2; } else { gT = Dirt; gF = Dirt; gFD = 2; }
                 }
-                else if (vol > .08) { bi = 0; gT = 83; gF = 83; gFD = 4; }
+                else if (vol > .08) { bi = 0; gT = Basalt; gF = Basalt; gFD = 4; }
                 else if (tm >= .56)
                 {   // warm sea: pale sand, lagoons and coral reefs
                     bool reef = dep > 2.2 && dep < 20 && Fb(x, y, z, 70 * sl, 2, 42, lw) > .08;
                     bi = reef ? 21 : 31;
-                    if (dep < 12) { gT = ck > .5 ? 81 : 82; gF = 7; gFD = 2; }
-                    else if (dep < 20) { gT = 7; gF = 7; gFD = 2; }
-                    else { gT = 10; gF = 3; gFD = 2; }
+                    if (dep < 12) { gT = ck > .5 ? Clay : CoralSand; gF = Sand; gFD = 2; }
+                    else if (dep < 20) { gT = Sand; gF = Sand; gFD = 2; }
+                    else { gT = Gravel; gF = Dirt; gFD = 2; }
                 }
-                else if (dep > 17) { bi = 24; gT = ck > .38 ? 81 : (dep > 30 ? 2 : 10); gF = 3; gFD = 2; }
-                else if (tm < .3) { bi = 22; gT = dep < 8 ? 10 : (ck > .42 ? 81 : 3); gF = dep < 8 ? 10 : 3; gFD = 2; }
+                else if (dep > 17) { bi = 24; gT = ck > .38 ? Clay : (dep > 30 ? Stone : Gravel); gF = Dirt; gFD = 2; }
+                else if (tm < .3) { bi = 22; gT = dep < 8 ? Gravel : (ck > .42 ? Clay : Dirt); gF = dep < 8 ? Gravel : Dirt; gFD = 2; }
                 else
                 {
                     bi = 0;
-                    if (dep < 6) { gT = 7; gF = 7; gFD = 2; } else if (dep < 15) { gT = 10; gF = 7; gFD = 2; } else { gT = 3; gF = 3; gFD = 2; }
-                    if (ck > .5 && dep > 3) gT = 81;
+                    if (dep < 6) { gT = Sand; gF = Sand; gFD = 2; } else if (dep < 15) { gT = Gravel; gF = Sand; gFD = 2; } else { gT = Dirt; gF = Dirt; gFD = 2; }
+                    if (ck > .5 && dep > 3) gT = Clay;
                 }
             }
         }
         else if (icb > .1)
         {   // iceberg above the water
             bi = 23; double sn = Fb(x, y, z, 9, 2, 33, lw);
-            gT = H > 6 ? (sn > .15 ? 80 : 79) : (sn > .2 ? 79 : 8); gF = 79; gFD = 26;
+            gT = H > 6 ? (sn > .15 ? BlueIce : PackedIce) : (sn > .2 ? PackedIce : Snow); gF = PackedIce; gFD = 26;
         }
         else if (vol > .14)
         {
             bi = 30;
-            if (crat > .45 && H > 10) { gT = 75; gF = 83; gFD = 8; }
-            else if (crat > .08) { gT = 86; gF = 83; gFD = 8; }
-            else if (vol > .45 || H > 24) { gT = 83; gF = 83; gFD = 8; }
-            else { gT = Fb(x, y, z, 7, 2, 33, lw) > .1 ? 83 : 84; gF = 84; gFD = 4; }
+            if (crat > .45 && H > 10) { gT = Lava; gF = Basalt; gFD = 8; }
+            else if (crat > .08) { gT = Obsidian; gF = Basalt; gFD = 8; }
+            else if (vol > .45 || H > 24) { gT = Basalt; gF = Basalt; gFD = 8; }
+            else { gT = Fb(x, y, z, 7, 2, 33, lw) > .1 ? Basalt : VolcanicAsh; gF = VolcanicAsh; gFD = 4; }
         }
         else if (isl > .1)
         {
-            if (H <= 2.4) { bi = 25; gT = Fb(x, y, z, 30, 2, 32, lw) > .1 ? 82 : 7; gF = 7; gFD = 3; }
-            else { bi = 26; gT = 19; gF = 3; }
+            if (H <= 2.4) { bi = 25; gT = Fb(x, y, z, 30, 2, 32, lw) > .1 ? CoralSand : Sand; gF = Sand; gFD = 3; }
+            else { bi = 26; gT = JungleGrass; gF = Dirt; }
         }
         else if (H > snowL || (tm < .06 && mtn > .3 && H > 12))
         {
-            if (tm < .12) { bi = 20; double gl = Fb(x, y, z, 38, 2, 33, lw); gT = gl > .30 ? 80 : gl > .02 ? 79 : 8; gF = 79; gFD = 9; }
-            else { bi = 13; gT = 8; gF = 2; gFD = 2; }
+            if (tm < .12) { bi = 20; double gl = Fb(x, y, z, 38, 2, 33, lw); gT = gl > .30 ? BlueIce : gl > .02 ? PackedIce : Snow; gF = PackedIce; gFD = 9; }
+            else { bi = 13; gT = Snow; gF = Stone; gFD = 2; }
         }
-        else if (mtn > .5 && H > 10 * HS) { bi = 11; gT = rock > .35 ? 10 : 2; gF = 2; gFD = 2; }
+        else if (mtn > .5 && H > 10 * HS) { bi = 11; gT = rock > .35 ? Gravel : Stone; gF = Stone; gFD = 2; }
         else if (tm < .18)
         {
-            if (wet > -.15 && tm > -.04) { bi = 18; gT = 8; gF = 3; }
-            else { bi = 5; gT = (tm < -.1 && Fb(x, y, z, 50, 2, 33, lw) > .28) ? 79 : 8; gF = 3; }
+            if (wet > -.15 && tm > -.04) { bi = 18; gT = Snow; gF = Dirt; }
+            else { bi = 5; gT = (tm < -.1 && Fb(x, y, z, 50, 2, 33, lw) > .28) ? PackedIce : Snow; gF = Dirt; }
         }
-        else if (cm > .45) { bi = 17; gT = (cliff > .99 || H < 4.3) ? 12 : BANDS[(((int)Math.Floor(H) % 24) + 24) % 24]; gF = 250; gFD = 64; }
+        else if (cm > .45) { bi = 17; gT = (cliff > .99 || H < 4.3) ? RedSand : BANDS[(((int)Math.Floor(H) % 24) + 24) % 24]; gF = FillBands; gFD = 64; }
         else if (ds > .45)
         {
-            if (bd > .5) { bi = 9; gT = H < 4 ? 12 : BANDS[(((int)Math.Floor(H) % 24) + 24) % 24]; gF = 250; gFD = 64; }
-            else { bi = 8; gT = 7; gF = 11; gFD = 5; }
+            if (bd > .5) { bi = 9; gT = H < 4 ? RedSand : BANDS[(((int)Math.Floor(H) % 24) + 24) % 24]; gF = FillBands; gFD = 64; }
+            else { bi = 8; gT = Sand; gF = Sandstone; gFD = 5; }
         }
-        else if (sw) { bi = 10; gT = 22; gF = 3; }
+        else if (sw) { bi = 10; gT = SwampGrass; gF = Dirt; }
         else if (H <= (tmp > .62 ? 3.2 : 2.6))
         {
-            if (tmp > .62) { bi = 25; gT = Fb(x, y, z, 30, 2, 32, lw) > .1 ? 82 : 7; gF = 7; gFD = 3; }
-            else if (tm < .3) { bi = 27; gT = 10; gF = 10; gFD = 3; }
-            else { bi = 12; gT = 7; gF = 7; }
+            if (tmp > .62) { bi = 25; gT = Fb(x, y, z, 30, 2, 32, lw) > .1 ? CoralSand : Sand; gF = Sand; gFD = 3; }
+            else if (tm < .3) { bi = 27; gT = Gravel; gF = Gravel; gFD = 3; }
+            else { bi = 12; gT = Sand; gF = Sand; }
         }
         else if (tmp > .72)
         {
-            if (wet < .1) { bi = 7; gT = 20; }
-            else if (Fb(x, y, z, 160 * bs, 2, 40, lw) > .15) { bi = 28; gT = 19; }
-            else { bi = 6; gT = 19; }
-            gF = 3;
+            if (wet < .1) { bi = 7; gT = SavannaGrass; }
+            else if (Fb(x, y, z, 160 * bs, 2, 40, lw) > .15) { bi = 28; gT = JungleGrass; }
+            else { bi = 6; gT = JungleGrass; }
+            gF = Dirt;
         }
         else if (tm < .38)
         {
             if (wet > -.2)
             {
-                if (tm > .2 && Fb(x, y, z, 200 * bs, 2, 41, lw) > .17) { bi = 19; gT = Fb(x, y, z, 16, 2, 33, lw) > .25 ? 21 : 78; }
-                else { bi = 4; gT = 21; }
+                if (tm > .2 && Fb(x, y, z, 200 * bs, 2, 41, lw) > .17) { bi = 19; gT = Fb(x, y, z, 16, 2, 33, lw) > .25 ? TaigaGrass : Podzol; }
+                else { bi = 4; gT = TaigaGrass; }
             }
-            else { bi = 1; gT = 1; }
-            gF = 3;
+            else { bi = 1; gT = Grass; }
+            gF = Dirt;
         }
         else
         {
             if (wet > .05)
             {
                 double gs = Fb(x, y, z, 180 * bs, 2, 27, lw);
-                if (gs > .2 && wet > .2) { bi = 14; gT = Fb(x, y, z, 18, 2, 32, lw) > .2 ? 77 : 76; }
-                else if (gs < -.24 && tm > .3 && tm < .85) { bi = 15; gT = 1; }
-                else { bi = Fb(x, y, z, 150 * bs, 2, 6, lw) > .12 ? 3 : 2; gT = 1; }
+                if (gs > .2 && wet > .2) { bi = 14; gT = Fb(x, y, z, 18, 2, 32, lw) > .2 ? MossBlock : LushGrass; }
+                else if (gs < -.24 && tm > .3 && tm < .85) { bi = 15; gT = Grass; }
+                else { bi = Fb(x, y, z, 150 * bs, 2, 6, lw) > .12 ? 3 : 2; gT = Grass; }
             }
             else
             {
-                bi = 1; gT = 1;
+                bi = 1; gT = Grass;
                 if (wet > -.25 && Fb(x, y, z, 150 * bs, 2, 39, lw) > .22) bi = 29;
             }
-            gF = 3;
+            gF = Dirt;
         }
         gH = H; gB = bi;
     }
