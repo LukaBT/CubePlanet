@@ -10,6 +10,7 @@ public static class BlockAccess
     [ThreadStatic] internal static long blkKey; [ThreadStatic] internal static Chunk blkCh;
     [ThreadStatic] public static int WF, WX, WZ;
     [ThreadStatic] public static int PF, PX, PY, PZ;
+    [ThreadStatic] public static double PFX, PFY, PFZ; // P2b: position inside the block (0..1, block-local x / y (up) / z)
     [ThreadStatic] public static int NB, NF, NX, NY, NZ, NCV;
     public static void ResetBlkCache() { blkCh = null; blkKey = 0; }
 
@@ -54,9 +55,11 @@ public static class BlockAccess
         V3 n = N[f], u = U[f], v = V[f];
         double pn = x * n.X + y * n.Y + z * n.Z;
         double aU = Math.Atan2(x * u.X + y * u.Y + z * u.Z, pn), aV = Math.Atan2(x * v.X + y * v.Y + z * v.Z, pn);
-        PZ = (int)M.Clamp(Math.Floor((aU + PI / 4) / B.d), 0, B.cols - 1);
-        PX = (int)M.Clamp(Math.Floor((aV + PI / 4) / B.d), 0, B.cols - 1);
-        PY = (int)M.Clamp(Math.Floor(r - B.inner), 0, (double)B.rows * CS - 1);
+        double gz = (aU + PI / 4) / B.d, gx = (aV + PI / 4) / B.d, gy = r - B.inner;
+        PZ = (int)M.Clamp(Math.Floor(gz), 0, B.cols - 1);
+        PX = (int)M.Clamp(Math.Floor(gx), 0, B.cols - 1);
+        PY = (int)M.Clamp(Math.Floor(gy), 0, (double)B.rows * CS - 1);
+        PFX = Math.Clamp(gx - PX, 0, 1); PFY = Math.Clamp(gy - PY, 0, 1); PFZ = Math.Clamp(gz - PZ, 0, 1);
         PF = f; return bi;
     }
     // chunk key: 7 bits band*6+face, 19 bits cx, 18 bits cy, 19 bits cz (enough for radius 10,000,000)
@@ -103,6 +106,13 @@ public static class BlockAccess
         return Gen(bands[NB], NF, NX, NY, NZ);
     }
 
+    /// <summary>Block at a world position and the position inside it (block-local 0..1: x / z along the block grid, y up; world axes in the core).</summary>
+    public static int LocalAt(double x, double y, double z, out double lx, out double ly, out double lz)
+    {
+        int bi = P2b(x, y, z);
+        if (bi < 0) { lx = x - Math.Floor(x); ly = y - Math.Floor(y); lz = z - Math.Floor(z); return x * x + y * y + z * z < CORE * CORE ? CoreAt(x, y, z) : 0; }
+        lx = PFX; ly = PFY; lz = PFZ; return Blk(bi, PF, PX, PY, PZ);
+    }
     public static int GetAt(double x, double y, double z)
     {
         int bi = P2b(x, y, z);

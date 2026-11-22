@@ -18,9 +18,17 @@ public static partial class Blocks
     public static readonly byte[] ATT = new byte[N];
     /// <summary>Self-lit blocks (lava, magma, sea lanterns): full light in the mesher, glow in the shader.</summary>
     public static readonly bool[] EMI = new bool[N];
-    /// <summary>Texture layer of each block (one texture per block for now; per-face textures come with 3D block models).</summary>
+    /// <summary>Texture layer of each block for sprites and icons (its "side" texture, else "all").</summary>
     public static readonly int[] TEX = new int[N];
-    /// <summary>Material flags the mesher writes into every vertex (bits 4+ of the packed vertex's second uint16), read by the shaders.</summary>
+    /// <summary>Texture of each face: TEXF[id * 6 + face], faces in the mesher order +x, -x, +y (top), -y, +z, -z.</summary>
+    public static readonly int[] TEXF = new int[N * 6];
+    public const byte ModelCube = 0, ModelCross = 1, ModelLiquid = 2, ModelAttached = 3, ModelBoxes = 4;
+    public static readonly byte[] MODEL = new byte[N];
+    /// <summary>Boxes of "boxes" models (with their face textures).</summary>
+    public static readonly BlockDefinition.ModelBox[][] MBOX = new BlockDefinition.ModelBox[N][];
+    /// <summary>Collision / selection boxes: null = full block, empty = none. Unknown IDs collide and select like a full block; air has neither.</summary>
+    public static readonly BlockBox[][] COLL = new BlockBox[N][], SEL = new BlockBox[N][];
+    /// <summary>Material flags the mesher writes into every vertex (4th byte of the packed normal), read by the shaders.</summary>
     public static readonly int[] MATF = new int[N];
     public static readonly int[][] LODC = new int[N][];
     public static string[] BN = { "air" };
@@ -35,11 +43,20 @@ public static partial class Blocks
     public static int[] TileColor(int id) => LODC[id] ?? GrayLod;
     /// <summary>Texture layer + material flags as the mesher's float "layer" vertex component (layer in the low 16 bits, flags above).</summary>
     public static float Lay(int id) => TEX[id] | MATF[id] << 16;
+    /// <summary>Same for one face of a cube.</summary>
+    public static float Lay(int id, int face) => TEXF[id * 6 + face] | MATF[id] << 16;
+    /// <summary>Same for an explicit texture (box faces).</summary>
+    public static float LayTex(int id, int tex) => tex | MATF[id] << 16;
+    /// <summary>Is the block-local point (0..1 in each axis) inside the block's collision boxes?</summary>
+    public static bool Collides(int id, double x, double y, double z) { var c = COLL[id]; if (c == null) return true; foreach (var b in c) if (b.Contains(x, y, z)) return true; return false; }
+    /// <summary>Is the block-local point inside the block's selection boxes?</summary>
+    public static bool Selects(int id, double x, double y, double z) { var c = SEL[id]; if (c == null) return true; foreach (var b in c) if (b.Contains(x, y, z)) return true; return false; }
 
     public static void Build(BlockRegistry reg)
     {
         Count = reg.Size; BN = new string[Count]; BN[0] = "air";
         Array.Fill(OPQ, (byte)1); OPQ[0] = 0; // unknown IDs act like stone (opaque, solid) and show the checkerboard texture
+        COLL[0] = SEL[0] = Array.Empty<BlockBox>();
         var groups = new Dictionary<string, byte> { ["leaves"] = 1, ["glass"] = 2, ["ice"] = 3 };
         foreach (var b in reg.All)
         {
@@ -53,7 +70,11 @@ public static partial class Blocks
             }
             UWP[i] = b.Waterlogged; LOGID[i] = b.HasTag("log"); LEAFS[i] = b.HasTag("leaves");
             JIT[i] = b.RandomOffset; ATT[i] = (byte)(b.Attach == "vine" ? 1 : b.Attach == "pod" ? 2 : 0); EMI[i] = b.Emissive > 0;
-            TEX[i] = b.Texture();
+            TEX[i] = b.Texture("side");
+            for (int fc = 0; fc < 6; fc++) TEXF[i * 6 + fc] = b.Faces[fc];
+            MODEL[i] = b.Model switch { "cross" => ModelCross, "liquid" => ModelLiquid, "attached" => ModelAttached, "boxes" => ModelBoxes, _ => ModelCube };
+            MBOX[i] = b.Model == "boxes" ? b.Boxes : null;
+            COLL[i] = b.Collision; SEL[i] = b.Selection;
             MATF[i] = (b.Sway == "leaves" ? MatSwayLeaves : b.Sway == "plant" ? MatSwayPlant : b.Sway == "underwater" ? MatSwayWater : 0)
                     | (EMI[i] ? MatEmissive : 0) | (b.CastsShadow ? 0 : MatNoShadow) | (b.ConnectGroup == "ice" ? MatIce : 0);
             LODC[i] = b.LodColor;

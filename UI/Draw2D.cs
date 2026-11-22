@@ -45,9 +45,9 @@ public static partial class UI
     /// <summary>Block icon: texture row 0 is the bottom of the face, so v is flipped.</summary>
     public static void Icon(int id, double x, double y, double s)
     {
-        Rect(x, y, s, s, 0, 0, 0, 1);
-        V(x, y, 0, 1, 1, 1, 1, 1, 2, id); V(x + s, y, 1, 1, 1, 1, 1, 1, 2, id); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, id);
-        V(x, y, 0, 1, 1, 1, 1, 1, 2, id); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, id); V(x, y + s, 0, 0, 1, 1, 1, 1, 2, id);
+        Rect(x, y, s, s, 0, 0, 0, 1); int t = TEX[id]; // the block's side texture (item icons replace this in phase 4)
+        V(x, y, 0, 1, 1, 1, 1, 1, 2, t); V(x + s, y, 1, 1, 1, 1, 1, 1, 2, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, t);
+        V(x, y, 0, 1, 1, 1, 1, 1, 2, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, t); V(x, y + s, 0, 0, 1, 1, 1, 1, 2, t);
     }
     /// <summary>Bucket item icon (grey bucket with a water level showing how much it holds).</summary>
     public static void BucketIcon(double x, double y, double s)

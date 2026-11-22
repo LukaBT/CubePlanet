@@ -24,6 +24,10 @@ try {
         Write-Host "fingerprints unchanged" -ForegroundColor Green
     }
 
+    # headless rule checks (collision / selection boxes, placement, meshing; later: multiblocks, containers, saving)
+    & $exe --selftest | Out-Host
+    if ($LASTEXITCODE -ne 0) { Write-Host "SELFTEST FAILED" -ForegroundColor Red; exit 1 }
+
     if (-not $NoShots) {
         # clouds drift and the HUD shows FPS, so compare these by eye with checks\ref (not pixel exact)
         $dir = if ($Update) { Join-Path $PSScriptRoot 'ref' } else { Join-Path $PSScriptRoot 'out' }
@@ -31,7 +35,8 @@ try {
         $shots = @(
             @{ n = 'day';    a = @('--hour', '10') },
             @{ n = 'sunset'; a = @('--hour', '18.3', '--yaw', '120', '--pitch', '-5') },
-            @{ n = 'down';   a = @('--hour', '13', '--pitch', '-60', '--up', '-20') }
+            @{ n = 'down';   a = @('--hour', '13', '--pitch', '-60', '--up', '-20') },
+            @{ n = 'blocks'; a = @('--hour', '10', '--showcase', '--up', '-25', '--pitch', '-30') }
         )
         foreach ($s in $shots) {
             $args2 = @('--bench', '4', '--shot', (Join-Path $dir "$($s.n).png")) + $s.a

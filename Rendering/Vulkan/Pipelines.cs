@@ -26,8 +26,8 @@ public static unsafe partial class Gpu
         (uint loc, Format f, uint off)[] attrs; uint stride;
         switch (c.layout)
         {
-            case VL.Chunk: stride = 16; attrs = new[] { (0u, Format.R16G16B16A16Sint, 0u), (1u, Format.R16G16Uint, 8u), (2u, Format.R8G8B8A8SNorm, 12u) }; break;
-            case VL.ChunkShadow: stride = 16; attrs = new[] { (0u, Format.R16G16B16A16Sint, 0u), (1u, Format.R16G16Uint, 8u) }; break;
+            case VL.Chunk: stride = 16; attrs = new[] { (0u, Format.R16G16B16A16Sint, 0u), (1u, Format.R16G16Uint, 8u), (2u, Format.R8G8B8A8SNorm, 12u), (3u, Format.R8G8B8A8Uint, 12u) }; break; // 3 = same bytes as the normal, .w = material flags
+            case VL.ChunkShadow: stride = 16; attrs = new[] { (0u, Format.R16G16B16A16Sint, 0u), (1u, Format.R16G16Uint, 8u), (3u, Format.R8G8B8A8Uint, 12u) }; break;
             case VL.Lod: stride = 48; attrs = new[] { (0u, Format.R32G32B32Sfloat, 0u), (1u, Format.R32G32Sfloat, 12u), (2u, Format.R32G32B32Sfloat, 20u), (3u, Format.R32Sfloat, 32u), (4u, Format.R32G32B32Sfloat, 36u) }; break;
             case VL.LodSea: stride = 48; attrs = new[] { (0u, Format.R32G32B32Sfloat, 0u), (3u, Format.R32Sfloat, 32u) }; break;
             case VL.LodShadow: stride = 48; attrs = new[] { (0u, Format.R32G32B32Sfloat, 0u) }; break;

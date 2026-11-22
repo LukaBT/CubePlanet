@@ -173,7 +173,9 @@
         "log"
       ],
       "textures": {
-        "all": 4
+        "top": 118,
+        "bottom": 118,
+        "side": 4
       },
       "properties": {
         "definition": {
@@ -1418,7 +1420,9 @@
         "log"
       ],
       "textures": {
-        "all": 27
+        "top": 119,
+        "bottom": 119,
+        "side": 27
       },
       "properties": {
         "definition": {
@@ -1474,7 +1478,9 @@
         "log"
       ],
       "textures": {
-        "all": 28
+        "top": 120,
+        "bottom": 120,
+        "side": 28
       },
       "properties": {
         "definition": {
@@ -1530,7 +1536,9 @@
         "log"
       ],
       "textures": {
-        "all": 29
+        "top": 121,
+        "bottom": 121,
+        "side": 29
       },
       "properties": {
         "definition": {
@@ -1586,7 +1594,9 @@
         "log"
       ],
       "textures": {
-        "all": 30
+        "top": 122,
+        "bottom": 122,
+        "side": 30
       },
       "properties": {
         "definition": {
@@ -4767,7 +4777,9 @@
         "log"
       ],
       "textures": {
-        "all": 90
+        "top": 123,
+        "bottom": 123,
+        "side": 90
       },
       "properties": {
         "definition": {
@@ -4877,7 +4889,9 @@
         "log"
       ],
       "textures": {
-        "all": 92
+        "top": 124,
+        "bottom": 124,
+        "side": 92
       },
       "properties": {
         "definition": {
@@ -6226,6 +6240,468 @@
             {
               "namespace": "base",
               "id_name": "horn_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_slab",
+      "id": 118,
+      "name": "Oak Slab",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            }
+          ],
+          "rotation": "none",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "stone_slab",
+      "id": 119,
+      "name": "Stone Slab",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 2
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            }
+          ],
+          "rotation": "none",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            125,
+            125,
+            125
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "stone_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cobblestone_slab",
+      "id": 120,
+      "name": "Cobblestone Slab",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 35
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            }
+          ],
+          "rotation": "none",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            118,
+            118,
+            118
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cobblestone_slab",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_stairs",
+      "id": 121,
+      "name": "Oak Stairs",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            },
+            {
+              "x": 0,
+              "y": 0.5,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 0.5
+            }
+          ],
+          "rotation": "horizontal",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              },
+              {
+                "x": 0,
+                "y": 0.5,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 0.5
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              },
+              {
+                "x": 0,
+                "y": 0.5,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 0.5
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_stairs",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "stone_brick_stairs",
+      "id": 122,
+      "name": "Stone Brick Stairs",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 37
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            },
+            {
+              "x": 0,
+              "y": 0.5,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 0.5
+            }
+          ],
+          "rotation": "horizontal",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            128,
+            128,
+            130
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              },
+              {
+                "x": 0,
+                "y": 0.5,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 0.5
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 1
+              },
+              {
+                "x": 0,
+                "y": 0.5,
+                "z": 0,
+                "w": 1,
+                "h": 0.5,
+                "d": 0.5
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "stone_brick_stairs",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_fence",
+      "id": 123,
+      "name": "Oak Fence",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 1,
+              "d": 0.25
+            }
+          ],
+          "rotation": "none",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.375,
+                "y": 0,
+                "z": 0.375,
+                "w": 0.25,
+                "h": 1,
+                "d": 0.25
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.375,
+                "y": 0,
+                "z": 0.375,
+                "w": 0.25,
+                "h": 1,
+                "d": 0.25
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_fence",
               "count": 1
             }
           ]

@@ -83,7 +83,11 @@ Status: done. Exporter ran once (commit "Phase 2a", then removed), tables + text
   110-117, shadow-pass cutout ranges). Replace with per-vertex material flags from definitions (the packed chunk vertex has free bits in
   its second uint16: bits 0-1 uv, 2-3 AO, rest free).
 
-## Phase 3 - 3D block models
+## Phase 3 - 3D block models (done, except rotation)
+
+Status: per-face textures, `boxes` model (slabs, stairs, fence post), 3D collision / selection boxes in physics, raycast, highlight and
+placement, fractional UVs in the packed vertex (flags moved to the normal's 4th byte), `--selftest` / `--showcase`. `rotation` is parsed but
+turning needs the facing from block state -> do it in phase 4 together with doors / stairs placement.
 
 Proposed definition keys (names can change):
 ```json

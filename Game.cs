@@ -150,6 +150,7 @@ public class Game : GameWindow
             if (Program.Hour >= 0) { Sky.SetHour(Program.Hour); Settings.SET.pause = 1; }
             if (Program.Up != 0) Camera.CamMove(0, 0, Program.Up, false);
             if (Program.Yaw != 0 || Program.Pitch != 0) Camera.Turn(Program.Yaw * Math.PI / 180, Program.Pitch * Math.PI / 180);
+            if (Program.Showcase) SelfTest.Showcase(); // example blocks in front of the camera
             return;
         }
         double ft = now - benchLast; benchLast = now;

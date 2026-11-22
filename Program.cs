@@ -4,6 +4,7 @@ public static class Program
 {
     public static int Msaa = -1; // -1 = use the settings value
     public static readonly List<string> Overrides = new(); public static bool SyncMesh; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
+    public static bool Showcase; // --showcase: bench places example blocks in front of the camera
     public static bool NoVsync; public static double Bench; public static string Shot; // --bench N: start right away, quit after N seconds and print FPS (--shot file.png saves the last frame)
     public static void Main(string[] args)
     {
@@ -15,7 +16,7 @@ public static class Program
             Environment.ExitCode = 1; return;
         }
         // optional: CubePlanet --radius 1200 --seed 1337 --msaa 0|2|4|8 --novsync
-        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--showsettings") UI.settingsOpen = true; }
+        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--showcase") Showcase = true; if (a == "--showsettings") UI.settingsOpen = true; }
         for (int i = 0; i + 1 < args.Length; i++)
         {
             if (args[i] == "--radius") UI.radiusStr = args[i + 1];
@@ -30,6 +31,7 @@ public static class Program
             if (args[i] == "--set") Overrides.Add(args[i + 1]); // e.g. --set ao=0 (for this run only, not saved)
             if (args[i] == "--bench" && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double bs)) Bench = bs;
         }
+        if (Array.IndexOf(args, "--selftest") >= 0) { Environment.ExitCode = SelfTest.Run(); return; } // headless rule checks
         if (Array.IndexOf(args, "--fingerprint") >= 0)
         {   // headless world fingerprint (no window): --fingerprint [--radius N] [--seed N] [--fprd CHUNKS]
             int fprd = 12; int fi = Array.IndexOf(args, "--fprd"); if (fi >= 0 && fi + 1 < args.Length) int.TryParse(args[fi + 1], out fprd);

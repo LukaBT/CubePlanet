@@ -118,4 +118,10 @@ texture_rows: 16
 115 bubble_coral_fan 96 224
 116 fire_coral_fan 128 224
 117 horn_coral_fan 160 224
+118 oak_slab 192 224
+119 stone_slab 224 224
+120 cobblestone_slab 256 224
+121 oak_stairs 288 224
+122 stone_brick_stairs 320 224
+123 oak_fence 352 224
 200 bucket 256 384

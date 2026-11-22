@@ -23,7 +23,7 @@ public static class Mesher
     }
 
     internal static short Q16(double v) => (short)Math.Clamp(Math.Round(v), -32767, 32767);
-    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u carries 4*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.</summary>
+    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u and v in 1/16 block (0..16), u also carries 32*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.</summary>
     internal static unsafe MeshData Pack(ReadOnlySpan<float> v, ReadOnlySpan<uint> ix)
     {
         int nv = v.Length / 10; var vb = new byte[nv * 16];
@@ -34,10 +34,10 @@ public static class Mesher
                 s[0] = Q16(v[o] * 256); s[1] = Q16(v[o + 1] * 256); s[2] = Q16(v[o + 2] * 256); int lf = (int)v[o + 5]; s[3] = (short)(lf & 0xFFFF);
                 ushort* u = (ushort*)(pb + k * 16 + 8);
                 u[0] = (ushort)Math.Clamp(Math.Round(v[o + 6] * 120), 0, 65535);
-                int ui = (int)v[o + 3], ao = 3 - ((ui >> 2) & 3);
-                u[1] = (ushort)((ui & 1) | (((int)v[o + 4] & 1) << 1) | (ao << 2) | ((lf >> 16) << 4)); // bits: u, v, ao (2), material flags (Blocks.Mat*)
+                int ui = (int)v[o + 3], ao = 3 - ((ui >> 5) & 3);
+                u[1] = (ushort)((ui & 31) | (((int)v[o + 4] & 31) << 5) | (ao << 10)); // bits: u (5, 1/16 block), v (5), ao (2)
                 sbyte* nn = (sbyte*)(pb + k * 16 + 12);
-                nn[0] = (sbyte)Math.Round(v[o + 7] * 127); nn[1] = (sbyte)Math.Round(v[o + 8] * 127); nn[2] = (sbyte)Math.Round(v[o + 9] * 127); nn[3] = 0;
+                nn[0] = (sbyte)Math.Round(v[o + 7] * 127); nn[1] = (sbyte)Math.Round(v[o + 8] * 127); nn[2] = (sbyte)Math.Round(v[o + 9] * 127); ((byte*)nn)[3] = (byte)(lf >> 16); // 4th byte: material flags (Blocks.Mat*)
             }
         var md = new MeshData { vb = vb, n = ix.Length };
         if (nv < 65536) { md.i16 = new ushort[ix.Length]; for (int i = 0; i < ix.Length; i++) md.i16[i] = (ushort)ix[i]; }
@@ -45,6 +45,43 @@ public static class Mesher
         return md;
     }
     internal static bool Sup(int b) => OPQ[b] != 0 || TGR[b] == 1;
+    // which block-local axis the texture u / v of each face follows (and whether it runs backwards), derived from CN / CU / CV, so a box face
+    // shows the same part of the texture as that region of a full cube face
+    static readonly int[] UAX = new int[6], VAX = new int[6]; static readonly bool[] UFL = new bool[6], VFL = new bool[6];
+    static Mesher()
+    {
+        for (int fc = 0; fc < 6; fc++)
+            for (int a = 0; a < 3; a++)
+            {
+                bool su = true, fu = true, sv = true, fv = true;
+                for (int i = 0; i < 4; i++)
+                {
+                    int q = CN[fc][i * 3 + a];
+                    su &= q == CU[i]; fu &= q == 1 - CU[i]; sv &= q == CV[i]; fv &= q == 1 - CV[i];
+                }
+                if (su || fu) { UAX[fc] = a; UFL[fc] = fu; }
+                if (sv || fv) { VAX[fc] = a; VFL[fc] = fv; }
+            }
+    }
+    /// <summary>Corners of one face of a box (block-local, 0..1) and their texture coordinates.</summary>
+    static void BoxFace(BlockBox bx, int fc, double[][] q, float[] uv)
+    {
+        var c = CN[fc];
+        for (int i = 0; i < 4; i++)
+        {
+            q[i][0] = c[i * 3] != 0 ? bx.X1 : bx.X0; q[i][1] = c[i * 3 + 1] != 0 ? bx.Y1 : bx.Y0; q[i][2] = c[i * 3 + 2] != 0 ? bx.Z1 : bx.Z0;
+            double u = q[i][UAX[fc]], v = q[i][VAX[fc]]; uv[i * 2] = (float)(UFL[fc] ? 1 - u : u); uv[i * 2 + 1] = (float)(VFL[fc] ? 1 - v : v);
+        }
+    }
+    /// <summary>False for box faces of zero area; edge = the face lies on the block boundary (an opaque neighbour hides it).</summary>
+    static bool BoxFaceInfo(BlockBox bx, int fc, out bool edge)
+    {
+        int ax = DX[fc] != 0 ? 0 : DY[fc] != 0 ? 1 : 2; int sg = DX[fc] + DY[fc] + DZ[fc];
+        float lo = ax == 0 ? bx.X0 : ax == 1 ? bx.Y0 : bx.Z0, hi = ax == 0 ? bx.X1 : ax == 1 ? bx.Y1 : bx.Z1;
+        edge = sg > 0 ? hi >= 1 : lo <= 0;
+        bool areaX = bx.X1 > bx.X0, areaY = bx.Y1 > bx.Y0, areaZ = bx.Z1 > bx.Z0;
+        return ax == 0 ? areaY && areaZ : ax == 1 ? areaX && areaZ : areaX && areaY;
+    }
 
     internal static BuildResult BuildImpl(Chunk ch)
     {
@@ -197,7 +234,17 @@ public static class Mesher
             for (int i = 0; i < 4; i++)
             {
                 int uvi = rev ? 3 - i : i;
-                vs.Add((float)p[i].X); vs.Add((float)p[i].Y); vs.Add((float)p[i].Z); vs.Add(CU[uvi]); vs.Add(CV[uvi]); vs.Add(lay); vs.Add((float)sky);
+                vs.Add((float)p[i].X); vs.Add((float)p[i].Y); vs.Add((float)p[i].Z); vs.Add(CU[uvi] * 16); vs.Add(CV[uvi] * 16); vs.Add(lay); vs.Add((float)sky);
+                vs.Add((float)nn.X); vs.Add((float)nn.Y); vs.Add((float)nn.Z);
+            }
+            ix.Add(first); ix.Add(first + 1); ix.Add(first + 2); ix.Add(first); ix.Add(first + 2); ix.Add(first + 3);
+        }
+        void PQUV(V3[] p, float lay, double sky, V3 nn, float[] uv)
+        {
+            uint first = (uint)(vs.Count / 10);
+            for (int i = 0; i < 4; i++)
+            {
+                vs.Add((float)p[i].X); vs.Add((float)p[i].Y); vs.Add((float)p[i].Z); vs.Add(MathF.Round(uv[i * 2] * 16)); vs.Add(MathF.Round(uv[i * 2 + 1] * 16)); vs.Add(lay); vs.Add((float)sky);
                 vs.Add((float)nn.X); vs.Add((float)nn.Y); vs.Add((float)nn.Z);
             }
             ix.Add(first); ix.Add(first + 1); ix.Add(first + 2); ix.Add(first); ix.Add(first + 2); ix.Add(first + 3);
@@ -205,6 +252,24 @@ public static class Mesher
         void Two(V3[] p, float lay, double sky, V3 nn) { PQ(p, false, lay, sky, nn); PQ(new[] { p[3], p[2], p[1], p[0] }, true, lay, sky, nn); }
         int Gb(int x, int y, int z) => x >= 0 && x < CS && y >= 0 && y < CS && z >= 0 && z < CS ? d[x + CS * (z + CS * y)] : Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
 
+        // "boxes" models (slabs, stairs, fences, ...): every box face goes through the same curved corner mapping as the cubes;
+        // faces on the block boundary are hidden by opaque neighbours, faces inside the block are always drawn
+        void BoxModel(int id, int x, int y, int z)
+        {
+            var q = new[] { new double[3], new double[3], new double[3], new double[3] }; var uv = new float[8];
+            foreach (var mb in MBOX[id])
+                for (int fc = 0; fc < 6; fc++)
+                {
+                    if (!BoxFaceInfo(mb.Box, fc, out bool edge)) continue;
+                    int nx = x + DX[fc], ny = y + DY[fc], nz = z + DZ[fc];
+                    if (edge && OPQ[Gb(nx, ny, nz)] != 0) continue;
+                    BoxFace(mb.Box, fc, q, uv); var p = new V3[4];
+                    for (int i = 0; i < 4; i++) p[i] = Pw(x + q[i][0], y + q[i][1], z + q[i][2]);
+                    double sky = EMI[id] ? 1 : edge ? LightAt(nx, ny, nz) : LightAt(x, y, z);
+                    double ax = p[2].X - p[0].X, ay = p[2].Y - p[0].Y, az = p[2].Z - p[0].Z, bx = p[3].X - p[1].X, by = p[3].Y - p[1].Y, bz = p[3].Z - p[1].Z;
+                    PQUV(p, LayTex(id, mb.Faces[fc]), sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)), uv);
+                }
+        }
         // plants (crossed quads), vines (thin planes on supporting sides) and cocoa pods (small boxes)
         void Special(int id, int x, int y, int z)
         {
@@ -299,6 +364,7 @@ public static class Mesher
                 {
                     int id = d[x + CS * (z + CS * y)];
                     if (id == 0) continue;
+                    if (MODEL[id] == ModelBoxes) { BoxModel(id, x, y, z); continue; }
                     if (SPC[id] != 0)
                     {
                         Special(id, x, y, z);
@@ -362,7 +428,7 @@ public static class Mesher
                         }
                         else sky = LightAt(nx, ny, nz);
                         if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
-                        float lay = Lay(id);
+                        float lay = Lay(id, fc);
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)
@@ -380,7 +446,7 @@ public static class Mesher
                         else { aoq[0] = aoq[1] = aoq[2] = aoq[3] = 3; }
                         for (int i = 0; i < 4; i++)
                         {
-                            A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] + 4 * (3 - aoq[i])); A.Add(CV[i]); A.Add(lay);
+                            A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] * 16 + 32 * (3 - aoq[i])); A.Add(CV[i] * 16); A.Add(lay);
                             A.Add((float)(sky + (ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0)));
                             A.Add((float)fx); A.Add((float)fy); A.Add((float)fz);
                         }
@@ -410,23 +476,45 @@ public static class Mesher
         if (ch.empty) return null;
         ushort[] d = ch.d; int a = ch.cc[0] * 32, b = ch.cc[1] * 32, c = ch.cc[2] * 32; var org = new V3(a + 16, b + 16, c + 16);
         var vs = new List<float>(); var ix = new List<uint>(); const float SK = .3f;
-        void Quad(double[][] p, float lay, double nx, double ny, double nz, bool rev)
+        void Quad(double[][] p, float lay, double nx, double ny, double nz, bool rev, float[] uv = null)
         {
             uint f0 = (uint)(vs.Count / 10);
             for (int i = 0; i < 4; i++)
             {
                 int uu = rev ? 3 - i : i;
-                vs.Add((float)p[i][0]); vs.Add((float)p[i][1]); vs.Add((float)p[i][2]); vs.Add(CU[uu]); vs.Add(CV[uu]); vs.Add(lay); vs.Add(SK);
+                vs.Add((float)p[i][0]); vs.Add((float)p[i][1]); vs.Add((float)p[i][2]);
+                if (uv != null) { vs.Add(MathF.Round(uv[i * 2] * 16)); vs.Add(MathF.Round(uv[i * 2 + 1] * 16)); } else { vs.Add(CU[uu] * 16); vs.Add(CV[uu] * 16); }
+                vs.Add(lay); vs.Add(SK);
                 vs.Add((float)nx); vs.Add((float)ny); vs.Add((float)nz);
             }
             ix.Add(f0); ix.Add(f0 + 1); ix.Add(f0 + 2); ix.Add(f0); ix.Add(f0 + 2); ix.Add(f0 + 3);
         }
+        int Nb(int nx, int ny, int nz)
+        {
+            if (nx >= 0 && nx < 32 && ny >= 0 && ny < 32 && nz >= 0 && nz < 32) return d[nx + 32 * (nz + 32 * ny)];
+            int gi = a + nx, gj = b + ny, gk = c + nz, nb = CoreCell(gi, gj, gk);
+            if (nb == 0 && !coreEd.ContainsKey(cEk(gi, gj, gk)) && CoreOpqFar(gi, gj, gk)) nb = Stone;
+            return nb;
+        }
+        var bq = new[] { new double[3], new double[3], new double[3], new double[3] }; var buv = new float[8];
         for (int y = 0; y < 32; y++)
             for (int z = 0; z < 32; z++)
                 for (int x = 0; x < 32; x++)
                 {
                     int id = d[x + 32 * (z + 32 * y)];
                     if (id == 0 || id == Water) continue;
+                    if (MODEL[id] == ModelBoxes)
+                    {
+                        foreach (var mb in MBOX[id])
+                            for (int fc = 0; fc < 6; fc++)
+                            {
+                                if (!BoxFaceInfo(mb.Box, fc, out bool edge) || (edge && OPQ[Nb(x + DX[fc], y + DY[fc], z + DZ[fc])] != 0)) continue;
+                                BoxFace(mb.Box, fc, bq, buv); var pp = new double[4][];
+                                for (int i = 0; i < 4; i++) pp[i] = new[] { x + bq[i][0] - 16, y + bq[i][1] - 16, z + bq[i][2] - 16 };
+                                Quad(pp, LayTex(id, mb.Faces[fc]), DX[fc], DY[fc], DZ[fc], false, buv);
+                            }
+                        continue;
+                    }
                     if (SPC[id] != 0)
                     {
                         int X = x - 16, Y = y - 16, Z = z - 16; double lo = .1, hi = .9;
@@ -437,17 +525,11 @@ public static class Mesher
                     }
                     for (int fc = 0; fc < 6; fc++)
                     {
-                        int nx = x + DX[fc], ny = y + DY[fc], nz = z + DZ[fc]; int nb;
-                        if (nx >= 0 && nx < 32 && ny >= 0 && ny < 32 && nz >= 0 && nz < 32) nb = d[nx + 32 * (nz + 32 * ny)];
-                        else
-                        {
-                            int gi = a + nx, gj = b + ny, gk = c + nz; nb = CoreCell(gi, gj, gk);
-                            if (nb == 0 && !coreEd.ContainsKey(cEk(gi, gj, gk)) && CoreOpqFar(gi, gj, gk)) nb = Stone;
-                        }
+                        int nb = Nb(x + DX[fc], y + DY[fc], z + DZ[fc]);
                         if (OPQ[nb] != 0 || (TGR[id] != 0 && TGR[nb] == TGR[id])) continue;
                         var cn = CN[fc]; var pp = new double[4][];
                         for (int i = 0; i < 4; i++) pp[i] = new double[] { x + cn[i * 3] - 16, y + cn[i * 3 + 1] - 16, z + cn[i * 3 + 2] - 16 };
-                        Quad(pp, Lay(id), DX[fc], DY[fc], DZ[fc], false);
+                        Quad(pp, Lay(id, fc), DX[fc], DY[fc], DZ[fc], false);
                     }
                 }
         if (ix.Count == 0) return null;

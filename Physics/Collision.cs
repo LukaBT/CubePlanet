@@ -8,7 +8,8 @@ public static class Collision
     internal static readonly int[][] HOF = { new[] { -1, -1 }, new[] { 0, -1 }, new[] { 1, -1 }, new[] { -1, 0 }, new[] { 1, 0 }, new[] { -1, 1 }, new[] { 0, 1 }, new[] { 1, 1 } };
     internal static readonly double[] RCS = Enumerable.Range(0, 12).Select(k => Math.Cos(k * PI / 6)).ToArray(), RSN = Enumerable.Range(0, 12).Select(k => Math.Sin(k * PI / 6)).ToArray();
 
-    internal static bool SolidAt(double x, double y, double z) { int b = GetAt(x, y, z); return b != 0 && b != Water && SPC[b] == 0; }
+    // solid = inside one of the block's collision boxes (geometry.collision; full block for cubes, nothing for plants and liquids)
+    internal static bool SolidAt(double x, double y, double z) { int b = LocalAt(x, y, z, out double lx, out double ly, out double lz); return Collides(b, lx, ly, lz); }
 
     internal static (V3, V3) CoreFrame(V3 g)
     {

@@ -7,25 +7,32 @@ public static class BlockEditing
 
     // ---------- editing ----------
     /// <summary>March along the view ray; returns the first solid block hit plus the empty cell just before it.</summary>
+    /// <remarks>A block is hit where the ray enters one of its selection boxes (geometry.selection). px/py/pz is the last point in the cell before
+    /// the hit cell, so placing next to a slab or a flower never lands inside that block's own cell.</remarks>
     public static RayHit Raycast(double reach)
     {
-        double px = C.x, py = C.y, pz = C.z;
+        double px = C.x, py = C.y, pz = C.z, lx0 = C.x, ly0 = C.y, lz0 = C.z; long cell = long.MinValue;
         for (double t = 0; t <= reach; t += .07)
         {
             double x = C.x + C.f.X * t, y = C.y + C.f.Y * t, z = C.z + C.f.Z * t;
             if (x * x + y * y + z * z < CORE * CORE)
             {
+                int ci = (int)Math.Floor(x), cj = (int)Math.Floor(y), ck = (int)Math.Floor(z); long key = long.MinValue + 1 + cEk(ci, cj, ck); // core cells, kept apart from the band cell hashes
+                if (key != cell) { px = lx0; py = ly0; pz = lz0; cell = key; }
                 int id = CoreAt(x, y, z);
-                if (id != 0 && id != Water) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, core = true, id = id, ci = (int)Math.Floor(x), cj = (int)Math.Floor(y), ck = (int)Math.Floor(z) };
-                px = x; py = y; pz = z; continue;
+                if (Selects(id, x - ci, y - cj, z - ck)) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, core = true, id = id, ci = ci, cj = cj, ck = ck };
+                lx0 = x; ly0 = y; lz0 = z; continue;
             }
             int bi = P2b(x, y, z);
             if (bi >= 0)
             {
-                int f = PF, bx = PX, by = PY, bz = PZ, hb = Blk(bi, f, bx, by, bz);
-                if (hb != 0 && hb != Water) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, bi = bi, f = f, bx = bx, by = by, bz = bz };
+                int f = PF, bx = PX, by = PY, bz = PZ; double fx = PFX, fy = PFY, fz = PFZ;
+                long key = Mix(bi * 6 + f, bx, by, bz);
+                if (key != cell) { px = lx0; py = ly0; pz = lz0; cell = key; }
+                int hb = Blk(bi, f, bx, by, bz);
+                if (Selects(hb, fx, fy, fz)) return new RayHit { x = x, y = y, z = z, px = px, py = py, pz = pz, id = hb, bi = bi, f = f, bx = bx, by = by, bz = bz };
             }
-            px = x; py = y; pz = z;
+            lx0 = x; ly0 = y; lz0 = z;
         }
         return null;
     }

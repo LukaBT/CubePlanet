@@ -1,2 +1,2 @@
-layout(location=0)in ivec4 aPi;layout(location=1)in uvec2 aSU;uniform mat4 uLV;uniform vec3 uO;out vec2 vUv;flat out float vL;flat out uint vF;
-void main(){vec3 aP=vec3(aPi.xyz)*.00390625;float aL=float(aPi.w);vec2 aUv=vec2(float(aSU.y&1u),float((aSU.y>>1)&1u));mat4 LM=uWt<.5?uLV:uWt<1.5?uLV1:uLV2;gl_Position=LM*vec4(aP+uO,1.);gl_Position.z=gl_Position.z*.5+.5*gl_Position.w;vUv=aUv;vL=aL;vF=(aSU.y>>4)&63u;}
+layout(location=0)in ivec4 aPi;layout(location=1)in uvec2 aSU;layout(location=3)in uvec4 aMf;uniform mat4 uLV;uniform vec3 uO;out vec2 vUv;flat out float vL;flat out uint vF;
+void main(){vec3 aP=vec3(aPi.xyz)*.00390625;float aL=float(aPi.w);vec2 aUv=vec2(float(aSU.y&31u),float((aSU.y>>5)&31u))*.0625;mat4 LM=uWt<.5?uLV:uWt<1.5?uLV1:uLV2;gl_Position=LM*vec4(aP+uO,1.);gl_Position.z=gl_Position.z*.5+.5*gl_Position.w;vUv=aUv;vL=aL;vF=aMf.w&63u;}

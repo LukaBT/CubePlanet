@@ -35,7 +35,7 @@ keeps using short names (`R`, `chunks`, `Blk(...)`, `C`, `P`, `SET`, ...). A cla
 Program.cs, Game.cs, Settings.cs, GlobalUsings.cs
 Assets/                the 7 AssetEditor files (blocks, items, UIs, both atlases + their indexes), copied next to the exe
 AssetLoading/          AssetPaths, DefinitionFile (tolerant JSON), TextureDefinitionFile, AtlasLoader, GameAssets (loads everything at startup)
-Blocks/                BlockDefinition, BlockRegistry, BlockTables (per-block arrays built from the definitions), BlockIds (named IDs: Stone, Water, ...)
+Blocks/                BlockDefinition, BlockBox, BlockRegistry, BlockTables (per-block arrays built from the definitions), BlockIds (named IDs: Stone, Water, ...)
 Items/                 ItemDefinition, ItemRegistry
 Worlds/                World (radius, bands, chunks, edits, world creation), BlockAccess (position <-> block, Blk / SetCell), Cube (face axes, seams),
                        Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), WaterSim (+ bucket), BlockEditing
@@ -48,7 +48,7 @@ Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPass
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
 UI/                    UI as partial files (Font, Draw2D, Hotbar, SettingsPanel, Compass, StartScreen) + Hud, UiRegistry (ui_definitions, drawn from phase 4)
 Util/                  V3, M (math)
-Diagnostics/           Fingerprint (--fingerprint), Png (screenshots)
+Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), Png (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 ```
 
@@ -60,10 +60,19 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
 * Block IDs are 2 bytes (1..65535, 0 = air); chunk data is `ushort[]`. Item IDs are a separate space; item texture ID = item ID.
 * Texture layer = block texture ID; atlas rows are flipped on load (row 0 = bottom of a face). Textures must be square, power-of-two sized.
 * Today's 117 blocks were exported once from the old procedural textures (identical bytes); each block has an item that places it, plus `bucket`.
-* Game keys in `properties.definition` (all optional): `model` (cube / cross / liquid / attached + `attach`: vine / pod), `random_offset`,
+* Game keys in `properties.definition` (all optional): `model` (cube / cross / liquid / attached + `attach`: vine / pod / boxes), `random_offset`,
   `waterlogged` (underwater plants), `lod_color`, `render.layer` (opaque / cutout / translucent / liquid), `render.connect_group`
   (faces between equal groups are hidden: leaves, glass, ice), `render.sway` (none / leaves / plant / underwater), `render.emissive`,
-  `render.casts_shadow`. `group_tags` used: `log`, `leaves`. Textures: `textures.all` (per-face slots come with 3D models, phase 3).
+  `render.casts_shadow`. `group_tags` used: `log`, `leaves`. The full key list with defaults is the comment at the top of `Blocks/BlockDefinition.cs`.
+* Textures: `all`, or `top` / `bottom` / `side`, or per face `north` (-z) / `south` (+z) / `east` (+x) / `west` (-x) / `top` / `bottom`
+  (a face uses its own slot, then `side`, then `all`). Logs use this for their ring tops.
+* 3D shapes: `"model": "boxes"` with `"boxes": [{"x","y","z","w","h","d", "textures": {...}}]` in block units (0..1, y = up). Boxes are drawn
+  through the same curved-cube mapping as full blocks, textures are cut to the box (a slab shows the lower half of the texture).
+* `geometry.collision` / `geometry.selection` are lists of 3D boxes (the editor's 2D `{"x","y","width","height"}` form also works and spans
+  the full depth). Missing collision = full block for cubes, none for other models; missing selection = full block (none for liquids).
+  Player collision, the targeted-block raycast, the highlight outline and block placement all use them.
+* `rotation` (none / horizontal / all) is read and checked; turning boxes by the block's facing needs per-block state, which comes in phase 4.
+* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence (post only; connections need state too).
 * Shaders no longer know block IDs: the mesher writes material flags (sway, emissive, no shadow, ice) into each vertex.
 * Editing: open the `Assets` folder in the AssetEditor ("Open project folder"), change things, then **Export** into `Assets/`
   (Save also works but adds the editor's own per-texture PNG folders and project_settings.json there).
@@ -140,7 +149,8 @@ patches to the far plane, where the sky was drawn over them: the white seam line
 `--radius N --seed N`, `--msaa 0|2|4|8`, `--novsync`, and for testing: `--bench SECONDS` (starts immediately with a fixed free camera,
 ignores input, prints FPS + chunk pipeline timings, does not save settings), `--shot file.png`, `--set name=value` (any settings field,
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
-`--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt` and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
+`--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera.
+`--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)
 * **Terrain:** erosion noise decides flat vs rugged regions, domain-warped ridged noise gives sharper peaks, valleys are cut

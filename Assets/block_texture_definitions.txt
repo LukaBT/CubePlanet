@@ -118,3 +118,10 @@ texture_rows: 16
 115 bubble_coral_fan 48 112
 116 fire_coral_fan 64 112
 117 horn_coral_fan 80 112
+118 oak_log_top 96 112
+119 birch_log_top 112 112
+120 spruce_log_top 128 112
+121 jungle_log_top 144 112
+122 acacia_log_top 160 112
+123 cherry_log_top 176 112
+124 palm_log_top 192 112
