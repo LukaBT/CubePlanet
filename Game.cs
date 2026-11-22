@@ -216,7 +216,7 @@ public class Game : GameWindow
             if (PlayerPhysics.P.on) PlayerPhysics.PlayerUpdate(dt, fw, sd, jump, sneak, ctrl);
             else { double alt = Math.Sqrt(Camera.C.x * Camera.C.x + Camera.C.y * Camera.C.y + Camera.C.z * Camera.C.z) - World.R, s = 12 * Camera.spd * Math.Max(1, alt / 25) * dt * (ctrl ? 5 : 1); Camera.CamMove(fw * s, sd * s, up * s, Camera.C.lvl); }
         }
-        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); Water.WaterTick(dt);
+        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); WaterSim.WaterTick(dt);
         if (ChunkLoader.frameNo % 6 == 0) UI.underwater = !Camera.C.orbit && Blocks.Wet(BlockAccess.GetAt(Camera.C.x, Camera.C.y, Camera.C.z));
         // block editing
         editT -= dt; bool L = Captured && Program.Bench == 0 && MouseState.IsButtonDown(MouseButton.Left), Rt = Captured && Program.Bench == 0 && MouseState.IsButtonDown(MouseButton.Right);

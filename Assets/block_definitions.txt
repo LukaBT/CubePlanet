@@ -1,0 +1,6237 @@
+{
+  "blocks": [
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "grass",
+      "id": 1,
+      "name": "Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 1
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            89,
+            161,
+            61
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "stone",
+      "id": 2,
+      "name": "Stone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 2
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            125,
+            125,
+            125
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "stone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "dirt",
+      "id": 3,
+      "name": "Dirt",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 3
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            121,
+            85,
+            58
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dirt",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_log",
+      "id": 4,
+      "name": "Oak Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 4
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            103,
+            82,
+            51
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_leaves",
+      "id": 5,
+      "name": "Oak Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 5
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            50,
+            120,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "ice",
+      "id": 6,
+      "name": "Ice",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 6
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "translucent",
+            "connect_group": "ice"
+          },
+          "lod_color": [
+            151,
+            201,
+            240
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "ice",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sand",
+      "id": 7,
+      "name": "Sand",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 7
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            219,
+            207,
+            142
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sand",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "snow",
+      "id": 8,
+      "name": "Snow",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 8
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            240,
+            244,
+            248
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "snow",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "water",
+      "id": 9,
+      "name": "Water",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 9
+      },
+      "properties": {
+        "definition": {
+          "model": "liquid",
+          "render": {
+            "layer": "liquid"
+          },
+          "lod_color": [
+            45,
+            100,
+            200
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [],
+            "state_overrides": []
+          },
+          "drops": []
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "gravel",
+      "id": 10,
+      "name": "Gravel",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 10
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            136,
+            126,
+            122
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "gravel",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sandstone",
+      "id": 11,
+      "name": "Sandstone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 11
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            214,
+            190,
+            134
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sandstone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "red_sand",
+      "id": 12,
+      "name": "Red Sand",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 12
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            190,
+            98,
+            44
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "red_sand",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "terracotta",
+      "id": 13,
+      "name": "Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 13
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            152,
+            94,
+            67
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "orange_terracotta",
+      "id": 14,
+      "name": "Orange Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 14
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            161,
+            83,
+            37
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "orange_terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "yellow_terracotta",
+      "id": 15,
+      "name": "Yellow Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 15
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            186,
+            133,
+            35
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "yellow_terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "white_terracotta",
+      "id": 16,
+      "name": "White Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 16
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            209,
+            178,
+            161
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "white_terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "red_terracotta",
+      "id": 17,
+      "name": "Red Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 17
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            143,
+            61,
+            46
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "red_terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "brown_terracotta",
+      "id": 18,
+      "name": "Brown Terracotta",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 18
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            77,
+            51,
+            36
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "brown_terracotta",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "jungle_grass",
+      "id": 19,
+      "name": "Jungle Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 19
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            58,
+            168,
+            38
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "jungle_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "savanna_grass",
+      "id": 20,
+      "name": "Savanna Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 20
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            160,
+            164,
+            72
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "savanna_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "taiga_grass",
+      "id": 21,
+      "name": "Taiga Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 21
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            92,
+            138,
+            96
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "taiga_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "swamp_grass",
+      "id": 22,
+      "name": "Swamp Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 22
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            84,
+            112,
+            58
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "swamp_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "spruce_leaves",
+      "id": 23,
+      "name": "Spruce Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 23
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            36,
+            82,
+            52
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "spruce_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "jungle_leaves",
+      "id": 24,
+      "name": "Jungle Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 24
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            34,
+            132,
+            28
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "jungle_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "acacia_leaves",
+      "id": 25,
+      "name": "Acacia Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 25
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            104,
+            150,
+            44
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "acacia_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "birch_leaves",
+      "id": 26,
+      "name": "Birch Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 26
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            120,
+            164,
+            64
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "birch_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "birch_log",
+      "id": 27,
+      "name": "Birch Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 27
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            214,
+            214,
+            204
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "birch_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "spruce_log",
+      "id": 28,
+      "name": "Spruce Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 28
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            58,
+            40,
+            24
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "spruce_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "jungle_log",
+      "id": 29,
+      "name": "Jungle Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 29
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            88,
+            70,
+            34
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "jungle_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "acacia_log",
+      "id": 30,
+      "name": "Acacia Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 30
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            112,
+            102,
+            92
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "acacia_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_planks",
+      "id": 31,
+      "name": "Oak Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "spruce_planks",
+      "id": 32,
+      "name": "Spruce Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 32
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            114,
+            84,
+            48
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "spruce_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "acacia_planks",
+      "id": 33,
+      "name": "Acacia Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 33
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            170,
+            92,
+            52
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "acacia_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "jungle_planks",
+      "id": 34,
+      "name": "Jungle Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 34
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            160,
+            114,
+            80
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "jungle_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cobblestone",
+      "id": 35,
+      "name": "Cobblestone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 35
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            118,
+            118,
+            118
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cobblestone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "mossy_cobblestone",
+      "id": 36,
+      "name": "Mossy Cobblestone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 36
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            100,
+            124,
+            90
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "mossy_cobblestone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "stone_bricks",
+      "id": 37,
+      "name": "Stone Bricks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 37
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            128,
+            128,
+            130
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "stone_bricks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "glass",
+      "id": 38,
+      "name": "Glass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 38
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "translucent",
+            "connect_group": "glass"
+          },
+          "lod_color": [
+            190,
+            225,
+            235
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "glass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cut_sandstone",
+      "id": 39,
+      "name": "Cut Sandstone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 39
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            224,
+            208,
+            156
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cut_sandstone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cactus",
+      "id": 40,
+      "name": "Cactus",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 40
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            24,
+            112,
+            42
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cactus",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "hay_bale",
+      "id": 41,
+      "name": "Hay Bale",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 41
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            196,
+            168,
+            44
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "hay_bale",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "red_sandstone",
+      "id": 42,
+      "name": "Red Sandstone",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 42
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            178,
+            92,
+            44
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "red_sandstone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tall_grass",
+      "id": 43,
+      "name": "Tall Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 43
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            70,
+            150,
+            55
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tall_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "dry_grass",
+      "id": 44,
+      "name": "Dry Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 44
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            185,
+            165,
+            85
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dry_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "fern",
+      "id": 45,
+      "name": "Fern",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 45
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            50,
+            120,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "fern",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "dandelion",
+      "id": 46,
+      "name": "Dandelion",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 46
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            240,
+            205,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dandelion",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "poppy",
+      "id": 47,
+      "name": "Poppy",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 47
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            200,
+            30,
+            28
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "poppy",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cornflower",
+      "id": 48,
+      "name": "Cornflower",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 48
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            70,
+            110,
+            225
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cornflower",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "allium",
+      "id": 49,
+      "name": "Allium",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 49
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            165,
+            85,
+            205
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "allium",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "dead_bush",
+      "id": 50,
+      "name": "Dead Bush",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 50
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            115,
+            82,
+            48
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dead_bush",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "vine",
+      "id": 51,
+      "name": "Vine",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 51
+      },
+      "properties": {
+        "definition": {
+          "model": "attached",
+          "attach": "vine",
+          "render": {
+            "layer": "cutout",
+            "sway": "leaves",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            45,
+            115,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "vine",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cocoa",
+      "id": 52,
+      "name": "Cocoa",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 52
+      },
+      "properties": {
+        "definition": {
+          "model": "attached",
+          "attach": "pod",
+          "render": {
+            "layer": "cutout",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            150,
+            92,
+            42
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cocoa",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "red_mushroom",
+      "id": 53,
+      "name": "Red Mushroom",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 53
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            200,
+            40,
+            35
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "red_mushroom",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "brown_mushroom",
+      "id": 54,
+      "name": "Brown Mushroom",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 54
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            140,
+            100,
+            70
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "brown_mushroom",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sugar_cane",
+      "id": 55,
+      "name": "Sugar Cane",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 55
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "random_offset": false,
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            150,
+            205,
+            90
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sugar_cane",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "pumpkin",
+      "id": 56,
+      "name": "Pumpkin",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 56
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            220,
+            125,
+            25
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "pumpkin",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "melon",
+      "id": 57,
+      "name": "Melon",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 57
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            95,
+            165,
+            45
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "melon",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "coal_ore",
+      "id": 58,
+      "name": "Coal Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 58
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            40,
+            40,
+            42
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "coal_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "iron_ore",
+      "id": 59,
+      "name": "Iron Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 59
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            216,
+            175,
+            147
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "iron_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "gold_ore",
+      "id": 60,
+      "name": "Gold Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 60
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            252,
+            238,
+            75
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "gold_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "diamond_ore",
+      "id": 61,
+      "name": "Diamond Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 61
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            92,
+            219,
+            213
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "diamond_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "redstone_ore",
+      "id": 62,
+      "name": "Redstone Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 62
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            214,
+            24,
+            24
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "redstone_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "lapis_ore",
+      "id": 63,
+      "name": "Lapis Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 63
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            34,
+            68,
+            176
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "lapis_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "copper_ore",
+      "id": 64,
+      "name": "Copper Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 64
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            224,
+            126,
+            86
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "copper_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "emerald_ore",
+      "id": 65,
+      "name": "Emerald Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 65
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            23,
+            221,
+            98
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "emerald_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate",
+      "id": 66,
+      "name": "Deepslate",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 66
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            68,
+            68,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_coal_ore",
+      "id": 67,
+      "name": "Deepslate Coal Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 67
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            40,
+            40,
+            42
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_coal_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_iron_ore",
+      "id": 68,
+      "name": "Deepslate Iron Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 68
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            216,
+            175,
+            147
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_iron_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_gold_ore",
+      "id": 69,
+      "name": "Deepslate Gold Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 69
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            252,
+            238,
+            75
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_gold_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_diamond_ore",
+      "id": 70,
+      "name": "Deepslate Diamond Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 70
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            92,
+            219,
+            213
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_diamond_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_redstone_ore",
+      "id": 71,
+      "name": "Deepslate Redstone Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 71
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            214,
+            24,
+            24
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_redstone_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_lapis_ore",
+      "id": 72,
+      "name": "Deepslate Lapis Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 72
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            34,
+            68,
+            176
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_lapis_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_copper_ore",
+      "id": 73,
+      "name": "Deepslate Copper Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 73
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            224,
+            126,
+            86
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_copper_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "deepslate_emerald_ore",
+      "id": 74,
+      "name": "Deepslate Emerald Ore",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 74
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            23,
+            221,
+            98
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "deepslate_emerald_ore",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "lava",
+      "id": 75,
+      "name": "Lava",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 75
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque",
+            "emissive": 1
+          },
+          "lod_color": [
+            235,
+            100,
+            20
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "lava",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "lush_grass",
+      "id": 76,
+      "name": "Lush Grass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 76
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            58,
+            150,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "lush_grass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "moss_block",
+      "id": 77,
+      "name": "Moss Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 77
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            88,
+            112,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "moss_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "podzol",
+      "id": 78,
+      "name": "Podzol",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 78
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            112,
+            76,
+            38
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "podzol",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "packed_ice",
+      "id": 79,
+      "name": "Packed Ice",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 79
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            190,
+            240
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "packed_ice",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "blue_ice",
+      "id": 80,
+      "name": "Blue Ice",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 80
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            90,
+            150,
+            240
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "blue_ice",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "clay",
+      "id": 81,
+      "name": "Clay",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 81
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            162,
+            168,
+            184
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "clay",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "coral_sand",
+      "id": 82,
+      "name": "Coral Sand",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 82
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            240,
+            230,
+            200
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "coral_sand",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "basalt",
+      "id": 83,
+      "name": "Basalt",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 83
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            58,
+            58,
+            64
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "basalt",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "volcanic_ash",
+      "id": 84,
+      "name": "Volcanic Ash",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 84
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            100,
+            96,
+            98
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "volcanic_ash",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "magma_block",
+      "id": 85,
+      "name": "Magma Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 85
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque",
+            "emissive": 1
+          },
+          "lod_color": [
+            150,
+            56,
+            18
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "magma_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "obsidian",
+      "id": 86,
+      "name": "Obsidian",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 86
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            24,
+            16,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "obsidian",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "prismarine_bricks",
+      "id": 87,
+      "name": "Prismarine Bricks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 87
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            84,
+            170,
+            150
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "prismarine_bricks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sea_lantern",
+      "id": 88,
+      "name": "Sea Lantern",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 88
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque",
+            "emissive": 1
+          },
+          "lod_color": [
+            204,
+            234,
+            228
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sea_lantern",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "dead_coral_block",
+      "id": 89,
+      "name": "Dead Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 89
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            128,
+            122,
+            116
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dead_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cherry_log",
+      "id": 90,
+      "name": "Cherry Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 90
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            84,
+            50,
+            58
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cherry_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cherry_planks",
+      "id": 91,
+      "name": "Cherry Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 91
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            228,
+            180,
+            172
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cherry_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "palm_log",
+      "id": 92,
+      "name": "Palm Log",
+      "stateless": true,
+      "group_tags": [
+        "log"
+      ],
+      "textures": {
+        "all": 92
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            118,
+            74
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "palm_log",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "palm_planks",
+      "id": 93,
+      "name": "Palm Planks",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 93
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            200,
+            164,
+            104
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "palm_planks",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "cherry_leaves",
+      "id": 94,
+      "name": "Cherry Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 94
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            244,
+            168,
+            196
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "cherry_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "flowering_azalea_leaves",
+      "id": 95,
+      "name": "Flowering Azalea Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 95
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            100,
+            146,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "flowering_azalea_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "azalea_leaves",
+      "id": 96,
+      "name": "Azalea Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 96
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            78,
+            128,
+            52
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "azalea_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "palm_leaves",
+      "id": 97,
+      "name": "Palm Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 97
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            52,
+            150,
+            44
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "palm_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "snowy_spruce_leaves",
+      "id": 98,
+      "name": "Snowy Spruce Leaves",
+      "stateless": true,
+      "group_tags": [
+        "leaves"
+      ],
+      "textures": {
+        "all": 98
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout",
+            "connect_group": "leaves",
+            "sway": "leaves"
+          },
+          "lod_color": [
+            58,
+            96,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "snowy_spruce_leaves",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tube_coral_block",
+      "id": 99,
+      "name": "Tube Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 99
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            48,
+            96,
+            220
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tube_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "brain_coral_block",
+      "id": 100,
+      "name": "Brain Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 100
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            222,
+            100,
+            160
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "brain_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "bubble_coral_block",
+      "id": 101,
+      "name": "Bubble Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 101
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            60,
+            200
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "bubble_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "fire_coral_block",
+      "id": 102,
+      "name": "Fire Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 102
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            200,
+            40,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "fire_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "horn_coral_block",
+      "id": 103,
+      "name": "Horn Coral Block",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 103
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            240,
+            200,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "horn_coral_block",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "pink_petals",
+      "id": 104,
+      "name": "Pink Petals",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 104
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            240,
+            150,
+            190
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "pink_petals",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "pink_tulip",
+      "id": 105,
+      "name": "Pink Tulip",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 105
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            240,
+            130,
+            175
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "pink_tulip",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "bluebell",
+      "id": 106,
+      "name": "Bluebell",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 106
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            95,
+            110,
+            230
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "bluebell",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "lavender",
+      "id": 107,
+      "name": "Lavender",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 107
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            160,
+            110,
+            220
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "lavender",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "bamboo",
+      "id": 108,
+      "name": "Bamboo",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 108
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "random_offset": false,
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            110,
+            170,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "bamboo",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sweet_berry_bush",
+      "id": 109,
+      "name": "Sweet Berry Bush",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 109
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            60,
+            120,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sweet_berry_bush",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "seagrass",
+      "id": 110,
+      "name": "Seagrass",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 110
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "random_offset": false,
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            40,
+            150,
+            70
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "seagrass",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "kelp",
+      "id": 111,
+      "name": "Kelp",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 111
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "random_offset": false,
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            90,
+            120,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "kelp",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sea_pickle",
+      "id": 112,
+      "name": "Sea Pickle",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 112
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            80,
+            130,
+            40
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sea_pickle",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tube_coral_fan",
+      "id": 113,
+      "name": "Tube Coral Fan",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 113
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            60,
+            100,
+            230
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tube_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "brain_coral_fan",
+      "id": 114,
+      "name": "Brain Coral Fan",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 114
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            230,
+            110,
+            170
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "brain_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "bubble_coral_fan",
+      "id": 115,
+      "name": "Bubble Coral Fan",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 115
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            160,
+            70,
+            210
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "bubble_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "fire_coral_fan",
+      "id": 116,
+      "name": "Fire Coral Fan",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 116
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            210,
+            50,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "fire_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "horn_coral_fan",
+      "id": 117,
+      "name": "Horn Coral Fan",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 117
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "waterlogged": true,
+          "render": {
+            "layer": "cutout",
+            "sway": "underwater",
+            "casts_shadow": false
+          },
+          "lod_color": [
+            240,
+            210,
+            70
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "horn_coral_fan",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    }
+  ]
+}

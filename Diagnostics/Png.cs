@@ -2,7 +2,7 @@ using System.IO.Compression;
 
 namespace CubePlanet;
 
-/// <summary>Tiny PNG writer (RGB, no dependencies) for --shot screenshots.</summary>
+/// <summary>Tiny PNG writer (no dependencies): RGB for --shot screenshots, RGBA for asset atlases.</summary>
 public static class Png
 {
     public static void Write(string path, byte[] px, int w, int h, bool bgra, bool flipY)
@@ -18,6 +18,18 @@ public static class Png
         using var f = File.Create(path);
         f.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
         var ihdr = new byte[13]; BE(ihdr, 0, w); BE(ihdr, 4, h); ihdr[8] = 8; ihdr[9] = 2;
+        Chunk(f, "IHDR", ihdr); Chunk(f, "IDAT", ms.ToArray()); Chunk(f, "IEND", Array.Empty<byte>());
+    }
+    /// <summary>RGBA PNG (rows top-down), used for the asset atlases.</summary>
+    public static void WriteRgba(string path, byte[] rgba, int w, int h)
+    {
+        var raw = new byte[(w * 4 + 1) * h];
+        for (int y = 0; y < h; y++) { raw[y * (w * 4 + 1)] = 0; Buffer.BlockCopy(rgba, y * w * 4, raw, y * (w * 4 + 1) + 1, w * 4); }
+        using var ms = new MemoryStream();
+        using (var z = new ZLibStream(ms, CompressionLevel.Optimal, true)) z.Write(raw);
+        using var f = File.Create(path);
+        f.Write(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+        var ihdr = new byte[13]; BE(ihdr, 0, w); BE(ihdr, 4, h); ihdr[8] = 8; ihdr[9] = 6;
         Chunk(f, "IHDR", ihdr); Chunk(f, "IDAT", ms.ToArray()); Chunk(f, "IEND", Array.Empty<byte>());
     }
     static void BE(byte[] b, int o, int v) { b[o] = (byte)(v >> 24); b[o + 1] = (byte)(v >> 16); b[o + 2] = (byte)(v >> 8); b[o + 3] = (byte)v; }

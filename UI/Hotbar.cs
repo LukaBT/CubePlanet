@@ -3,7 +3,7 @@ namespace CubePlanet;
 /// <summary>Hotbar and block palette.</summary>
 public static partial class UI
 {
-    public static readonly int[] HB = { 1, 2, 3, 4, 5, 6, 7, 8, Water.BK, 9 };
+    public static readonly int[] HB = { 1, 2, 3, 4, 5, 6, 7, 8, WaterSim.BK, 9 };
 
     // ---------- hotbar / palette ----------
     public static void SetSlotBlock(int id)
@@ -44,7 +44,7 @@ public static partial class UI
             if (hov) Rect(x - 2 * s, y - 2 * s, 40 * s, 40 * s, 1, 1, 1, .5f);
             BucketIcon(x, y, 36 * s);
             if (hov) Text("bucket (break = scoop water, place = pour)", mx + 12, my + 12, s, 1, 1, 1);
-            if (hov && clicked) { HB[BlockEditing.slot - 1] = Water.BK; BlockEditing.sel = Water.BK; invOpen = false; clicked = false; }
+            if (hov && clicked) { HB[BlockEditing.slot - 1] = WaterSim.BK; BlockEditing.sel = WaterSim.BK; invOpen = false; clicked = false; }
         }
     }
 }

@@ -8,7 +8,7 @@ global using static CubePlanet.BlockAccess;
 global using static CubePlanet.CoreGrid;
 global using static CubePlanet.ChunkLoader;
 global using static CubePlanet.ChunkWorkers;
-global using static CubePlanet.Water;
+global using static CubePlanet.WaterSim;
 global using static CubePlanet.BlockEditing;
 global using static CubePlanet.Noise;
 global using static CubePlanet.TerrainGen;

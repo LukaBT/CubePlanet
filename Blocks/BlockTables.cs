@@ -1,29 +1,64 @@
 namespace CubePlanet;
 
-/// <summary>Block ids and their property tables.</summary>
-public static class Blocks
+/// <summary>
+/// Per-block lookup tables indexed by block ID (fast arrays for the mesher, generation and physics), built from the block definitions at startup.
+/// Sized for every 2-byte ID, so any value found in chunk data can be looked up.
+/// </summary>
+public static partial class Blocks
 {
-    // SPC = special-shaped (plants/vines/cocoa, non-solid); OPQ = hides neighbouring faces; TGR = transparent group (1 leaves, 2 glass, 3 ice)
-    public static readonly byte[] SPC = new byte[256], OPQ = new byte[256], TGR = new byte[256];
+    const int N = 65536;
+    // SPC = special-shaped (plants/vines/cocoa, non-solid); OPQ = hides neighbouring faces; TGR = transparent group (1 leaves, 2 glass, 3 ice, 4+ other groups)
+    public static readonly byte[] SPC = new byte[N], OPQ = new byte[N], TGR = new byte[N];
     /// <summary>Underwater plants: special-shaped, non-solid, and they sit inside the water body (water faces next to them are hidden, swimming still works).</summary>
-    public static readonly bool[] UWP = new bool[256];
-    public static bool Wet(int id) => id == 9 || UWP[id];
-    public static readonly bool[] LOGID = new bool[256], LEAFS = new bool[256];
-    public static readonly string[] BN =
-        ("air grass stone dirt oak_log oak_leaves ice sand snow water gravel sandstone red_sand terracotta orange_terracotta yellow_terracotta white_terracotta red_terracotta brown_terracotta jungle_grass savanna_grass taiga_grass swamp_grass spruce_leaves jungle_leaves acacia_leaves birch_leaves birch_log spruce_log jungle_log acacia_log oak_planks spruce_planks acacia_planks jungle_planks cobblestone mossy_cobblestone stone_bricks glass cut_sandstone cactus hay_bale red_sandstone tall_grass dry_grass fern dandelion poppy cornflower allium dead_bush vine cocoa red_mushroom brown_mushroom sugar_cane pumpkin melon coal_ore iron_ore gold_ore diamond_ore redstone_ore lapis_ore copper_ore emerald_ore deepslate deepslate_coal_ore deepslate_iron_ore deepslate_gold_ore deepslate_diamond_ore deepslate_redstone_ore deepslate_lapis_ore deepslate_copper_ore deepslate_emerald_ore lava lush_grass moss_block podzol packed_ice blue_ice clay coral_sand basalt volcanic_ash magma_block obsidian prismarine_bricks sea_lantern dead_coral_block cherry_log cherry_planks palm_log palm_planks cherry_leaves flowering_azalea_leaves azalea_leaves palm_leaves snowy_spruce_leaves tube_coral_block brain_coral_block bubble_coral_block fire_coral_block horn_coral_block pink_petals pink_tulip bluebell lavender bamboo sweet_berry_bush seagrass kelp sea_pickle tube_coral_fan brain_coral_fan bubble_coral_fan fire_coral_fan horn_coral_fan").Split(' ');
+    public static readonly bool[] UWP = new bool[N];
+    public static readonly bool[] LOGID = new bool[N], LEAFS = new bool[N];
+    /// <summary>Cross sprites placed with a random offset (false: sugar cane, bamboo, seagrass, kelp stand exactly in their cell).</summary>
+    public static readonly bool[] JIT = new bool[N];
+    /// <summary>Attached models: 1 = vine (planes on supporting sides), 2 = pod (small box on a log).</summary>
+    public static readonly byte[] ATT = new byte[N];
+    /// <summary>Self-lit blocks (lava, magma, sea lanterns): full light in the mesher, glow in the shader.</summary>
+    public static readonly bool[] EMI = new bool[N];
+    /// <summary>Texture layer of each block (one texture per block for now; per-face textures come with 3D block models).</summary>
+    public static readonly int[] TEX = new int[N];
+    /// <summary>Material flags the mesher writes into every vertex (bits 4+ of the packed vertex's second uint16), read by the shaders.</summary>
+    public static readonly int[] MATF = new int[N];
+    public static readonly int[][] LODC = new int[N][];
+    public static string[] BN = { "air" };
+    /// <summary>Highest block ID + 1.</summary>
+    public static int Count = 1;
 
-    static Blocks()
+    public const int MatSwayLeaves = 1, MatSwayPlant = 2, MatSwayWater = 4, MatEmissive = 8, MatNoShadow = 16, MatIce = 32;
+    static readonly int[] GrayLod = { 128, 128, 128 };
+
+    public static bool Wet(int id) => id == Water || UWP[id];
+    /// <summary>Colour of a surface block on the distant LOD terrain.</summary>
+    public static int[] TileColor(int id) => LODC[id] ?? GrayLod;
+    /// <summary>Texture layer + material flags as the mesher's float "layer" vertex component (layer in the low 16 bits, flags above).</summary>
+    public static float Lay(int id) => TEX[id] | MATF[id] << 16;
+
+    public static void Build(BlockRegistry reg)
     {
-        Array.Fill(OPQ, (byte)1);
-        foreach (int i in new[] { 0, 9, 5, 23, 24, 25, 26, 38, 6 }) OPQ[i] = 0;
-        for (int i = 43; i <= 55; i++) { SPC[i] = 1; OPQ[i] = 0; }
-        foreach (int i in new[] { 5, 23, 24, 25, 26 }) { TGR[i] = 1; LEAFS[i] = true; }
-        TGR[38] = 2; TGR[6] = 3;
-        foreach (int i in new[] { 4, 27, 28, 29, 30 }) LOGID[i] = true;
-        // biome blocks: leaves 94-98, land plants 104-109, underwater plants 110-117
-        foreach (int i in new[] { 94, 95, 96, 97, 98 }) { OPQ[i] = 0; TGR[i] = 1; LEAFS[i] = true; }
-        for (int i = 104; i <= 117; i++) { SPC[i] = 1; OPQ[i] = 0; }
-        for (int i = 110; i <= 117; i++) UWP[i] = true;
-        LOGID[90] = true; LOGID[92] = true;
+        Count = reg.Size; BN = new string[Count]; BN[0] = "air";
+        Array.Fill(OPQ, (byte)1); OPQ[0] = 0; // unknown IDs act like stone (opaque, solid) and show the checkerboard texture
+        var groups = new Dictionary<string, byte> { ["leaves"] = 1, ["glass"] = 2, ["ice"] = 3 };
+        foreach (var b in reg.All)
+        {
+            int i = b.Id; BN[i] = b.IdName;
+            OPQ[i] = (byte)(b.RenderLayer == "opaque" ? 1 : 0);
+            SPC[i] = (byte)(b.Model == "cross" || b.Model == "attached" ? 1 : 0);
+            if (b.ConnectGroup.Length > 0)
+            {
+                if (!groups.TryGetValue(b.ConnectGroup, out byte g)) groups[b.ConnectGroup] = g = (byte)Math.Min(255, groups.Count + 1);
+                TGR[i] = g;
+            }
+            UWP[i] = b.Waterlogged; LOGID[i] = b.HasTag("log"); LEAFS[i] = b.HasTag("leaves");
+            JIT[i] = b.RandomOffset; ATT[i] = (byte)(b.Attach == "vine" ? 1 : b.Attach == "pod" ? 2 : 0); EMI[i] = b.Emissive > 0;
+            TEX[i] = b.Texture();
+            MATF[i] = (b.Sway == "leaves" ? MatSwayLeaves : b.Sway == "plant" ? MatSwayPlant : b.Sway == "underwater" ? MatSwayWater : 0)
+                    | (EMI[i] ? MatEmissive : 0) | (b.CastsShadow ? 0 : MatNoShadow) | (b.ConnectGroup == "ice" ? MatIce : 0);
+            LODC[i] = b.LodColor;
+        }
+        for (int i = 1; i < Count; i++) BN[i] ??= "unknown_" + i;
+        ResolveNames(reg);
     }
 }

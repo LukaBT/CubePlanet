@@ -1,0 +1,2132 @@
+{
+  "items": [
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "grass",
+      "id": 1,
+      "name": "Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "stone",
+      "id": 2,
+      "name": "Stone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "stone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dirt",
+      "id": 3,
+      "name": "Dirt",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dirt"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oak_log",
+      "id": 4,
+      "name": "Oak Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oak_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oak_leaves",
+      "id": 5,
+      "name": "Oak Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oak_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "ice",
+      "id": 6,
+      "name": "Ice",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "ice"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sand",
+      "id": 7,
+      "name": "Sand",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sand"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "snow",
+      "id": 8,
+      "name": "Snow",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "snow"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "water",
+      "id": 9,
+      "name": "Water",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "water"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gravel",
+      "id": 10,
+      "name": "Gravel",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "gravel"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sandstone",
+      "id": 11,
+      "name": "Sandstone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sandstone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "red_sand",
+      "id": 12,
+      "name": "Red Sand",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "red_sand"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "terracotta",
+      "id": 13,
+      "name": "Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "orange_terracotta",
+      "id": 14,
+      "name": "Orange Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "orange_terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "yellow_terracotta",
+      "id": 15,
+      "name": "Yellow Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "yellow_terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "white_terracotta",
+      "id": 16,
+      "name": "White Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "white_terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "red_terracotta",
+      "id": 17,
+      "name": "Red Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "red_terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "brown_terracotta",
+      "id": 18,
+      "name": "Brown Terracotta",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "brown_terracotta"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "jungle_grass",
+      "id": 19,
+      "name": "Jungle Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "jungle_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "savanna_grass",
+      "id": 20,
+      "name": "Savanna Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "savanna_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "taiga_grass",
+      "id": 21,
+      "name": "Taiga Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "taiga_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "swamp_grass",
+      "id": 22,
+      "name": "Swamp Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "swamp_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "spruce_leaves",
+      "id": 23,
+      "name": "Spruce Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "spruce_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "jungle_leaves",
+      "id": 24,
+      "name": "Jungle Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "jungle_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "acacia_leaves",
+      "id": 25,
+      "name": "Acacia Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "acacia_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "birch_leaves",
+      "id": 26,
+      "name": "Birch Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "birch_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "birch_log",
+      "id": 27,
+      "name": "Birch Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "birch_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "spruce_log",
+      "id": 28,
+      "name": "Spruce Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "spruce_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "jungle_log",
+      "id": 29,
+      "name": "Jungle Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "jungle_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "acacia_log",
+      "id": 30,
+      "name": "Acacia Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "acacia_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oak_planks",
+      "id": 31,
+      "name": "Oak Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oak_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "spruce_planks",
+      "id": 32,
+      "name": "Spruce Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "spruce_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "acacia_planks",
+      "id": 33,
+      "name": "Acacia Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "acacia_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "jungle_planks",
+      "id": 34,
+      "name": "Jungle Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "jungle_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cobblestone",
+      "id": 35,
+      "name": "Cobblestone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cobblestone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "mossy_cobblestone",
+      "id": 36,
+      "name": "Mossy Cobblestone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "mossy_cobblestone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "stone_bricks",
+      "id": 37,
+      "name": "Stone Bricks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "stone_bricks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "glass",
+      "id": 38,
+      "name": "Glass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "glass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cut_sandstone",
+      "id": 39,
+      "name": "Cut Sandstone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cut_sandstone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cactus",
+      "id": 40,
+      "name": "Cactus",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cactus"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "hay_bale",
+      "id": 41,
+      "name": "Hay Bale",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "hay_bale"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "red_sandstone",
+      "id": 42,
+      "name": "Red Sandstone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "red_sandstone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "tall_grass",
+      "id": 43,
+      "name": "Tall Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "tall_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dry_grass",
+      "id": 44,
+      "name": "Dry Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dry_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "fern",
+      "id": 45,
+      "name": "Fern",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "fern"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dandelion",
+      "id": 46,
+      "name": "Dandelion",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dandelion"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "poppy",
+      "id": 47,
+      "name": "Poppy",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "poppy"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cornflower",
+      "id": 48,
+      "name": "Cornflower",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cornflower"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "allium",
+      "id": 49,
+      "name": "Allium",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "allium"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dead_bush",
+      "id": 50,
+      "name": "Dead Bush",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dead_bush"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "vine",
+      "id": 51,
+      "name": "Vine",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "vine"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cocoa",
+      "id": 52,
+      "name": "Cocoa",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cocoa"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "red_mushroom",
+      "id": 53,
+      "name": "Red Mushroom",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "red_mushroom"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "brown_mushroom",
+      "id": 54,
+      "name": "Brown Mushroom",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "brown_mushroom"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sugar_cane",
+      "id": 55,
+      "name": "Sugar Cane",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sugar_cane"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "pumpkin",
+      "id": 56,
+      "name": "Pumpkin",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "pumpkin"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "melon",
+      "id": 57,
+      "name": "Melon",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "melon"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "coal_ore",
+      "id": 58,
+      "name": "Coal Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "coal_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "iron_ore",
+      "id": 59,
+      "name": "Iron Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "iron_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gold_ore",
+      "id": 60,
+      "name": "Gold Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "gold_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "diamond_ore",
+      "id": 61,
+      "name": "Diamond Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "diamond_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "redstone_ore",
+      "id": 62,
+      "name": "Redstone Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "redstone_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "lapis_ore",
+      "id": 63,
+      "name": "Lapis Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "lapis_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_ore",
+      "id": 64,
+      "name": "Copper Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "copper_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "emerald_ore",
+      "id": 65,
+      "name": "Emerald Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "emerald_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate",
+      "id": 66,
+      "name": "Deepslate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_coal_ore",
+      "id": 67,
+      "name": "Deepslate Coal Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_coal_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_iron_ore",
+      "id": 68,
+      "name": "Deepslate Iron Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_iron_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_gold_ore",
+      "id": 69,
+      "name": "Deepslate Gold Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_gold_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_diamond_ore",
+      "id": 70,
+      "name": "Deepslate Diamond Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_diamond_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_redstone_ore",
+      "id": 71,
+      "name": "Deepslate Redstone Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_redstone_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_lapis_ore",
+      "id": 72,
+      "name": "Deepslate Lapis Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_lapis_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_copper_ore",
+      "id": 73,
+      "name": "Deepslate Copper Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_copper_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "deepslate_emerald_ore",
+      "id": 74,
+      "name": "Deepslate Emerald Ore",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "deepslate_emerald_ore"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "lava",
+      "id": 75,
+      "name": "Lava",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "lava"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "lush_grass",
+      "id": 76,
+      "name": "Lush Grass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "lush_grass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "moss_block",
+      "id": 77,
+      "name": "Moss Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "moss_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "podzol",
+      "id": 78,
+      "name": "Podzol",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "podzol"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "packed_ice",
+      "id": 79,
+      "name": "Packed Ice",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "packed_ice"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "blue_ice",
+      "id": 80,
+      "name": "Blue Ice",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "blue_ice"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "clay",
+      "id": 81,
+      "name": "Clay",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "clay"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "coral_sand",
+      "id": 82,
+      "name": "Coral Sand",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "coral_sand"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "basalt",
+      "id": 83,
+      "name": "Basalt",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "basalt"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "volcanic_ash",
+      "id": 84,
+      "name": "Volcanic Ash",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "volcanic_ash"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "magma_block",
+      "id": 85,
+      "name": "Magma Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "magma_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "obsidian",
+      "id": 86,
+      "name": "Obsidian",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "obsidian"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "prismarine_bricks",
+      "id": 87,
+      "name": "Prismarine Bricks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "prismarine_bricks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sea_lantern",
+      "id": 88,
+      "name": "Sea Lantern",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sea_lantern"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dead_coral_block",
+      "id": 89,
+      "name": "Dead Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dead_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cherry_log",
+      "id": 90,
+      "name": "Cherry Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cherry_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cherry_planks",
+      "id": 91,
+      "name": "Cherry Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cherry_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "palm_log",
+      "id": 92,
+      "name": "Palm Log",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "palm_log"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "palm_planks",
+      "id": 93,
+      "name": "Palm Planks",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "palm_planks"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "cherry_leaves",
+      "id": 94,
+      "name": "Cherry Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "cherry_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "flowering_azalea_leaves",
+      "id": 95,
+      "name": "Flowering Azalea Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "flowering_azalea_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "azalea_leaves",
+      "id": 96,
+      "name": "Azalea Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "azalea_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "palm_leaves",
+      "id": 97,
+      "name": "Palm Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "palm_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "snowy_spruce_leaves",
+      "id": 98,
+      "name": "Snowy Spruce Leaves",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "snowy_spruce_leaves"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "tube_coral_block",
+      "id": 99,
+      "name": "Tube Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "tube_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "brain_coral_block",
+      "id": 100,
+      "name": "Brain Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "brain_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "bubble_coral_block",
+      "id": 101,
+      "name": "Bubble Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "bubble_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "fire_coral_block",
+      "id": 102,
+      "name": "Fire Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "fire_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "horn_coral_block",
+      "id": 103,
+      "name": "Horn Coral Block",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "horn_coral_block"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "pink_petals",
+      "id": 104,
+      "name": "Pink Petals",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "pink_petals"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "pink_tulip",
+      "id": 105,
+      "name": "Pink Tulip",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "pink_tulip"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "bluebell",
+      "id": 106,
+      "name": "Bluebell",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "bluebell"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "lavender",
+      "id": 107,
+      "name": "Lavender",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "lavender"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "bamboo",
+      "id": 108,
+      "name": "Bamboo",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "bamboo"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sweet_berry_bush",
+      "id": 109,
+      "name": "Sweet Berry Bush",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sweet_berry_bush"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "seagrass",
+      "id": 110,
+      "name": "Seagrass",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "seagrass"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "kelp",
+      "id": 111,
+      "name": "Kelp",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "kelp"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sea_pickle",
+      "id": 112,
+      "name": "Sea Pickle",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sea_pickle"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "tube_coral_fan",
+      "id": 113,
+      "name": "Tube Coral Fan",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "tube_coral_fan"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "brain_coral_fan",
+      "id": 114,
+      "name": "Brain Coral Fan",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "brain_coral_fan"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "bubble_coral_fan",
+      "id": 115,
+      "name": "Bubble Coral Fan",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "bubble_coral_fan"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "fire_coral_fan",
+      "id": 116,
+      "name": "Fire Coral Fan",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "fire_coral_fan"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "horn_coral_fan",
+      "id": 117,
+      "name": "Horn Coral Fan",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "horn_coral_fan"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "bucket",
+      "id": 200,
+      "name": "Bucket",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "capacity": 8
+        },
+        "instance_state": {
+          "fill": {
+            "type": "integer",
+            "default": 0,
+            "min": 0,
+            "max_from": "definition.capacity"
+          }
+        }
+      }
+    }
+  ]
+}
