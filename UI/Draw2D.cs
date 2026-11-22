@@ -49,15 +49,4 @@ public static partial class UI
         V(x, y, 0, 1, 1, 1, 1, 1, 2, t); V(x + s, y, 1, 1, 1, 1, 1, 1, 2, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, t);
         V(x, y, 0, 1, 1, 1, 1, 1, 2, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, t); V(x, y + s, 0, 0, 1, 1, 1, 1, 2, t);
     }
-    /// <summary>Bucket item icon (grey bucket with a water level showing how much it holds).</summary>
-    public static void BucketIcon(double x, double y, double s)
-    {
-        double k = s / 16; Rect(x, y, s, s, 0, 0, 0, 1);
-        void Rr(double rx, double ry, double rw, double rh, float r, float g, float b) => Rect(x + rx * k, y + ry * k, rw * k, rh * k, r, g, b, 1);
-        Rr(3, 5, 10, 9, .604f, .627f, .651f); Rr(3, 5, 10, 1, .42f, .44f, .46f); Rr(3, 13, 10, 1, .42f, .44f, .46f); Rr(3, 5, 1, 9, .42f, .44f, .46f); Rr(12, 5, 1, 9, .42f, .44f, .46f);
-        Rr(4, 6, 8, 7, .106f, .114f, .125f);
-        int h = (int)M.JsRound(WaterSim.bk / 8.0 * 7); if (h > 0) { Rr(4, 13 - h, 8, h, .239f, .545f, 1f); Rr(4, 13 - h, 8, 1, .561f, .761f, 1f); }
-    }
-    static void ItemIcon(int id, double x, double y, double s) { if (id == WaterSim.BK) BucketIcon(x, y, s); else Icon(id, x, y, s); }
-    static string ItemName(int id) => id == WaterSim.BK ? "bucket " + WaterSim.bk + "/8" : Blocks.BN[id].Replace('_', ' ');
 }

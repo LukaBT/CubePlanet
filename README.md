@@ -24,9 +24,13 @@ embedded and unpacked to a temp folder on first launch, no .pdb) plus the `Asset
 
 ## Controls
 WASD walk, Space jump (double-tap = fly), Ctrl / double-tap W sprint, Shift sneak / fly down,
-mouse wheel or 1-9,0 hotbar, LMB break (hold repeats), RMB place, MMB pick block,
-V player / free camera, F fly (free cam: level), O planet orbit view (wheel / W,S zoom, zoom in to land),
-E block palette, Esc or Tab settings, F11 fullscreen, arrow keys also look.
+mouse wheel or 1-9,0 hotbar, LMB break (hold repeats), RMB place / use (doors, beds, chests, furnaces: one use per click;
+Shift + RMB places against them), MMB pick block, V player / free camera, F fly (free cam: level), O planet orbit view
+(wheel / W,S zoom, zoom in to land), E inventory + item palette, Esc or Tab settings (Esc closes an open window first),
+F11 fullscreen, arrow keys also look.
+In windows: LMB pick up / put down / swap a stack, RMB take half / put one, Shift + LMB move a stack between the block and
+your inventory; in the palette LMB takes a full stack, RMB one item, clicking it with a stack on the mouse deletes that stack.
+Creative rules for now: placing does not use up items, breaking drops nothing (a chest's contents are lost).
 
 ## Code layout
 The old single `static partial class W` is split into static classes by area; `GlobalUsings.cs` imports them all (`global using static`), so code
@@ -35,10 +39,14 @@ keeps using short names (`R`, `chunks`, `Blk(...)`, `C`, `P`, `SET`, ...). A cla
 Program.cs, Game.cs, Settings.cs, GlobalUsings.cs
 Assets/                the 7 AssetEditor files (blocks, items, UIs, both atlases + their indexes), copied next to the exe
 AssetLoading/          AssetPaths, DefinitionFile (tolerant JSON), TextureDefinitionFile, AtlasLoader, GameAssets (loads everything at startup)
-Blocks/                BlockDefinition, BlockBox, BlockRegistry, BlockTables (per-block arrays built from the definitions), BlockIds (named IDs: Stone, Water, ...)
-Items/                 ItemDefinition, ItemRegistry
+Blocks/                BlockDefinition, BlockBox, BlockRegistry, BlockTables (per-block arrays built from the definitions), BlockIds (named IDs: Stone, Water, ...),
+                       StateSchema (instance_state fields), BlockVariant (look / geometry per state word), BlockEntity, Behaviors/ (door, bed, container,
+                       smelting, oxygen_generator)
+Items/                 ItemDefinition, ItemRegistry, ItemStack, PlayerInventory, RecipeRegistry
+Sounds/, Entities/     SoundRegistry (IDs only, nothing plays), EntityRegistry (format reserved)
 Worlds/                World (radius, bands, chunks, edits, world creation), BlockAccess (position <-> block, Blk / SetCell), Cube (face axes, seams),
-                       Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), WaterSim (+ bucket), BlockEditing
+                       Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), WaterSim (+ bucket), BlockEditing,
+                       BlockPos (band or core cell), BlockStates (state words + block entities), BlockActions (place / break / use, multiblocks, ticking)
 Generation/            Noise, Terrain (TerrainGen: heights + biomes), Caves, Columns (caches), Strata, Ores, ChunkGenerator, Features, Structures, GroundCover
 Physics/               Camera, Player (PlayerPhysics), Collision, camera / player state, RayHit
 Rendering/             Renderer (pipelines + frame), FrameUniforms, Highlight, Glsl (loads the embedded shaders)
@@ -46,7 +54,7 @@ Rendering/Chunks/      Mesher, ChunkMeshes (upload + mesh jobs), LodTerrain, mes
 Rendering/Effects/     Sky (sun, time, atmosphere), Shadows, CloudNoise, NoiseVolume
 Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPasses, Descriptors, Memory, Images, Frame, ShaderCompiler, Pipelines
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
-UI/                    UI as partial files (Font, Draw2D, Hotbar, SettingsPanel, Compass, StartScreen) + Hud, UiRegistry (ui_definitions, drawn from phase 4)
+UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windows from ui_definitions), SettingsPanel, Compass, StartScreen) + Hud, UiRegistry
 Util/                  V3, M (math)
 Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), Png (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
@@ -72,7 +80,32 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
   the full depth). Missing collision = full block for cubes, none for other models; missing selection = full block (none for liquids).
   Player collision, the targeted-block raycast, the highlight outline and block placement all use them.
 * `rotation` (none / horizontal / all) is read and checked; turning boxes by the block's facing needs per-block state, which comes in phase 4.
-* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence (post only; connections need state too).
+* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence (post only; connections are not implemented).
+
+## Block state, items, windows, behaviours
+* **State** (`properties.instance_state`, see `Blocks/StateSchema.cs`): booleans, strings with `values` and integers with `min` / `max` are packed
+  into one 16-bit word per block (checked at load; 0 = every field at its default, so chunks without state allocate nothing); inventories,
+  numbers and fields with `"storage": "entity"` live in a block entity. Water's level (1..8) is its `level` state. State words and block
+  entities survive chunks being dropped and regenerated (like player edits; phase 5 saves them in chunk files).
+* **Rotation**: `"rotation": "horizontal"` / `"all"` adds a `facing` field; boxes, geometry and face textures turn with it. `placement_facing`:
+  `toward_player` (a furnace's north texture faces you) or `away` (stairs, doors, beds).
+* **state_overrides** (`geometry.state_overrides`): `{"when": {...}, "boxes", "collision", "selection", "textures"}` - e.g. an open door's box,
+  the upper door half's texture, a lit furnace front.
+* **Multiblocks**: `multiblock.parts` `[{"offset": [x, y, z], "state": {...}}]` relative to the facing; placing checks every part fits, breaking
+  any part removes all; each part is told apart by its state (`half`, `part`).
+* **Behaviours** (`"behavior": "name"`, `Blocks/Behaviors/`): hooks OnPlace, OnBreak, OnUse, OnTick (10 per second for block entities),
+  OnNeighborChanged. `door` (both halves open / close), `bed` (sleep through the night), `container`, `smelting` (furnace: input / fuel / output,
+  progress, lit front), `oxygen_generator` (fuel -> energy, buckets -> water tank, energy + water -> oxygen -> oxygen canisters). A block
+  with `ui_id` opens that window on right click.
+* **Items**: `ItemStack {item, count, state}`; item state is packed into 32 bits (the bucket's `fill`). Item `fuel_time` (seconds in a furnace),
+  `behavior: bucket` + `capacity`. The hotbar and 27 slots are the player inventory; icons come from the item atlas (second texture array).
+* **Windows** (`ui_definitions.txt`): `window {width, height}` + widgets `label`, `slot` (`storage {scope: block|player, key}`, `mode: output_only`),
+  `slot_grid` (`rows`, `columns`, `slot_size`, `storage.key_pattern` with `{index}`), `progress_bar` (`current_from: block.<number>`, `max` or
+  `max_from`, `orientation`, `color`, `label`), `ui_panel` (embeds another UI, e.g. `player_inventory`). Built in: player_inventory, chest,
+  furnace, oxygen_generator.
+* **More files** (next to the editor's 7, edited by hand for now): `recipe_definitions.txt` (smelting recipes), `sound_definitions.txt` (blocks
+  name sounds in `properties.definition.sounds {break, place, step, use}`; nothing plays yet), `entity_definitions.txt` (reserved, empty).
+* New content: oak door, red bed, chest, furnace, oxygen generator; items coal, iron / gold / copper ingot, oxygen canister.
 * Shaders no longer know block IDs: the mesher writes material flags (sway, emissive, no shadow, ice) into each vertex.
 * Editing: open the `Assets` folder in the AssetEditor ("Open project folder"), change things, then **Export** into `Assets/`
   (Save also works but adds the editor's own per-texture PNG folders and project_settings.json there).
@@ -149,7 +182,7 @@ patches to the far plane, where the sky was drawn over them: the white seam line
 `--radius N --seed N`, `--msaa 0|2|4|8`, `--novsync`, and for testing: `--bench SECONDS` (starts immediately with a fixed free camera,
 ignores input, prints FPS + chunk pipeline timings, does not save settings), `--shot file.png`, `--set name=value` (any settings field,
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
-`--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera.
+`--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)

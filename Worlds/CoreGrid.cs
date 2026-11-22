@@ -20,18 +20,21 @@ public static class CoreGrid
     }
     public static int CoreAt(double x, double y, double z) => CoreCell((int)Math.Floor(x), (int)Math.Floor(y), (int)Math.Floor(z));
     internal static readonly int[][] C7 = { new[] { 0, 0, 0 }, new[] { 1, 0, 0 }, new[] { -1, 0, 0 }, new[] { 0, 1, 0 }, new[] { 0, -1, 0 }, new[] { 0, 0, 1 }, new[] { 0, 0, -1 } };
-    public static void CoreSet(double x, double y, double z, int id)
+    public static void CoreSet(double x, double y, double z, int id) => CoreSetCell((int)Math.Floor(x), (int)Math.Floor(y), (int)Math.Floor(z), id, 0);
+    public static void CoreSetCell(int i, int j, int k, int id, int state)
     {
-        int i = (int)Math.Floor(x), j = (int)Math.Floor(y), k = (int)Math.Floor(z);
-        if (CoreCell(i, j, k) == id) return;
+        long sk = long.MinValue + 1 + cEk(i, j, k); // same key as BlockPos.Key for core cells
+        if (CoreCell(i, j, k) == id && state == (BlockStates.TryGet(sk, out ushort os) ? os : 0)) return;
         coreEd[cEk(i, j, k)] = (ushort)id;
+        lock (EditLock) { if (state != 0) BlockStates.states[sk] = (ushort)state; else BlockStates.states.Remove(sk); }
+        if (BlockStates.entities.TryGetValue(sk, out var be) && be.BlockId != id) BlockStates.entities.Remove(sk);
         foreach (var o in C7)
         {
             int a = i + o[0], b = j + o[1], c = k + o[2];
             if (chunks.TryGetValue(cKey(a >> 5, b >> 5, c >> 5), out var ch))
             {
                 ch.dirty = true;
-                if (ch.d != null && o[0] == 0 && o[1] == 0 && o[2] == 0) { ch.d[(i & 31) + 32 * ((k & 31) + 32 * (j & 31))] = (ushort)id; ch.empty = false; }
+                if (ch.d != null && o[0] == 0 && o[1] == 0 && o[2] == 0) { int ci = (i & 31) + 32 * ((k & 31) + 32 * (j & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.empty = false; }
             }
         }
     }
@@ -61,6 +64,10 @@ public static class CoreGrid
                 {
                     int id = CoreCell(a + x, b + y, c + z); d[x + 32 * (z + 32 * y)] = (ushort)id; if (id != 0) n++;
                 }
+        if (BlockStates.Count > 0)
+            lock (EditLock)
+                for (int y = 0; y < 32; y++) for (int z = 0; z < 32; z++) for (int x = 0; x < 32; x++)
+                            if (BlockStates.states.TryGetValue(long.MinValue + 1 + cEk(a + x, b + y, c + z), out ushort s)) BlockStates.Store(ch, x + 32 * (z + 32 * y), s);
         ch.d = d; ch.empty = n == 0;
     }
     // is the polar block next to the core surface opaque? (polar stone at that depth unless the player dug there)

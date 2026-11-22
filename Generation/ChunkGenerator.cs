@@ -95,6 +95,7 @@ public static class ChunkGenerator
                         {
                             long k = ekOf(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
                             if (edits.TryGetValue(k, out ushort e)) d[x + CS * (z + CS * y)] = e;
+                            if (BlockStates.states.TryGetValue(k, out ushort s)) BlockStates.Store(ch, x + CS * (z + CS * y), s); // st is set before d is published
                         }
         Volatile.Write(ref ch.d, d);
     }

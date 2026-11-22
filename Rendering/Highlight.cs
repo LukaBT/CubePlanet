@@ -11,7 +11,7 @@ public static class Highlight
     internal static void DrawHighlight()
     {
         if (TG == null || C.orbit) return;
-        double cx = 0, cy = 0, cz = 0; var sb = BlockBox.Bounds(SEL[TG.id]); // outline the selection boxes (their bounding box)
+        double cx = 0, cy = 0, cz = 0; var sb = BlockBox.Bounds(SelectionOf(TG.id, TG.state)); // outline the selection boxes (their bounding box)
         for (int i = 0; i < 8; i++)
         {
             V3 o;

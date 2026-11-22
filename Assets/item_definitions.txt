@@ -67,7 +67,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "oak_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -481,7 +482,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "birch_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -499,7 +501,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "spruce_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -517,7 +520,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "jungle_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -535,7 +539,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "acacia_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -553,7 +558,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "oak_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -571,7 +577,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "spruce_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -589,7 +596,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "acacia_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -607,7 +615,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "jungle_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -1615,7 +1624,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "cherry_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -1633,7 +1643,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "cherry_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -1651,7 +1662,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "palm_log"
-          }
+          },
+          "fuel_time": 15
         },
         "instance_state": {}
       }
@@ -1669,7 +1681,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "palm_planks"
-          }
+          },
+          "fuel_time": 7.5
         },
         "instance_state": {}
       }
@@ -2217,6 +2230,167 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "oak_door",
+      "id": 124,
+      "name": "Oak Door",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oak_door"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "red_bed",
+      "id": 125,
+      "name": "Red Bed",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "red_bed"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "chest",
+      "id": 126,
+      "name": "Chest",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "chest"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "furnace",
+      "id": 127,
+      "name": "Furnace",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "furnace"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oxygen_generator",
+      "id": 128,
+      "name": "Oxygen Generator",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oxygen_generator"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "coal",
+      "id": 129,
+      "name": "Coal",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "fuel_time": 40
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "iron_ingot",
+      "id": 130,
+      "name": "Iron Ingot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gold_ingot",
+      "id": 131,
+      "name": "Gold Ingot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_ingot",
+      "id": 132,
+      "name": "Copper Ingot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oxygen_canister",
+      "id": 133,
+      "name": "Oxygen Canister",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 16
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",
@@ -2224,14 +2398,15 @@
       "properties": {
         "definition": {
           "stack_size": 1,
-          "capacity": 8
+          "capacity": 8,
+          "behavior": "bucket"
         },
         "instance_state": {
           "fill": {
             "type": "integer",
             "default": 0,
             "min": 0,
-            "max_from": "definition.capacity"
+            "max": 8
           }
         }
       }

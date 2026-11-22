@@ -447,7 +447,7 @@
       "id_name": "water",
       "id": 9,
       "name": "Water",
-      "stateless": true,
+      "stateless": false,
       "group_tags": [],
       "textures": {
         "all": 9
@@ -472,7 +472,14 @@
           },
           "drops": []
         },
-        "instance_state": {}
+        "instance_state": {
+          "level": {
+            "type": "integer",
+            "min": 1,
+            "max": 8,
+            "default": 8
+          }
+        }
       }
     },
     {
@@ -6542,7 +6549,8 @@
               "id_name": "oak_stairs",
               "count": 1
             }
-          ]
+          ],
+          "placement_facing": "away"
         },
         "instance_state": {}
       }
@@ -6635,7 +6643,8 @@
               "id_name": "stone_brick_stairs",
               "count": 1
             }
-          ]
+          ],
+          "placement_facing": "away"
         },
         "instance_state": {}
       }
@@ -6707,6 +6716,571 @@
           ]
         },
         "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oak_door",
+      "id": 124,
+      "name": "Oak Door",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 125
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.1875
+            }
+          ],
+          "rotation": "horizontal",
+          "placement_facing": "away",
+          "behavior": "door",
+          "multiblock": {
+            "parts": [
+              {
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "state": {
+                  "half": "lower"
+                }
+              },
+              {
+                "offset": [
+                  0,
+                  1,
+                  0
+                ],
+                "state": {
+                  "half": "upper"
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "use": "door_open",
+            "break": "wood_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.1875
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.1875
+              }
+            ],
+            "state_overrides": [
+              {
+                "when": {
+                  "half": "upper"
+                },
+                "textures": {
+                  "all": 126
+                }
+              },
+              {
+                "when": {
+                  "open": true
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.1875,
+                    "h": 1,
+                    "d": 1
+                  }
+                ],
+                "collision": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.1875,
+                    "h": 1,
+                    "d": 1
+                  }
+                ],
+                "selection": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.1875,
+                    "h": 1,
+                    "d": 1
+                  }
+                ]
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oak_door",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "half": {
+            "type": "string",
+            "values": [
+              "lower",
+              "upper"
+            ],
+            "default": "lower"
+          },
+          "open": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "red_bed",
+      "id": 125,
+      "name": "Red Bed",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "top": 127,
+        "side": 129,
+        "bottom": 31
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            178,
+            34,
+            34
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5625,
+              "d": 1
+            }
+          ],
+          "rotation": "horizontal",
+          "placement_facing": "away",
+          "behavior": "bed",
+          "multiblock": {
+            "parts": [
+              {
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "foot"
+                }
+              },
+              {
+                "offset": [
+                  0,
+                  0,
+                  -1
+                ],
+                "state": {
+                  "part": "head"
+                }
+              }
+            ]
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5625,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.5625,
+                "d": 1
+              }
+            ],
+            "state_overrides": [
+              {
+                "when": {
+                  "part": "head"
+                },
+                "textures": {
+                  "top": 128
+                }
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "red_bed",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "part": {
+            "type": "string",
+            "values": [
+              "foot",
+              "head"
+            ],
+            "default": "foot"
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "chest",
+      "id": 126,
+      "name": "Chest",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 130,
+        "side": 131,
+        "top": 132,
+        "bottom": 132
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "chest"
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            162,
+            130,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "boxes": [
+            {
+              "x": 0.0625,
+              "y": 0,
+              "z": 0.0625,
+              "w": 0.875,
+              "h": 0.875,
+              "d": 0.875
+            }
+          ],
+          "rotation": "horizontal",
+          "behavior": "container",
+          "sounds": {
+            "use": "chest_open",
+            "break": "wood_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.0625,
+                "y": 0,
+                "z": 0.0625,
+                "w": 0.875,
+                "h": 0.875,
+                "d": 0.875
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.0625,
+                "y": 0,
+                "z": 0.0625,
+                "w": 0.875,
+                "h": 0.875,
+                "d": 0.875
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "chest",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "slots": {
+            "type": "inventory",
+            "slots": 27
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "furnace",
+      "id": 127,
+      "name": "Furnace",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 133,
+        "side": 135,
+        "top": 136,
+        "bottom": 136
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "furnace"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            125,
+            125,
+            125
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "rotation": "horizontal",
+          "behavior": "smelting",
+          "sounds": {
+            "use": "furnace_crackle",
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1
+              }
+            ],
+            "state_overrides": [
+              {
+                "when": {
+                  "lit": true
+                },
+                "textures": {
+                  "north": 134
+                }
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "furnace",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "lit": {
+            "type": "boolean",
+            "default": false
+          },
+          "input": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "fuel": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "burn": {
+            "type": "number",
+            "default": 0
+          },
+          "burn_max": {
+            "type": "number",
+            "default": 1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oxygen_generator",
+      "id": 128,
+      "name": "Oxygen Generator",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 137,
+        "side": 138,
+        "top": 139,
+        "bottom": 139
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "oxygen_generator"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            156,
+            164
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "rotation": "horizontal",
+          "behavior": "oxygen_generator",
+          "sounds": {
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oxygen_generator",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "fuel": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "water_in": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "energy": {
+            "type": "number",
+            "default": 0
+          },
+          "water": {
+            "type": "number",
+            "default": 0
+          },
+          "oxygen": {
+            "type": "number",
+            "default": 0
+          }
+        }
       }
     }
   ]

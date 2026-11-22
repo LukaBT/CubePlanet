@@ -28,6 +28,13 @@ public static partial class Blocks
     public static readonly BlockDefinition.ModelBox[][] MBOX = new BlockDefinition.ModelBox[N][];
     /// <summary>Collision / selection boxes: null = full block, empty = none. Unknown IDs collide and select like a full block; air has neither.</summary>
     public static readonly BlockBox[][] COLL = new BlockBox[N][], SEL = new BlockBox[N][];
+    /// <summary>Definitions by ID (null for unknown IDs).</summary>
+    public static readonly BlockDefinition[] DEFS = new BlockDefinition[N];
+    /// <summary>Blocks whose look / geometry depends on their state word (rotation, state_overrides): use <see cref="Variant"/>.</summary>
+    public static readonly bool[] HASVAR = new bool[N];
+    static readonly BlockVariant[][] VARS = new BlockVariant[N][];
+    /// <summary>Behaviour of each block (null = none).</summary>
+    public static readonly BlockBehavior[] BEH = new BlockBehavior[N];
     /// <summary>Material flags the mesher writes into every vertex (4th byte of the packed normal), read by the shaders.</summary>
     public static readonly int[] MATF = new int[N];
     public static readonly int[][] LODC = new int[N][];
@@ -47,10 +54,22 @@ public static partial class Blocks
     public static float Lay(int id, int face) => TEXF[id * 6 + face] | MATF[id] << 16;
     /// <summary>Same for an explicit texture (box faces).</summary>
     public static float LayTex(int id, int tex) => tex | MATF[id] << 16;
+    /// <summary>Look and geometry of a block in a given state (cached per state word; thread-safe).</summary>
+    public static BlockVariant Variant(int id, int state)
+    {
+        var a = VARS[id]; if (a == null) return null;
+        state &= a.Length - 1;
+        return a[state] ??= BlockVariant.Compute(DEFS[id], (uint)state);
+    }
+    public static BlockBox[] CollisionOf(int id, int state) => HASVAR[id] ? Variant(id, state).Collision : COLL[id];
+    public static BlockBox[] SelectionOf(int id, int state) => HASVAR[id] ? Variant(id, state).Selection : SEL[id];
+    static bool In(BlockBox[] c, double x, double y, double z) { if (c == null) return true; foreach (var b in c) if (b.Contains(x, y, z)) return true; return false; }
     /// <summary>Is the block-local point (0..1 in each axis) inside the block's collision boxes?</summary>
-    public static bool Collides(int id, double x, double y, double z) { var c = COLL[id]; if (c == null) return true; foreach (var b in c) if (b.Contains(x, y, z)) return true; return false; }
+    public static bool Collides(int id, double x, double y, double z) => In(COLL[id], x, y, z);
+    public static bool Collides(int id, int state, double x, double y, double z) => In(CollisionOf(id, state), x, y, z);
     /// <summary>Is the block-local point inside the block's selection boxes?</summary>
-    public static bool Selects(int id, double x, double y, double z) { var c = SEL[id]; if (c == null) return true; foreach (var b in c) if (b.Contains(x, y, z)) return true; return false; }
+    public static bool Selects(int id, double x, double y, double z) => In(SEL[id], x, y, z);
+    public static bool Selects(int id, int state, double x, double y, double z) => In(SelectionOf(id, state), x, y, z);
 
     public static void Build(BlockRegistry reg)
     {
@@ -74,7 +93,15 @@ public static partial class Blocks
             for (int fc = 0; fc < 6; fc++) TEXF[i * 6 + fc] = b.Faces[fc];
             MODEL[i] = b.Model switch { "cross" => ModelCross, "liquid" => ModelLiquid, "attached" => ModelAttached, "boxes" => ModelBoxes, _ => ModelCube };
             MBOX[i] = b.Model == "boxes" ? b.Boxes : null;
-            COLL[i] = b.Collision; SEL[i] = b.Selection;
+            COLL[i] = b.Collision; SEL[i] = b.Selection; DEFS[i] = b;
+            HASVAR[i] = b.HasVariants;
+            BEH[i] = b.Behavior.Length > 0 ? BlockBehavior.Create(b.Behavior, $"{AssetPaths.BlockDefinitions}: block {b.FullName}") : null;
+            if (HASVAR[i])
+            {   // the default state (word 0) also fills the plain tables, so code that ignores state still sees the default look
+                VARS[i] = new BlockVariant[1 << Math.Max(1, b.State.Bits)];
+                var v0 = Variant(i, 0); MBOX[i] = b.Model == "boxes" ? v0.Boxes : null; COLL[i] = v0.Collision; SEL[i] = v0.Selection;
+                for (int fc = 0; fc < 6; fc++) TEXF[i * 6 + fc] = v0.Faces[fc];
+            }
             MATF[i] = (b.Sway == "leaves" ? MatSwayLeaves : b.Sway == "plant" ? MatSwayPlant : b.Sway == "underwater" ? MatSwayWater : 0)
                     | (EMI[i] ? MatEmissive : 0) | (b.CastsShadow ? 0 : MatNoShadow) | (b.ConnectGroup == "ice" ? MatIce : 0);
             LODC[i] = b.LodColor;

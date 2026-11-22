@@ -1,16 +1,19 @@
 namespace CubePlanet;
 
 // Every water block (placed or natural) is 8 units, never created or destroyed by the simulation.
-// WL holds cells whose level differs from natural; any water block not in WL counts as a full cell (8), so oceans & lakes cost nothing until disturbed,
+// The level is the water block's "level" state (1..8, default 8): only disturbed cells have a state word, so oceans & lakes cost nothing until disturbed,
 // then flow like placed water. Rules per tick: fall; spread sideways to equalise (plus slope relaxation: a 1-unit step that continues downhill is smoothed);
 // pressure: for water under a ceiling or a column, a bounded flood-fill finds the highest and lowest surface of the connected body and moves one unit between
 // them (U-tubes, tunnels, communicating pools). The mesher blends neighbouring heights so levels look smooth.
 /// <summary>Finite water simulation and the bucket.</summary>
 public static class WaterSim
 {
-    public const int BK = 200;           // bucket "block id" (hotbar item)
-    public static int bk;                // bucket content 0..8
-    internal static readonly Dictionary<long, int> WL = new();
+    static StateSchema.Field levelField;
+    static StateSchema.Field LevelField => levelField ??= DEFS[Water].State.Find("level") ?? throw new InvalidDataException("the water block needs an instance_state field \"level\" (integer 1..8, default 8)");
+    /// <summary>State word of a water cell holding lvl units (1..8).</summary>
+    public static int LevelState(int lvl) => (int)LevelField.With(0, Math.Clamp(lvl, 1, 8) - LevelField.Min);
+    /// <summary>Water level stored in a state word.</summary>
+    public static int LevelOf(int state) => LevelField.Value((uint)state);
     internal static readonly Dictionary<long, (int b, int f, int x, int y, int z)> WAct = new();
     internal static readonly Queue<long> wactQ = new();
     internal static readonly int[][] N4 = { new[] { 1, 0 }, new[] { -1, 0 }, new[] { 0, 1 }, new[] { 0, -1 } };
@@ -18,7 +21,7 @@ public static class WaterSim
     internal static double wAcc;
 
     internal static bool Wfree(int id) => id == 0 || (SPC[id] != 0 && ATT[id] == 0 && !UWP[id]);
-    internal static int Wl(WC c) => c.id == Water ? (WL.TryGetValue(c.k, out int v) ? v : 8) : 0;
+    internal static int Wl(WC c) => c.id == Water ? (BlockStates.TryGet(c.k, out ushort s) ? LevelOf(s) : 8) : 0;
     internal static void Wput(WC c, int l) => SetCell(c.b, c.F, c.X, c.Y, c.Z, l > 0 ? 9 : 0, l);
 
     internal static WC Wcell(int bi, int f, int x, int y, int z)
@@ -171,14 +174,16 @@ public static class WaterSim
         }
         return default;
     }
-    internal static void BucketUse(bool brk, bool plc)
+    /// <summary>Bucket item (behavior "bucket"): break = scoop up to its capacity, place = pour everything. The fill level is the stack's "fill" state.</summary>
+    internal static void BucketUse(ItemStack bucket, bool brk, bool plc)
     {
-        double reach = P.on ? 6 : 10;
+        double reach = P.on ? 6 : 10; var fillF = bucket.Def.State.Find("fill"); if (fillF == null) return;
+        int cap = Math.Max(1, bucket.Def.Capacity), bk = fillF.Value(bucket.State);
         if (brk)
         {
-            if (bk >= 8) { UI.Note("Bucket is full", 1.2); return; }
+            if (bk >= cap) { UI.Note("Bucket is full", 1.2); return; }
             var c = Wray(reach); if (!c.ok) return;
-            int l = Wl(c), t = Math.Min(8 - bk, l); bk += t; SetCell(c.b, c.F, c.X, c.Y, c.Z, l - t > 0 ? 9 : 0, l - t);
+            int l = Wl(c), t = Math.Min(cap - bk, l); bucket.State = fillF.With(bucket.State, bk + t); SetCell(c.b, c.F, c.X, c.Y, c.Z, l - t > 0 ? Water : 0, l - t);
             return;
         }
         if (plc)
@@ -187,7 +192,7 @@ public static class WaterSim
             var T = Raycast(reach); if (T == null) return;
             bool rp = T.core ? SPC[T.id] != 0 : SPC[Blk(T.bi, T.f, T.bx, T.by, T.bz)] != 0;
             double X = rp ? T.x : T.px, Y = rp ? T.y : T.py, Z = rp ? T.z : T.pz;
-            if ((X - C.x) * (X - C.x) + (Y - C.y) * (Y - C.y) + (Z - C.z) * (Z - C.z) > 1) { PlaceWater(X, Y, Z, bk); bk = 0; }
+            if ((X - C.x) * (X - C.x) + (Y - C.y) * (Y - C.y) + (Z - C.z) * (Z - C.z) > 1) { PlaceWater(X, Y, Z, bk); bucket.State = fillF.With(bucket.State, 0); }
         }
     }
 }

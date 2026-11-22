@@ -63,7 +63,7 @@ public static unsafe partial class Gpu
     public static long HeapUsed;
 
     // textures bound at fixed slots: 1 block array, 2 shadow cascades, 3 noise, 4 font, 5/6 previous frame colour / distance
-    public static GTex texBlocks, texNoise, texFont, texCloud;
+    public static GTex texBlocks, texNoise, texFont, texCloud, texItems;
     // post-processing pipelines (created by Renderer.InitGpu)
     public static Pipe pBloomPre, pBloomDown, pBloomUp, pComposite, pCloud;
     public static string Cache => CacheDir;

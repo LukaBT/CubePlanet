@@ -1,0 +1,158 @@
+{
+  "recipes": [
+    {
+      "type": "smelting",
+      "id_name": "iron_ingot_from_iron_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "iron_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "iron_ingot_from_deepslate_iron_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "deepslate_iron_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "gold_ingot_from_gold_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "gold_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "gold_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "gold_ingot_from_deepslate_gold_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "deepslate_gold_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "gold_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "copper_ingot_from_copper_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "copper_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "copper_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "copper_ingot_from_deepslate_copper_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "deepslate_copper_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "copper_ingot",
+        "count": 1
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "coal_from_coal_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "coal_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "coal",
+        "count": 1
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "coal_from_deepslate_coal_ore",
+      "input": {
+        "namespace": "base",
+        "id_name": "deepslate_coal_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "coal",
+        "count": 1
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "glass_from_sand",
+      "input": {
+        "namespace": "base",
+        "id_name": "sand"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "glass",
+        "count": 1
+      },
+      "time": 5
+    },
+    {
+      "type": "smelting",
+      "id_name": "stone_from_cobblestone",
+      "input": {
+        "namespace": "base",
+        "id_name": "cobblestone"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "stone",
+        "count": 1
+      },
+      "time": 5
+    },
+    {
+      "type": "smelting",
+      "id_name": "terracotta_from_clay",
+      "input": {
+        "namespace": "base",
+        "id_name": "clay"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "terracotta",
+        "count": 1
+      },
+      "time": 6
+    }
+  ]
+}

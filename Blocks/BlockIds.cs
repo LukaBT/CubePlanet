@@ -20,9 +20,12 @@ public static partial class Blocks
 
     // box-model examples (phase 3)
     public static int OakSlab, StoneSlab, CobblestoneSlab, OakStairs, StoneBrickStairs, OakFence;
+    // blocks with state and behaviours (phase 4)
+    public static int OakDoor, RedBed, Chest, Furnace, OxygenGenerator;
     static void ResolveNames(BlockRegistry r)
     {
         OakSlab = r.Id("base:oak_slab"); StoneSlab = r.Id("base:stone_slab"); CobblestoneSlab = r.Id("base:cobblestone_slab"); OakStairs = r.Id("base:oak_stairs"); StoneBrickStairs = r.Id("base:stone_brick_stairs"); OakFence = r.Id("base:oak_fence");
+        OakDoor = r.Id("base:oak_door"); RedBed = r.Id("base:red_bed"); Chest = r.Id("base:chest"); Furnace = r.Id("base:furnace"); OxygenGenerator = r.Id("base:oxygen_generator");
         Grass = r.Id("base:grass"); Stone = r.Id("base:stone"); Dirt = r.Id("base:dirt"); OakLog = r.Id("base:oak_log"); OakLeaves = r.Id("base:oak_leaves");
         Ice = r.Id("base:ice"); Sand = r.Id("base:sand"); Snow = r.Id("base:snow"); Water = r.Id("base:water"); Gravel = r.Id("base:gravel");
         Sandstone = r.Id("base:sandstone"); RedSand = r.Id("base:red_sand"); Terracotta = r.Id("base:terracotta"); OrangeTerracotta = r.Id("base:orange_terracotta");

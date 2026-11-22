@@ -5,6 +5,7 @@ public static class Program
     public static int Msaa = -1; // -1 = use the settings value
     public static readonly List<string> Overrides = new(); public static bool SyncMesh; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
     public static bool Showcase; // --showcase: bench places example blocks in front of the camera
+    public static string ShowUi; // --showui inventory|chest|furnace|oxygen_generator (with --showcase)
     public static bool NoVsync; public static double Bench; public static string Shot; // --bench N: start right away, quit after N seconds and print FPS (--shot file.png saves the last frame)
     public static void Main(string[] args)
     {
@@ -23,6 +24,7 @@ public static class Program
             if (args[i] == "--seed") UI.seedStr = args[i + 1];
             if (args[i] == "--msaa" && int.TryParse(args[i + 1], out int ms)) Msaa = Math.Max(0, ms);
             if (args[i] == "--shot") Shot = args[i + 1];
+            if (args[i] == "--showui") ShowUi = args[i + 1];
             if (args[i] == "--hour") double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out Hour);
             if (args[i] == "--yaw") double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out Yaw);
             if (args[i] == "--up") double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out Up);

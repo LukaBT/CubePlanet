@@ -9,8 +9,13 @@ public static class GameAssets
     public static BlockRegistry BlockReg;
     public static ItemRegistry ItemReg;
     public static UiRegistry UiReg;
+    public static RecipeRegistry RecipeReg;
+    public static SoundRegistry SoundReg;
+    public static EntityRegistry EntityReg;
     /// <summary>Block texture array: RGBA, layer-major, row 0 = bottom of the face.</summary>
     public static byte[] BlockLayers; public static int BlockLayerCount, BlockTexW, BlockTexH;
+    /// <summary>Item icons: RGBA, layer = item ID (= item texture ID).</summary>
+    public static byte[] ItemLayers; public static int ItemLayerCount, ItemTexW, ItemTexH;
 
     public static void Load()
     {
@@ -19,6 +24,14 @@ public static class GameAssets
         var idefs = DefinitionFile.Load(AssetPaths.Get(AssetPaths.ItemDefinitions), "items").Select(e => ItemDefinition.Parse(e, AssetPaths.ItemDefinitions));
         ItemReg = new ItemRegistry(idefs, BlockReg, AssetPaths.ItemDefinitions);
         UiReg = new UiRegistry(DefinitionFile.Load(AssetPaths.Get(AssetPaths.UiDefinitions), "uis"), AssetPaths.UiDefinitions);
+        RecipeReg = new RecipeRegistry(DefinitionFile.Load(AssetPaths.Get(AssetPaths.RecipeDefinitions), "recipes"), ItemReg, AssetPaths.RecipeDefinitions);
+        SoundReg = new SoundRegistry(DefinitionFile.Load(AssetPaths.Get(AssetPaths.SoundDefinitions), "sounds"), AssetPaths.SoundDefinitions);
+        EntityReg = new EntityRegistry(DefinitionFile.Load(AssetPaths.Get(AssetPaths.EntityDefinitions), "entities"));
+        foreach (var b in BlockReg.All)
+        {
+            foreach (var (k, snd) in b.Sounds) if (!SoundReg.Has(snd)) throw new InvalidDataException($"{AssetPaths.BlockDefinitions}: block {b.FullName}: sound '{k}' = '{snd}' is not in {AssetPaths.SoundDefinitions}");
+            if (b.UiId.Length > 0) UiReg.Get(b.UiId); // throws if the UI does not exist
+        }
 
         var tdef = TextureDefinitionFile.Load(AssetPaths.Get(AssetPaths.BlockTextureDefinitions));
         BlockTexW = tdef.Width; BlockTexH = tdef.Height;
@@ -27,6 +40,9 @@ public static class GameAssets
             foreach (var (slot, t) in b.Textures)
                 if (t < 1 || t >= BlockLayerCount || tdef.Entries.All(e => e.id != t))
                     Console.Error.WriteLine($"warning: block {b.FullName} texture '{slot}' = {t} is not in {AssetPaths.BlockTextureDefinitions} (shows as a checkerboard)");
+        var itdef = TextureDefinitionFile.Load(AssetPaths.Get(AssetPaths.ItemTextureDefinitions));
+        ItemTexW = itdef.Width; ItemTexH = itdef.Height;
+        ItemLayers = AtlasLoader.LoadLayers(AssetPaths.Get(AssetPaths.ItemAtlas), itdef, out ItemLayerCount);
         Blocks.Build(BlockReg);
     }
 }

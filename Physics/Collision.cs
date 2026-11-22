@@ -9,7 +9,12 @@ public static class Collision
     internal static readonly double[] RCS = Enumerable.Range(0, 12).Select(k => Math.Cos(k * PI / 6)).ToArray(), RSN = Enumerable.Range(0, 12).Select(k => Math.Sin(k * PI / 6)).ToArray();
 
     // solid = inside one of the block's collision boxes (geometry.collision; full block for cubes, nothing for plants and liquids)
-    internal static bool SolidAt(double x, double y, double z) { int b = LocalAt(x, y, z, out double lx, out double ly, out double lz); return Collides(b, lx, ly, lz); }
+    internal static bool SolidAt(double x, double y, double z)
+    {
+        int b = LocalAt(x, y, z, out double lx, out double ly, out double lz);
+        if (!HASVAR[b]) return Collides(b, lx, ly, lz);
+        BlockPos.TryAt(x, y, z, out var p); return Collides(b, p.State, lx, ly, lz); // doors, stairs...: geometry depends on the state
+    }
 
     internal static (V3, V3) CoreFrame(V3 g)
     {

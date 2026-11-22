@@ -10,6 +10,7 @@ public class Chunk
     public double mx, my, mz, cr;
     public List<long> wait;
     public int[] cc;
+    public ushort[] st;        // state words (BlockStates), null while every block of the chunk is in its default state
     public long waitStamp = -1;
     public int mst;            // mesh claim: 0 idle, 1 a worker is meshing it
     public bool relight;       // a neighbour it was waiting for appeared: re-mesh in the background

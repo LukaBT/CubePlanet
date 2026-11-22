@@ -44,7 +44,7 @@ public class Game : GameWindow
         if (autoLow) UI.Note("Integrated graphics detected: LOW preset at 75% resolution (change it in Esc > GRAPHICS)", 8);
         Title = $"Cube Planet (Vulkan, {Gpu.DeviceName})";
         UI.OnFullscreen = () => WindowState = WindowState == WindowState.Fullscreen ? WindowState.Normal : WindowState.Fullscreen;
-        UI.Pick(2);
+        PlayerInventory.Init(); UI.Pick(2);
         Renderer.VW = FramebufferSize.X; Renderer.VH = FramebufferSize.Y;
         ChunkGenerator.mainTid = Environment.CurrentManagedThreadId;
         if (Program.Bench > 0) { PlayerPhysics.P.on = false; StartGame(); } // bench: fixed free camera above the spawn point
@@ -74,7 +74,8 @@ public class Game : GameWindow
     }
     void ToggleSettings()
     {
-        UI.invOpen = false; UI.settingsOpen = !UI.settingsOpen;
+        if (UI.invOpen) { UI.CloseScreen(); return; } // Esc closes an open window first
+        UI.settingsOpen = !UI.settingsOpen;
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
@@ -107,7 +108,7 @@ public class Game : GameWindow
             case Keys.Space: if (PlayerPhysics.P.on && t - lastSpace < 300) { PlayerPhysics.P.fly = !PlayerPhysics.P.fly; PlayerPhysics.P.vu = 0; } lastSpace = t; break;
             case Keys.W: if (t - lastW < 300) PlayerPhysics.sprint = true; lastW = t; wDown = true; break;
             case Keys.O: Camera.SetOrbit(!Camera.C.orbit); break;
-            case Keys.E: UI.settingsOpen = false; UI.invOpen = !UI.invOpen; break;
+            case Keys.E: UI.settingsOpen = false; UI.ToggleInventory(); break;
             case Keys.Tab: case Keys.Escape: ToggleSettings(); break;
         }
         if (e.Key >= Keys.D0 && e.Key <= Keys.D9) UI.Pick(e.Key == Keys.D0 ? 10 : (int)e.Key - (int)Keys.D0);
@@ -124,7 +125,7 @@ public class Game : GameWindow
         double deltaY = -e.OffsetY * 100;
         if (UI.settingsOpen) UI.scroll += e.OffsetY;
         else if (Camera.C.orbit) Camera.Zoom(Math.Pow(1.002, deltaY));
-        else if (PlayerPhysics.P.on) UI.Pick((BlockEditing.slot - 1 + (deltaY > 0 ? 1 : 9)) % 10 + 1);
+        else if (PlayerPhysics.P.on) UI.Pick((PlayerInventory.Selected + (deltaY > 0 ? 1 : 9)) % 10 + 1);
         else Camera.spd = Math.Max(.05, Math.Min(5000, Camera.spd * Math.Pow(1.2, -Math.Sign(deltaY))));
     }
     protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -151,6 +152,7 @@ public class Game : GameWindow
             if (Program.Up != 0) Camera.CamMove(0, 0, Program.Up, false);
             if (Program.Yaw != 0 || Program.Pitch != 0) Camera.Turn(Program.Yaw * Math.PI / 180, Program.Pitch * Math.PI / 180);
             if (Program.Showcase) SelfTest.Showcase(); // example blocks in front of the camera
+            if (Program.ShowUi != null) SelfTest.ShowUi(Program.ShowUi);
             return;
         }
         double ft = now - benchLast; benchLast = now;
@@ -217,12 +219,13 @@ public class Game : GameWindow
             if (PlayerPhysics.P.on) PlayerPhysics.PlayerUpdate(dt, fw, sd, jump, sneak, ctrl);
             else { double alt = Math.Sqrt(Camera.C.x * Camera.C.x + Camera.C.y * Camera.C.y + Camera.C.z * Camera.C.z) - World.R, s = 12 * Camera.spd * Math.Max(1, alt / 25) * dt * (ctrl ? 5 : 1); Camera.CamMove(fw * s, sd * s, up * s, Camera.C.lvl); }
         }
-        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); WaterSim.WaterTick(dt);
+        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); WaterSim.WaterTick(dt); BlockActions.Tick(dt);
+        UI.shift = kb.IsKeyDown(Keys.LeftShift) || kb.IsKeyDown(Keys.RightShift);
         if (ChunkLoader.frameNo % 6 == 0) UI.underwater = !Camera.C.orbit && Blocks.Wet(BlockAccess.GetAt(Camera.C.x, Camera.C.y, Camera.C.z));
         // block editing
         editT -= dt; bool L = Captured && Program.Bench == 0 && MouseState.IsButtonDown(MouseButton.Left), Rt = Captured && Program.Bench == 0 && MouseState.IsButtonDown(MouseButton.Right);
         if (blockClick) { if (!MouseState.IsButtonDown(MouseButton.Left)) blockClick = false; L = false; }
-        if ((L || Rt) && editT <= 0 && !Camera.C.orbit) { BlockEditing.Edit(L, Rt && !L); editT = .15; }
+        if ((L || Rt) && editT <= 0 && !Camera.C.orbit) { BlockEditing.Edit(L, Rt && !L, sneak, UI.rclicked); editT = .15; }
         if (Camera.C.orbit) Highlight.TG = null; else if (ChunkLoader.frameNo % 2 == 0) Highlight.TG = BlockEditing.Raycast(PlayerPhysics.P.on ? 6 : 10);
 
         Renderer.Render();
@@ -232,7 +235,7 @@ public class Game : GameWindow
         if (++hudFrame % 10 == 0) hudCache = Hud.HudText(); UI.hud = hudCache;
         UI.Begin(w, h); UI.Draw(dt); UI.End();
         // click on the world while a menu is open: close it and capture the mouse again
-        if (UI.clicked && !UI.startScreen && (UI.settingsOpen || UI.invOpen) && !UI.PanelHit) { UI.settingsOpen = false; UI.invOpen = false; blockClick = true; }
+        if (UI.clicked && !UI.startScreen && UI.settingsOpen && !UI.PanelHit) { UI.settingsOpen = false; blockClick = true; }
         UI.clicked = false; UI.rclicked = false;
         UpdateCursor();
         Gpu.EndFrame();

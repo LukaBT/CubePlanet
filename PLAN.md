@@ -104,7 +104,11 @@ Proposed definition keys (names can change):
 * Note the world is a cube-sphere: blocks are not perfect cubes (radial walls, curved tops). Boxes are in block-local units and mapped
   through the same corner mapping the mesher uses.
 
-## Phase 4 - Instance state, items, UI, behaviours
+## Phase 4 - Instance state, items, UI, behaviours (done)
+
+Status: done as listed (creative rules). State words + block entities are kept in tables keyed like player edits (survive chunk
+regeneration); phase 5 moves them into chunk files. Rotation from phase 3 is done here. Sounds have IDs only; entity definitions are an
+empty, checked file.
 
 * Block instance state, two tiers, both declared in `instance_state`:
   - small fields (boolean, enum string, small integer: door open/facing/half, water level 1-8, slab upper/lower) are packed into a

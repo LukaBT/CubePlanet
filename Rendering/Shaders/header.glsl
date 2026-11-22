@@ -22,3 +22,4 @@ layout(set=1,binding=2) uniform sampler2D uSrc3;
 layout(set=1,binding=3) uniform sampler2D uSrc4;
 layout(set=1,binding=4) uniform sampler2D uSrc5;
 layout(set=0,binding=7) uniform sampler3D uCloudN;
+layout(set=0,binding=8) uniform sampler2DArray uItems;

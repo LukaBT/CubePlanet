@@ -63,8 +63,96 @@ public static class SelfTest
         if (r?.o != null)
             for (int k = 0; k < r.o.vb.Length / 16; k++) { int u = BitConverter.ToUInt16(r.o.vb, k * 16 + 10); int uu = u & 31, vv = (u >> 5) & 31; if (uu % 16 != 0 || vv % 16 != 0) { frac = true; break; } }
         Check(frac, "box faces get fractional texture coordinates");
+        Phase4(up, fwd);
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // block state, multiblocks, behaviours, containers, machines (PLAN phase 4)
+    static void Phase4(V3 up, V3 fwd)
+    {
+        V3 side = M.Nrm(M.Cross(fwd, up));
+        BlockPos Spot(double along, double across)
+        {   // a free cell on the ground, away from the earlier tests, with 3 free cells above it
+            V3 g = Ground(new V3(C.x, C.y, C.z) * 0 + (new V3(C.x, C.y, C.z) - up * 3.2) + fwd * along + side * across + up * 4, up) + up * .5;
+            BlockPos.TryAt(g.X, g.Y, g.Z, out var p);
+            for (int k = 0; k < 3; k++) if (p.TryOffset(0, k, 0, out var q)) q.Set(0);
+            for (int a = -1; a <= 1; a++) for (int c = -1; c <= 1; c++) if (p.TryOffset(a, -1, c, out var q)) q.Set(Stone); // flat floor
+            return p;
+        }
+        int Item(string n) => GameAssets.ItemReg.Id(n);
+        string StateText(BlockPos p) => DEFS[p.Id]?.State.Describe((uint)p.State) ?? "";
+
+        // ---- door: two halves, opens / closes together, collision follows, breaking one half removes both
+        var d0 = Spot(14, 0); var (ax, _, az) = d0.Axes();
+        Check(BlockActions.Place(d0, OakDoor, -az, out string why), $"door placed ({why})"); // looking north
+        d0.TryOffset(0, 1, 0, out var d1);
+        Check(d0.Id == OakDoor && d1.Id == OakDoor, "door: both halves exist");
+        Check(StateText(d0).Contains("half=lower") && StateText(d1).Contains("half=upper") && StateText(d0).Contains("facing=north"), $"door states ({StateText(d0)} / {StateText(d1)})");
+        Check(Collides(OakDoor, d0.State, .5, .5, .1) && !Collides(OakDoor, d0.State, .5, .5, .6), "closed door: thin box at the north edge");
+        BlockActions.Use(d1);
+        Check(StateText(d0).Contains("open=true") && StateText(d1).Contains("open=true"), "using the upper half opens both");
+        Check(Collides(OakDoor, d0.State, .1, .5, .6) && !Collides(OakDoor, d0.State, .5, .5, .1), "open door: box turned to the side");
+        // state survives the chunk being regenerated (states table)
+        var regen = new Chunk { key = ck(d0.B, d0.F, d0.X >> 5, d0.Y >> 5, d0.Z >> 5), band = d0.B, face = d0.F, cx = d0.X >> 5, cy = d0.Y >> 5, cz = d0.Z >> 5 };
+        ChunkGenerator.Ensure(regen);
+        Check(regen.st != null && regen.st[(d0.X & 31) + 32 * ((d0.Z & 31) + 32 * (d0.Y & 31))] == d0.State, "door state is restored when its chunk is generated again");
+        BlockActions.Break(d1);
+        Check(d0.Id == 0 && d1.Id == 0, "breaking the upper half removes the whole door");
+        // a door does not fit under a ceiling
+        var d2 = Spot(14, 3); d2.TryOffset(0, 1, 0, out var above); above.Set(Stone);
+        Check(!BlockActions.Place(d2, OakDoor, -az, out _) && d2.Id == 0, "door needs two free cells");
+
+        // ---- stairs and bed turn with the placement direction (both face away from the player)
+        var s0 = Spot(17, 0);
+        BlockActions.Place(s0, OakStairs, ax, out _); // looking east
+        Check(StateText(s0).Contains("facing=east"), $"stairs placed looking east face east ({StateText(s0)})");
+        Check(Collides(OakStairs, s0.State, .75, .75, .5) && !Collides(OakStairs, s0.State, .25, .75, .5), "turned stairs: the high side is east");
+        var b0 = Spot(17, 4);
+        Check(BlockActions.Place(b0, RedBed, -az, out _), "bed placed");
+        b0.TryOffset(0, 0, -1, out var bh);
+        Check(bh.Id == RedBed && StateText(bh).Contains("part=head"), "bed head is the cell beyond the foot");
+
+        // ---- chest: block entity with 27 slots; move items with the real slot clicks
+        var c0 = Spot(20, 0); BlockActions.Place(c0, Chest, -az, out _);
+        var ce = BlockStates.Entity(c0);
+        Check(ce != null && ce.Inv("slots")?.Length == 27, "chest has a 27-slot inventory");
+        PlayerInventory.Init(); PlayerInventory.Hotbar[0] = new ItemStack(Item("stone"), 40);
+        Check(BlockActions.Use(c0) && UI.invOpen, "right click opens the chest window");
+        UI.TestClick("hotbar", 0, true); UI.TestClick("slots", 4, true);
+        Check(ce.Inv("slots")[4]?.Count == 40 && PlayerInventory.Hotbar[0] == null, "picked up 40 stone and put them into chest slot 5");
+        UI.TestClick("slots", 4, false); UI.TestClick("slots", 5, false);
+        Check(ce.Inv("slots")[4].Count == 20 && ce.Inv("slots")[5].Count == 1 && UI.cursor?.Count == 19, "right click takes half, right click puts one");
+        UI.TestClick("slots", 4, true);
+        Check(ce.Inv("slots")[4].Count == 39 && UI.cursor == null, "left click merges the stacks");
+        UI.TestClick("slots", 4, true, shiftKey: true);
+        Check(ce.Inv("slots")[4] == null && PlayerInventory.Hotbar.Concat(PlayerInventory.Main).Any(s => s != null && s.Item == Item("stone") && s.Count == 39), "shift click moves the stack to the player");
+        UI.CloseScreen();
+
+        // ---- furnace: smelts 2 iron ore with one coal, lit while burning
+        var f0 = Spot(23, 0); BlockActions.Place(f0, Furnace, -az, out _);
+        var fe = BlockStates.Entity(f0);
+        int frontTex = DEFS[Furnace].Texture("north");
+        Check(StateText(f0).Contains("facing=south") && Variant(Furnace, f0.State).Faces[4] == frontTex, $"furnace placed looking north shows its front to the south, towards the player ({StateText(f0)})");
+        fe.Inv("input")[0] = new ItemStack(Item("iron_ore"), 2); fe.Inv("fuel")[0] = new ItemStack(Item("coal"), 1);
+        for (int i = 0; i < 20; i++) BlockActions.Tick(.1);
+        Check(StateText(f0).Contains("lit=true"), "furnace is lit while it burns");
+        for (int i = 0; i < 200; i++) BlockActions.Tick(.1);
+        Check(fe.Inv("output")[0]?.Item == Item("iron_ingot") && fe.Inv("output")[0].Count == 2 && fe.Inv("input")[0] == null, $"furnace smelted 2 iron ingots ({fe.Inv("output")[0]})");
+
+        // ---- oxygen generator: coal + a full bucket -> an oxygen canister
+        var o0 = Spot(26, 0); BlockActions.Place(o0, OxygenGenerator, -az, out _);
+        var oe = BlockStates.Entity(o0); var bucketDef = GameAssets.ItemReg.Get(Item("bucket"));
+        oe.Inv("fuel")[0] = new ItemStack(Item("coal"), 1); oe.Inv("water_in")[0] = new ItemStack(bucketDef.Id, 1, bucketDef.State.Find("fill").With(0, 8));
+        for (int i = 0; i < 150; i++) BlockActions.Tick(.1);
+        Check(oe.Inv("output")[0]?.Item == Item("oxygen_canister"), $"oxygen generator filled a canister (energy {oe.Num("energy"):0}, water {oe.Num("water"):0.0}, oxygen {oe.Num("oxygen"):0})");
+        Check(bucketDef.State.Find("fill").Value(oe.Inv("water_in")[0].State) == 0, "the bucket was emptied into the tank");
+
+        // ---- water level is the water block's state
+        var w0 = Spot(29, 0); SetCell(w0.B, w0.F, w0.X, w0.Y, w0.Z, Water, 3);
+        Check(WaterSim.LevelOf(w0.State) == 3, $"water level 3 is stored as state ({StateText(w0)})");
+        SetCell(w0.B, w0.F, w0.X, w0.Y, w0.Z, Water, 8);
+        Check(w0.State == 0, "a full water cell has no state word");
     }
 
     /// <summary>Bench: a row of example blocks on the ground in front of the camera (slabs, stairs, fence posts, logs).</summary>
@@ -72,14 +160,32 @@ public static class SelfTest
     {
         var (up, fwd, ground) = SpotInFront(7);
         V3 side = M.Nrm(M.Cross(fwd, up));
-        int[] row = { OakSlab, StoneSlab, CobblestoneSlab, OakStairs, StoneBrickStairs, OakFence, OakFence, OakLog, BirchLog, SpruceLog, CherryLog };
+        int[] row = { OakSlab, StoneSlab, OakStairs, StoneBrickStairs, OakFence, OakDoor, OakDoor, RedBed, Chest, Furnace, OxygenGenerator, OakLog, BirchLog, CherryLog };
         for (int i = 0; i < row.Length; i++)
         {
-            V3 p = ground + side * ((i - row.Length / 2) * 1.0) + up * .5;
+            V3 p = ground + side * ((i - row.Length / 2) * 1.25) + up * .5;
             p = Ground(p + up * 4, up) + up * .5;
-            SetAt(p.X, p.Y, p.Z, row[i]);
+            if (!BlockPos.TryAt(p.X, p.Y, p.Z, out var at)) continue;
+            BlockActions.Place(at, row[i], i == 2 ? side : fwd, out _); // fronts face the camera; the first stairs turned sideways
             if (row[i] == OakLog || row[i] == BirchLog) { V3 q = p + up; SetAt(q.X, q.Y, q.Z, row[i]); }
+            if (row[i] == OakDoor && i == 6) BlockActions.Use(at); // the second door open
+            showcase[row[i]] = at;
         }
+        // something to look at in the machines
+        if (showcase.TryGetValue(Furnace, out var fp) && BlockStates.Entity(fp) is { } fe)
+        { fe.Inv("input")[0] = new ItemStack(GameAssets.ItemReg.Id("iron_ore"), 12); fe.Inv("fuel")[0] = new ItemStack(GameAssets.ItemReg.Id("coal"), 8); }
+        if (showcase.TryGetValue(Chest, out var cp) && BlockStates.Entity(cp) is { } ce)
+            for (int i = 0; i < 9; i++) ce.Inv("slots")[i * 2] = new ItemStack(GameAssets.ItemReg.All[(i * 13) % GameAssets.ItemReg.All.Count].Id, 1 + i * 7);
+        if (showcase.TryGetValue(OxygenGenerator, out var op) && BlockStates.Entity(op) is { } oe)
+        { oe.Inv("fuel")[0] = new ItemStack(GameAssets.ItemReg.Id("coal"), 3); var bd = GameAssets.ItemReg.Get(GameAssets.ItemReg.Id("bucket")); oe.Inv("water_in")[0] = new ItemStack(bd.Id, 1, bd.State.Find("fill").With(0, 8)); }
+    }
+    static readonly Dictionary<int, BlockPos> showcase = new();
+    /// <summary>Bench --showui: opens a window over the showcase (inventory, chest, furnace, oxygen_generator).</summary>
+    public static void ShowUi(string name)
+    {
+        if (name == "inventory") { UI.OpenInventory(); return; }
+        int id = name switch { "chest" => Chest, "furnace" => Furnace, _ => OxygenGenerator };
+        if (showcase.TryGetValue(id, out var p)) BlockActions.Use(p);
     }
 
     static (V3 up, V3 fwd, V3 ground) SpotInFront(double dist)

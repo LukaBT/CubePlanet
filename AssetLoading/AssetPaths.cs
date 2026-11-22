@@ -13,6 +13,10 @@ public static class AssetPaths
     public const string BlockDefinitions = "block_definitions.txt";
     public const string ItemDefinitions = "item_definitions.txt";
     public const string UiDefinitions = "ui_definitions.txt";
+    // files beyond the editor's 7 (the editor does not write them yet; edit them by hand)
+    public const string RecipeDefinitions = "recipe_definitions.txt";
+    public const string SoundDefinitions = "sound_definitions.txt";
+    public const string EntityDefinitions = "entity_definitions.txt";
 
     /// <summary>Assets folder: next to the exe; when running from the source tree (dotnet run) the project's Assets folder is found too.</summary>
     public static string Directory = Find();

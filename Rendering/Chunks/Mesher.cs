@@ -14,7 +14,7 @@ public static class Mesher
     [ThreadStatic] internal static List<uint> pIx, pWi, pGi;
     [ThreadStatic] internal static byte[] sOp, sLt; [ThreadStatic] internal static int[] sQ;
     [ThreadStatic] internal static List<long> tWait;
-    internal static bool WLGet(long k, out int lv) { lock (WL) return WL.TryGetValue(k, out lv); }
+    internal static bool WLGet(long k, out int lv) { if (BlockStates.TryGet(k, out ushort s)) { lv = LevelOf(s); return true; } lv = 0; return false; } // water level (state of a water cell)
 
     /// <summary>Meshes a chunk (thread-safe for non-core chunks). wait = neighbour chunk keys that were missing (the chunk is re-lit when they appear).</summary>
     public static BuildResult Build(Chunk ch, out List<long> wait)
@@ -250,6 +250,7 @@ public static class Mesher
             ix.Add(first); ix.Add(first + 1); ix.Add(first + 2); ix.Add(first); ix.Add(first + 2); ix.Add(first + 3);
         }
         void Two(V3[] p, float lay, double sky, V3 nn) { PQ(p, false, lay, sky, nn); PQ(new[] { p[3], p[2], p[1], p[0] }, true, lay, sky, nn); }
+        int StAt(int x, int y, int z) => ch.st?[x + CS * (z + CS * y)] ?? 0; // state word of a cell of this chunk
         int Gb(int x, int y, int z) => x >= 0 && x < CS && y >= 0 && y < CS && z >= 0 && z < CS ? d[x + CS * (z + CS * y)] : Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
 
         // "boxes" models (slabs, stairs, fences, ...): every box face goes through the same curved corner mapping as the cubes;
@@ -257,7 +258,7 @@ public static class Mesher
         void BoxModel(int id, int x, int y, int z)
         {
             var q = new[] { new double[3], new double[3], new double[3], new double[3] }; var uv = new float[8];
-            foreach (var mb in MBOX[id])
+            foreach (var mb in HASVAR[id] ? Variant(id, StAt(x, y, z)).Boxes : MBOX[id])
                 for (int fc = 0; fc < 6; fc++)
                 {
                     if (!BoxFaceInfo(mb.Box, fc, out bool edge)) continue;
@@ -341,11 +342,11 @@ public static class Mesher
             oc[k] = vv; return vv;
         }
         const double WSURF = .8; // surface height of a full (8/8) water cell
-        // disturbed water cells carry a level 1..8 (WL); the surface vertex height is the average of the surrounding surface cells
+        // disturbed water cells carry a level 1..8 (their state word); the surface vertex height is the average of the surrounding surface cells
         int Wlv(int x, int y, int z) => Norm(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z) && WLGet(ek(), out int lv) ? lv : 0;
         double Vh(int vx, int vy, int vz)
         {
-            if (WL.Count == 0) return WSURF;
+            if (BlockStates.Count == 0) return WSURF;
             double sm2 = 0; int cnt = 0;
             for (int a = 0; a < 2; a++) for (int b = 0; b < 2; b++)
                 {
@@ -428,7 +429,7 @@ public static class Mesher
                         }
                         else sky = LightAt(nx, ny, nz);
                         if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
-                        float lay = Lay(id, fc);
+                        float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[fc]) : Lay(id, fc);
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)
@@ -505,7 +506,7 @@ public static class Mesher
                     if (id == 0 || id == Water) continue;
                     if (MODEL[id] == ModelBoxes)
                     {
-                        foreach (var mb in MBOX[id])
+                        foreach (var mb in HASVAR[id] ? Variant(id, ch.st?[x + 32 * (z + 32 * y)] ?? 0).Boxes : MBOX[id])
                             for (int fc = 0; fc < 6; fc++)
                             {
                                 if (!BoxFaceInfo(mb.Box, fc, out bool edge) || (edge && OPQ[Nb(x + DX[fc], y + DY[fc], z + DZ[fc])] != 0)) continue;
@@ -529,7 +530,7 @@ public static class Mesher
                         if (OPQ[nb] != 0 || (TGR[id] != 0 && TGR[nb] == TGR[id])) continue;
                         var cn = CN[fc]; var pp = new double[4][];
                         for (int i = 0; i < 4; i++) pp[i] = new double[] { x + cn[i * 3] - 16, y + cn[i * 3 + 1] - 16, z + cn[i * 3 + 2] - 16 };
-                        Quad(pp, Lay(id, fc), DX[fc], DY[fc], DZ[fc], false);
+                        Quad(pp, HASVAR[id] ? LayTex(id, Variant(id, ch.st?[x + 32 * (z + 32 * y)] ?? 0).Faces[fc]) : Lay(id, fc), DX[fc], DY[fc], DZ[fc], false);
                     }
                 }
         if (ix.Count == 0) return null;

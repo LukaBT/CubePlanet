@@ -36,7 +36,8 @@ try {
             @{ n = 'day';    a = @('--hour', '10') },
             @{ n = 'sunset'; a = @('--hour', '18.3', '--yaw', '120', '--pitch', '-5') },
             @{ n = 'down';   a = @('--hour', '13', '--pitch', '-60', '--up', '-20') },
-            @{ n = 'blocks'; a = @('--hour', '10', '--showcase', '--up', '-25', '--pitch', '-30') }
+            @{ n = 'blocks'; a = @('--hour', '10', '--showcase', '--up', '-25', '--pitch', '-30') },
+            @{ n = 'ui';     a = @('--hour', '10', '--showcase', '--showui', 'furnace') }
         )
         foreach ($s in $shots) {
             $args2 = @('--bench', '4', '--shot', (Join-Path $dir "$($s.n).png")) + $s.a

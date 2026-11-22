@@ -10,7 +10,7 @@ public static partial class UI
 
     // ---------- input state fed by the window ----------
     public static double mx, my, scroll; public static bool down, clicked, rclicked;
-    public static bool settingsOpen, invOpen, startScreen = true; public static string toast = ""; public static double toastT;
+    public static bool settingsOpen, startScreen = true; public static string toast = ""; public static double toastT;
     public static string radiusStr = "1200", seedStr = "1337"; public static int field;
 
 
@@ -54,7 +54,7 @@ public static partial class UI
         for (int i = 0; i < lines.Length; i++) Text(lines[i], 12, 10 + i * (GH + 1.5) * hs, hs);
         DrawHotbar();
         if (toastT > 0) { toastT -= dt; double tw = TextW(toast, S) + 20; Rect(W / 2.0 - tw / 2, H - 64 * S - 10, tw, 12 * S + 8, 0, 0, 0, .7f); Text(toast, W / 2.0, H - 64 * S - 6, S, 1, 1, 1, 1, true); }
-        if (invOpen) DrawInventory();
+        DrawScreen();
         if (settingsOpen) DrawSettings();
     }
 }

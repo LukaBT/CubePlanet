@@ -1,3 +1,363 @@
 {
-  "uis": []
+  "uis": [
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "player_inventory",
+      "id": 1,
+      "name": "Player Inventory",
+      "window": {
+        "width": 196,
+        "height": 96,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Inventory",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot_grid",
+          "id_name": "main",
+          "position": {
+            "x": 8,
+            "y": 13
+          },
+          "rows": 3,
+          "columns": 9,
+          "slot_size": 18,
+          "id_name_pattern": "main_{index}",
+          "storage": {
+            "scope": "player",
+            "key_pattern": "main[{index}]"
+          }
+        },
+        {
+          "type": "slot_grid",
+          "id_name": "hotbar",
+          "position": {
+            "x": 8,
+            "y": 72
+          },
+          "rows": 1,
+          "columns": 10,
+          "slot_size": 18,
+          "id_name_pattern": "hotbar_{index}",
+          "storage": {
+            "scope": "player",
+            "key_pattern": "hotbar[{index}]"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "chest",
+      "id": 2,
+      "name": "Chest",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Chest",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot_grid",
+          "id_name": "slots",
+          "position": {
+            "x": 8,
+            "y": 13
+          },
+          "rows": 3,
+          "columns": 9,
+          "slot_size": 18,
+          "id_name_pattern": "slot_{index}",
+          "storage": {
+            "scope": "block",
+            "key_pattern": "slots[{index}]"
+          }
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "furnace",
+      "id": 3,
+      "name": "Furnace",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Furnace",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 13
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "burn",
+          "position": {
+            "x": 58,
+            "y": 33
+          },
+          "size": {
+            "width": 14,
+            "height": 14
+          },
+          "current_from": "block.burn",
+          "orientation": "vertical",
+          "max_from": "block.burn_max",
+          "color": [
+            255,
+            140,
+            40
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "fuel",
+          "name": "Fuel",
+          "position": {
+            "x": 56,
+            "y": 49
+          },
+          "storage": {
+            "scope": "block",
+            "key": "fuel"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "oxygen_generator",
+      "id": 4,
+      "name": "Oxygen Generator",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Oxygen Generator",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "fuel",
+          "name": "Fuel",
+          "position": {
+            "x": 14,
+            "y": 18
+          },
+          "storage": {
+            "scope": "block",
+            "key": "fuel"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "water_in",
+          "name": "Water In",
+          "position": {
+            "x": 14,
+            "y": 44
+          },
+          "storage": {
+            "scope": "block",
+            "key": "water_in"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "energy",
+          "position": {
+            "x": 44,
+            "y": 20
+          },
+          "size": {
+            "width": 100,
+            "height": 7
+          },
+          "current_from": "block.energy",
+          "orientation": "horizontal",
+          "max": 100,
+          "color": [
+            250,
+            200,
+            60
+          ],
+          "label": "ENERGY"
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "water",
+          "position": {
+            "x": 44,
+            "y": 37
+          },
+          "size": {
+            "width": 100,
+            "height": 7
+          },
+          "current_from": "block.water",
+          "orientation": "horizontal",
+          "max": 32,
+          "color": [
+            60,
+            120,
+            240
+          ],
+          "label": "WATER"
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "oxygen",
+          "position": {
+            "x": 44,
+            "y": 54
+          },
+          "size": {
+            "width": 100,
+            "height": 7
+          },
+          "current_from": "block.oxygen",
+          "orientation": "horizontal",
+          "max": 100,
+          "color": [
+            120,
+            220,
+            255
+          ],
+          "label": "OXYGEN"
+        },
+        {
+          "type": "slot",
+          "id_name": "output",
+          "name": "Output",
+          "position": {
+            "x": 160,
+            "y": 31
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    }
+  ]
 }

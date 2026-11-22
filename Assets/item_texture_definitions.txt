@@ -124,4 +124,14 @@ texture_rows: 16
 121 oak_stairs 288 224
 122 stone_brick_stairs 320 224
 123 oak_fence 352 224
+124 oak_door 384 224
+125 red_bed 416 224
+126 chest 448 224
+127 furnace 480 224
+128 oxygen_generator 0 256
+129 coal 32 256
+130 iron_ingot 64 256
+131 gold_ingot 96 256
+132 copper_ingot 128 256
+133 oxygen_canister 160 256
 200 bucket 256 384

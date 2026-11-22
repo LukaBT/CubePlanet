@@ -20,10 +20,10 @@ public static unsafe partial class Gpu
     static void CreateDescriptorLayout()
     {
         var all = ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit;
-        var b = stackalloc DescriptorSetLayoutBinding[8];
+        var b = stackalloc DescriptorSetLayoutBinding[9];
         b[0] = new DescriptorSetLayoutBinding { Binding = 0, DescriptorType = DescriptorType.UniformBuffer, DescriptorCount = 1, StageFlags = all };
-        for (uint i = 1; i < 8; i++) b[i] = new DescriptorSetLayoutBinding { Binding = i, DescriptorType = DescriptorType.CombinedImageSampler, DescriptorCount = 1, StageFlags = all };
-        var li = new DescriptorSetLayoutCreateInfo { SType = StructureType.DescriptorSetLayoutCreateInfo, BindingCount = 8, PBindings = b };
+        for (uint i = 1; i < 9; i++) b[i] = new DescriptorSetLayoutBinding { Binding = i, DescriptorType = DescriptorType.CombinedImageSampler, DescriptorCount = 1, StageFlags = all };
+        var li = new DescriptorSetLayoutCreateInfo { SType = StructureType.DescriptorSetLayoutCreateInfo, BindingCount = 9, PBindings = b };
         Check(vk.CreateDescriptorSetLayout(dev, &li, null, out dsl), "dsl");
         var b1 = stackalloc DescriptorSetLayoutBinding[5];
         for (uint i = 0; i < 5; i++) b1[i] = new DescriptorSetLayoutBinding { Binding = i, DescriptorType = DescriptorType.CombinedImageSampler, DescriptorCount = 1, StageFlags = all };
@@ -34,7 +34,7 @@ public static unsafe partial class Gpu
         var pli = new PipelineLayoutCreateInfo { SType = StructureType.PipelineLayoutCreateInfo, SetLayoutCount = 2, PSetLayouts = ls, PushConstantRangeCount = 1, PPushConstantRanges = &pcr };
         Check(vk.CreatePipelineLayout(dev, &pli, null, out playout), "pipeline layout");
         var ps = stackalloc DescriptorPoolSize[2];
-        ps[0] = new DescriptorPoolSize(DescriptorType.UniformBuffer, FIF); ps[1] = new DescriptorPoolSize(DescriptorType.CombinedImageSampler, FIF * 7 + FIF * PSETS * 5);
+        ps[0] = new DescriptorPoolSize(DescriptorType.UniformBuffer, FIF); ps[1] = new DescriptorPoolSize(DescriptorType.CombinedImageSampler, FIF * 8 + FIF * PSETS * 5);
         var dpi = new DescriptorPoolCreateInfo { SType = StructureType.DescriptorPoolCreateInfo, MaxSets = FIF + FIF * PSETS, PoolSizeCount = 2, PPoolSizes = ps };
         Check(vk.CreateDescriptorPool(dev, &dpi, null, out dpool), "descriptor pool");
         var lays = stackalloc DescriptorSetLayout[FIF]; for (int i = 0; i < FIF; i++) lays[i] = dsl;
@@ -69,6 +69,7 @@ public static unsafe partial class Gpu
             WriteImg(dsets[f], 5, linClamp, sceneCol[pf].view);
             WriteImg(dsets[f], 6, linClamp, sceneDist[pf].view);
             WriteImg(dsets[f], 7, texCloud.smp, texCloud.view);
+            WriteImg(dsets[f], 8, texItems.smp, texItems.view); // item icons (layer = item ID)
             // post sets (bindings: 0/1 = per-pass inputs, 2 = cloud colour, 3 = cloud distance, 4 = scene distance)
             // 0 = bright-pass from the scene, 1..5 = downsample from mip i-1, 6..10 = upsample into mip 4..0 from the mip below, 11 = composite, 12 = clouds
             for (int i = 0; i < PSETS; i++) { WriteImg(psets[f, i], 2, linClamp, cloudCol.view); WriteImg(psets[f, i], 3, linClamp, cloudDist.view); WriteImg(psets[f, i], 4, linClamp, sceneDist[f].view); }

@@ -1,0 +1,34 @@
+{
+  "sounds": [
+    {
+      "id": 1,
+      "id_name": "stone_break",
+      "file": "sounds/stone_break.ogg"
+    },
+    {
+      "id": 2,
+      "id_name": "wood_break",
+      "file": "sounds/wood_break.ogg"
+    },
+    {
+      "id": 3,
+      "id_name": "door_open",
+      "file": "sounds/door_open.ogg"
+    },
+    {
+      "id": 4,
+      "id_name": "door_close",
+      "file": "sounds/door_close.ogg"
+    },
+    {
+      "id": 5,
+      "id_name": "chest_open",
+      "file": "sounds/chest_open.ogg"
+    },
+    {
+      "id": 6,
+      "id_name": "furnace_crackle",
+      "file": "sounds/furnace_crackle.ogg"
+    }
+  ]
+}

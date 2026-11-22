@@ -1,0 +1,32 @@
+namespace CubePlanet;
+
+/// <summary>
+/// Game logic of a block, selected by name in the definition ("behavior": "door"). Adding content = a definition; a new class is only needed
+/// when no existing behaviour fits. Multiblock placing / breaking and opening a block's UI (ui_id) are handled generically in BlockActions.
+/// </summary>
+public abstract class BlockBehavior
+{
+    /// <summary>After the block (all multiblock parts) was placed. p = the part that was placed by the player.</summary>
+    public virtual void OnPlace(BlockPos p, int id) { }
+    /// <summary>Before the block is removed (state = its state word).</summary>
+    public virtual void OnBreak(BlockPos p, int id, int state) { }
+    /// <summary>Right click. Return true when handled (nothing gets placed). Blocks with a ui_id open it when this returns false.</summary>
+    public virtual bool OnUse(BlockPos p, int id, int state) => false;
+    /// <summary>Does right-clicking do something (so holding a block does not place it here)?</summary>
+    public virtual bool Usable => false;
+    /// <summary>10 times per second for every block entity of this block.</summary>
+    public virtual void OnTick(BlockEntity e, double dt) { }
+    /// <summary>A neighbouring cell changed (placed / broken by a player or another block).</summary>
+    public virtual void OnNeighborChanged(BlockPos p, int id, BlockPos from) { }
+
+    static readonly Dictionary<string, Func<BlockBehavior>> Known = new()
+    {
+        ["door"] = () => new DoorBehavior(),
+        ["bed"] = () => new BedBehavior(),
+        ["container"] = () => new ContainerBehavior(),
+        ["smelting"] = () => new SmeltingBehavior(),
+        ["oxygen_generator"] = () => new OxygenGeneratorBehavior(),
+    };
+    public static BlockBehavior Create(string name, string owner) =>
+        Known.TryGetValue(name, out var f) ? f() : throw new InvalidDataException($"{owner}: unknown behavior '{name}' (known: {string.Join(", ", Known.Keys)})");
+}

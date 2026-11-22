@@ -20,5 +20,5 @@ public sealed class UiRegistry
             All.Add(u);
         }
     }
-    public UiDefinition Get(string name) => byName.TryGetValue(name.Contains(':') ? name : "base:" + name, out var u) ? u : throw new KeyNotFoundException($"unknown UI '{name}'");
+    public UiDefinition Get(string name) => byName.TryGetValue(name.Contains(':') ? name : "base:" + name, out var u) ? u : throw new KeyNotFoundException($"unknown UI '{name}' (not in {AssetPaths.UiDefinitions})");
 }

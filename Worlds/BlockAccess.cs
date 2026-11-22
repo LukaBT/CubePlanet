@@ -124,7 +124,8 @@ public static class BlockAccess
         int bi = P2b(x, y, z); if (bi < 0) return;
         SetCell(bi, PF, PX, PY, PZ, id);
     }
-    public static void SetCell(int bi, int f, int bx, int by, int bz, int id, int lvl = 0)
+    /// <summary>Sets a block and its state word (lvl: water level 1..8, stored as the water block's "level" state).</summary>
+    public static void SetCell(int bi, int f, int bx, int by, int bz, int id, int lvl = 0, int state = 0)
     {
         if (!Norm(bi, f, bx, by, bz)) return;
         bi = NB; f = NF; bx = NX; by = NY; bz = NZ;
@@ -132,7 +133,10 @@ public static class BlockAccess
         long k = ck(bi, f, bx >> 5, by >> 5, bz >> 5);
         lock (EditLock) { edits[kk] = (ushort)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
         if (!chunks.ContainsKey(k)) lastScan = new V3(1e9, 0, 0); // chunk was skipped as deep solid: make the loader create it now
-        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; ch.d[(bx & 31) + 32 * ((bz & 31) + 32 * (by & 31))] = (ushort)id; ch.dirty = true; }
+        if (id == Water && lvl > 0) state = WaterSim.LevelState(lvl);
+        lock (EditLock) { if (state != 0) BlockStates.states[kk] = (ushort)state; else BlockStates.states.Remove(kk); }
+        if (BlockStates.entities.Count > 0 && BlockStates.entities.TryGetValue(kk, out var be) && be.BlockId != id) BlockStates.entities.Remove(kk);
+        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.dirty = true; }
         for (int d = 0; d < 6; d++)
             if (Norm(bi, f, bx + DX[d] * 8, by + DY[d] * 8, bz + DZ[d] * 8))
             {
@@ -140,7 +144,6 @@ public static class BlockAccess
                 if (!ecount.ContainsKey(k2)) { lock (EditLock) ecount[k2] = 0; if (!chunks.ContainsKey(k2)) lastScan = new V3(1e9, 0, 0); }
                 if (chunks.TryGetValue(k2, out var nc)) nc.dirty = true;
             }
-        lock (WL) { if (id == Water && lvl > 0) WL[kk] = lvl; else if (WL.Count > 0) WL.Remove(kk); }
         Wake(bi, f, bx, by, bz);
     }
 }
