@@ -23,6 +23,12 @@ public static class Program
             if (args[i] == "--set") Overrides.Add(args[i + 1]); // e.g. --set ao=0 (for this run only, not saved)
             if (args[i] == "--bench" && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double bs)) Bench = bs;
         }
+        if (Array.IndexOf(args, "--fingerprint") >= 0)
+        {   // headless world fingerprint (no window): --fingerprint [--radius N] [--seed N] [--fprd CHUNKS]
+            int fprd = 12; int fi = Array.IndexOf(args, "--fprd"); if (fi >= 0 && fi + 1 < args.Length) int.TryParse(args[fi + 1], out fprd);
+            Fingerprint.Run(double.TryParse(UI.radiusStr, out var fr) ? fr : 1200, int.TryParse(UI.seedStr, out var fs) && fs != 0 ? fs : 1337, fprd);
+            return;
+        }
         using var game = new Game();
         game.Run();
     }
