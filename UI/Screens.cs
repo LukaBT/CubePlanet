@@ -27,6 +27,8 @@ public static partial class UI
     public static bool shift;
     public static bool invOpen => screen != null;
     static double paletteScroll;
+    /// <summary>Text of the palette's search box and whether it takes the keyboard.</summary>
+    public static string search = ""; public static bool searchFocus; static string lastSearch = "";
 
     public static void OpenInventory()
     {
@@ -42,7 +44,7 @@ public static partial class UI
     public static void CloseScreen()
     {
         if (cursor != null && !cursor.IsEmpty) PlayerInventory.Add(cursor); // what does not fit is lost (creative)
-        cursor = null; screen = null;
+        cursor = null; screen = null; searchFocus = false;
     }
     public static void ToggleInventory() { if (screen != null) CloseScreen(); else OpenInventory(); }
 
@@ -187,8 +189,19 @@ public static partial class UI
     {
         Rect(x0 - 2, y0 - 2, pw + 4, ph + 4, .55f, .55f, .6f, 1); Rect(x0, y0, pw, ph, .12f, .12f, .14f, .97f);
         Text("ITEMS (CLICK: TAKE A STACK)", x0 + 4 * k, y0 + 3 * k, k * .6, .8f, .9f, 1);
-        var items = GameAssets.ItemReg.All; int cols = 11; double cs = (pw - 8 * k) / cols; int rows = (items.Count + cols - 1) / cols;
-        double top = y0 + 12 * k, view = ph - 16 * k, maxScroll = Math.Max(0, rows * cs - view);
+        // search box: click to type, matches names and id_names of blocks and items
+        double sx = x0 + 4 * k, sy = y0 + 10 * k, sw = pw - 8 * k, sh = 10 * k;
+        bool overSearch = In(sx, sy, sw, sh);
+        if (clicked && In(x0, y0, pw, ph)) { searchFocus = overSearch; if (overSearch) clicked = false; }
+        Rect(sx, sy, sw, sh, 1, 1, 1, searchFocus ? .22f : overSearch ? .14f : .08f);
+        string shown = search.Length > 0 || searchFocus ? search + (searchFocus ? "_" : "") : "SEARCH...";
+        Text(shown, sx + 3 * k, sy + 2 * k, k * .7, search.Length > 0 || searchFocus ? 1f : .55f, search.Length > 0 || searchFocus ? 1f : .55f, search.Length > 0 || searchFocus ? 1f : .6f);
+        string q = search.Trim().ToLowerInvariant().Replace(' ', '_');
+        var items = q.Length == 0 ? GameAssets.ItemReg.All : GameAssets.ItemReg.All.Where(i => i.IdName.Contains(q) || i.Name.ToLowerInvariant().Replace(' ', '_').Contains(q)).ToList();
+        if (q != lastSearch) { paletteScroll = 0; lastSearch = q; }
+        int cols = 11; double cs = (pw - 8 * k) / cols; int rows = (items.Count + cols - 1) / cols;
+        double top = y0 + 23 * k, view = ph - 27 * k, maxScroll = Math.Max(0, rows * cs - view);
+        if (items.Count == 0) Text("NOTHING MATCHES", x0 + 4 * k, top + 4 * k, k * .6, .7f, .7f, .75f);
         if (In(x0, y0, pw, ph)) { paletteScroll = Math.Clamp(paletteScroll - scroll * cs, 0, maxScroll); scroll = 0; }
         if (maxScroll > 0)
         {   // scrollbar: the whole list does not fit (mouse wheel scrolls)

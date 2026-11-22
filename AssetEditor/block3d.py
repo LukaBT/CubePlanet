@@ -15,7 +15,7 @@ MODELS = ["cube", "cross", "liquid", "attached", "boxes"]
 RENDER_LAYERS = ["opaque", "cutout", "translucent", "liquid"]
 SWAYS = ["none", "leaves", "plant", "underwater"]
 ROTATIONS = ["none", "horizontal", "all"]
-BEHAVIORS = ["", "door", "bed", "container", "smelting", "oxygen_generator"]
+BEHAVIORS = ["", "door", "bed", "container", "smelting", "oxygen_generator", "stairs", "connecting"]
 FIELD_TYPES = ["boolean", "string", "integer", "number", "inventory"]
 SOUND_SLOTS = ["break", "place", "step", "use"]
 
@@ -26,6 +26,37 @@ def box(x, y, z, w, h, d):
 
 FULL = [box(0, 0, 0, 1, 1, 1)]
 DOOR_CLOSED, DOOR_OPEN = [box(0, 0, 0, 1, 1, .1875)], [box(0, 0, 0, .1875, 1, 1)]
+# Minecraft-like stairs (frame: high side north; "left" = west) and connecting fences, generated as state_overrides
+_Q = {"NW": (0, 0), "NE": (.5, 0), "SW": (0, .5), "SE": (.5, .5)}
+STAIR_SHAPES = {"straight": ["N"], "outer_left": ["NW"], "outer_right": ["NE"], "inner_left": ["N", "SW"], "inner_right": ["N", "SE"]}  # order = state values
+def stair_boxes(half, shape):
+    base_y, step_y = (0, .5) if half == "bottom" else (.5, 0)
+    out = [box(0, base_y, 0, 1, .5, 1)]
+    for q in STAIR_SHAPES[shape]:
+        out.append(box(0, step_y, 0, 1, .5, .5) if q == "N" else box(_Q[q][0], step_y, _Q[q][1], .5, .5, .5))
+    return out
+def stairs_preset():
+    ovs = [{"when": {"half": h, "shape": s}, "boxes": stair_boxes(h, s), "collision": stair_boxes(h, s), "selection": stair_boxes(h, s)}
+           for h in ("bottom", "top") for s in STAIR_SHAPES if not (h == "bottom" and s == "straight")]
+    return {"model": "boxes", "rotation": "horizontal", "placement_facing": "away", "behavior": "stairs", "boxes": stair_boxes("bottom", "straight"),
+            "geometry": {"collision": stair_boxes("bottom", "straight"), "selection": stair_boxes("bottom", "straight"), "state_overrides": ovs},
+            "_state": {"half": {"type": "string", "values": ["bottom", "top"], "default": "bottom"},
+                       "shape": {"type": "string", "values": list(STAIR_SHAPES), "default": "straight"}}}
+_POST = box(.375, 0, .375, .25, 1, .25)
+_ARM = {"north": (.4375, 0, .125, .375), "south": (.4375, .625, .125, .375), "east": (.625, .4375, .375, .125), "west": (0, .4375, .375, .125)}
+def fence_preset():
+    import itertools
+    rails = lambda ds: [_POST] + [box(x, y, z, w, .1875, d) for dn in ds for (x, z, w, d) in [_ARM[dn]] for y in (.375, .75)]
+    solid = lambda ds: [_POST] + [box(x, 0, z, w, 1, d) for dn in ds for (x, z, w, d) in [_ARM[dn]]]
+    ovs = []
+    for combo in itertools.product([False, True], repeat=4):
+        ds = [dn for dn, on in zip(("north", "east", "south", "west"), combo) if on]
+        if ds: ovs.append({"when": dict(zip(("north", "east", "south", "west"), combo)), "boxes": rails(ds), "collision": solid(ds), "selection": rails(ds)})
+    return {"model": "boxes", "behavior": "connecting", "connects_to": ["fence"], "boxes": rails([]),
+            "geometry": {"collision": [_POST], "selection": [_POST], "state_overrides": ovs},
+            "_state": {dn: {"type": "boolean", "default": False} for dn in ("north", "east", "south", "west")}, "_tags": ["fence"]}
+
+
 # preset -> keys written into properties.definition (model, boxes, geometry, rotation, multiblock, ...)
 GEOMETRY_PRESETS_3D = {
     "Full block": {"model": "cube", "geometry": {"collision": FULL, "selection": FULL, "state_overrides": []}},
@@ -33,12 +64,8 @@ GEOMETRY_PRESETS_3D = {
                      "geometry": {"collision": [box(0, 0, 0, 1, .5, 1)], "selection": [box(0, 0, 0, 1, .5, 1)], "state_overrides": []}},
     "Slab (upper)": {"model": "boxes", "boxes": [box(0, .5, 0, 1, .5, 1)],
                      "geometry": {"collision": [box(0, .5, 0, 1, .5, 1)], "selection": [box(0, .5, 0, 1, .5, 1)], "state_overrides": []}},
-    "Stairs": {"model": "boxes", "rotation": "horizontal", "placement_facing": "away",
-               "boxes": [box(0, 0, 0, 1, .5, 1), box(0, .5, 0, 1, .5, .5)],
-               "geometry": {"collision": [box(0, 0, 0, 1, .5, 1), box(0, .5, 0, 1, .5, .5)],
-                            "selection": [box(0, 0, 0, 1, .5, 1), box(0, .5, 0, 1, .5, .5)], "state_overrides": []}},
-    "Fence post": {"model": "boxes", "boxes": [box(.375, 0, .375, .25, 1, .25)],
-                   "geometry": {"collision": [box(.375, 0, .375, .25, 1, .25)], "selection": [box(.375, 0, .375, .25, 1, .25)], "state_overrides": []}},
+    "Stairs (joining, upside down)": stairs_preset(),
+    "Fence (connecting)": fence_preset(),
     "Door (2 tall, opens)": {"model": "boxes", "rotation": "horizontal", "placement_facing": "away", "behavior": "door", "boxes": DOOR_CLOSED,
                              "multiblock": {"parts": [{"offset": [0, 0, 0], "state": {"half": "lower"}}, {"offset": [0, 1, 0], "state": {"half": "upper"}}]},
                              "geometry": {"collision": DOOR_CLOSED, "selection": DOOR_CLOSED, "state_overrides": [
@@ -64,6 +91,10 @@ def apply_preset(d, name):
     for k, v in p.items():
         if k == "render": pd.setdefault("render", {}).update(v)
         else: pd[k] = v
+    tags = p.pop("_tags", None)
+    if tags: d["group_tags"] = sorted(set(d.get("group_tags", []) + tags))
+    for k in ("boxes", "multiblock", "connects_to"):
+        if k not in p: pd.pop(k, None)
     if st:
         ist = d["properties"].setdefault("instance_state", {})
         for k, v in st.items(): ist.setdefault(k, v)

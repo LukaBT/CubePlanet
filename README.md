@@ -31,7 +31,8 @@ Shift + RMB places against them), MMB pick block, V player / free camera, F fly 
 (wheel / W,S zoom, zoom in to land), E inventory + item palette, Esc or Tab settings (Esc closes an open window first),
 F11 fullscreen, arrow keys also look.
 In windows: LMB pick up / put down / swap a stack, RMB take half / put one, Shift + LMB move a stack between the block and
-your inventory; in the palette LMB takes a full stack, RMB one item, clicking it with a stack on the mouse deletes that stack.
+your inventory; in the palette LMB takes a full stack, RMB one item, clicking it with a stack on the mouse deletes that stack, the wheel
+scrolls, and the search box (click it, type; Esc / Enter leaves it) filters blocks and items by name.
 Creative rules for now: placing does not use up items, breaking drops nothing (a chest's contents are lost).
 
 ## Code layout
@@ -84,7 +85,11 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
   the full depth). Missing collision = full block for cubes, none for other models; missing selection = full block (none for liquids).
   Player collision, the targeted-block raycast, the highlight outline and block placement all use them.
 * `rotation` (none / horizontal / all) is read and checked; turning boxes by the block's facing needs per-block state, which comes in phase 4.
-* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence (post only; connections are not implemented).
+* Example box blocks: oak / stone / cobblestone slab, oak / stone brick stairs, oak fence.
+* **Stairs** (`behavior: stairs`): `half` bottom / top (placed upside down when you click the upper half of a side or the underside of a block)
+  and `shape` straight / inner_left / inner_right / outer_left / outer_right, joined like Minecraft's from the neighbouring stairs; the boxes
+  of each shape are state_overrides. **Fences** (`behavior: connecting`, `connects_to: ["fence"]`): `north` / `east` / `south` / `west`
+  arms towards fences and full solid blocks. The **bed** has a solid mattress and legs at the outer corners.
 
 ## Block state, items, windows, behaviours
 * **State** (`properties.instance_state`, see `Blocks/StateSchema.cs`): booleans, strings with `values` and integers with `min` / `max` are packed

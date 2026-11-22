@@ -17,7 +17,8 @@ namespace CubePlanet;
 ///   placement_facing [toward_player]  toward_player (the block's north side faces you, e.g. a furnace front) | away (stairs, doors, beds)
 ///   multiblock.parts      [{"offset": [x, y, z], "state": {fields identifying the part}}], offsets relative to the facing; placing checks that
 ///                         every part fits, breaking one part removes all
-///   behavior              name of the C# behaviour (door, bed, container, smelting, oxygen_generator)
+///   behavior              name of the C# behaviour (door, bed, container, smelting, oxygen_generator, stairs, connecting)
+///   connects_to           connecting blocks (fences): group tags of the neighbours they join (full solid cubes always count)
 ///   attach                vine (thin planes on supporting sides) | pod (small box hanging on a log)
 ///   random_offset [true]  cross: jitter the sprite position per block
 ///   waterlogged [false]   sits inside water (underwater plants: water faces next to it are hidden, breaking it leaves water)
@@ -40,6 +41,7 @@ public sealed class BlockDefinition
     public readonly Dictionary<string, int> Textures = new(); // flattened slot path ("all", "lower.closed") -> block texture ID
     public string Model = "cube", Attach = "", RenderLayer = "opaque", ConnectGroup = "", Sway = "none", Rotation = "none", Behavior = "", UiId = "";
     public bool FacingAway;
+    public string[] ConnectsTo = Array.Empty<string>();
     /// <summary>Texture of each face of the default state, in the mesher's face order: +x (east), -x (west), +y (top), -y (bottom), +z (south), -z (north).</summary>
     public int[] Faces = new int[6];
     public sealed class ModelBox { public BlockBox Box; public Dictionary<string, int> Tex; public int[] Faces; }
@@ -91,7 +93,8 @@ public sealed class BlockDefinition
         if (Get(e, "ui_id") is { ValueKind: JsonValueKind.Object } ui) b.UiId = Str(ui, "namespace", "base") + ":" + Str(ui, "id_name");
         const string D = "properties.definition.";
         b.Model = Str(e, D + "model", "cube"); b.Attach = Str(e, D + "attach"); b.Rotation = Str(e, D + "rotation", "none");
-        b.Behavior = Str(e, D + "behavior"); b.FacingAway = Str(e, D + "placement_facing", "toward_player") == "away";
+        b.Behavior = Str(e, D + "behavior");
+        if (Get(e, D + "connects_to") is { ValueKind: JsonValueKind.Array } ct) b.ConnectsTo = ct.EnumerateArray().Select(t => t.GetString() ?? "").ToArray(); b.FacingAway = Str(e, D + "placement_facing", "toward_player") == "away";
         if (Get(e, D + "boxes") is { ValueKind: JsonValueKind.Array } boxes) b.Boxes = ParseBoxes(boxes);
         foreach (var mb in b.Boxes) mb.Faces = FacesOf(mb.Tex == null ? b.Textures : Merge(b.Textures, mb.Tex));
         b.Collision = BlockBox.ParseList(Get(e, D + "geometry.collision")) ?? (b.Model == "cube" ? null : Array.Empty<BlockBox>());

@@ -64,7 +64,12 @@ public static class BlockEditing
             if ((X - C.x) * (X - C.x) + (Y - C.y) * (Y - C.y) + (Z - C.z) * (Z - C.z) > 1 && BlockPos.TryAt(X, Y, Z, out var at))
             {
                 if (sel == Water) { PlaceWater(X, Y, Z); return; }
-                if (!BlockActions.Place(at, sel, C.f, out string why)) { UI.Note(why, 1.5); return; }
+                // upper half like Minecraft: clicked the underside of a block, or the upper half of a side face
+                bool upper; var hitPos = BlockPos.Of(T);
+                if (at.TryOffset(0, 1, 0, out var above) && above.Equals(hitPos)) upper = true;
+                else if (at.TryOffset(0, -1, 0, out var below) && below.Equals(hitPos)) upper = false;
+                else { LocalAt(T.x, T.y, T.z, out _, out double hy, out _); upper = hy > .5; }
+                if (!BlockActions.Place(at, sel, C.f, out string why, upper)) { UI.Note(why, 1.5); return; }
                 if (P.on && Pcol(P.p, HW)) BlockActions.Break(at); // would trap the player: undo
             }
         }

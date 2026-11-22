@@ -40,12 +40,17 @@ public static class BlockActions
     }
 
     /// <summary>Places block id at cell 'at' as a player looking along 'look' would. Returns false (with a reason) if it does not fit.</summary>
-    public static bool Place(BlockPos at, int id, V3 look, out string why)
+    /// <param name="upperHalf">the click was on the upper half of a side face or on the underside of a block: blocks with a "half" field
+    /// (values bottom / top) are placed upside down, like Minecraft stairs</param>
+    public static bool Place(BlockPos at, int id, V3 look, out string why, bool upperHalf = false)
     {
         why = null; var d = DEFS[id];
         if (d == null) { at.Set(id); return true; }
         int facing = FacingFor(d, at, look); var ff = d.State.Find("facing");
         uint baseWord = ff != null ? ff.With(0, facing) : 0;
+        var hf = d.State.Find("half");
+        if (hf != null && hf.Packed && hf.Values != null && Array.IndexOf(hf.Values, "top") >= 0 && Array.IndexOf(hf.Values, "bottom") >= 0)
+            baseWord = hf.With(baseWord, Array.IndexOf(hf.Values, upperHalf ? "top" : "bottom"));
         var cells = new List<(BlockPos pos, uint word)>();
         if (d.Parts.Length == 0) cells.Add((at, baseWord));
         else

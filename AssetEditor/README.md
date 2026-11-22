@@ -33,7 +33,7 @@ is wrong (unknown model, texture, sound, UI, too many state bits, two parts with
   then the old 2D ones), link UI, UI widgets).
 * **Block 3D** - the block of the list as a form: model and attach, rotation, placement facing, behaviour, UI; **face textures** with
   thumbnails in three modes (*all*, *top / side / bottom*, *six faces*; switching fills the new slots from the current look); render flags;
-  **geometry presets** (full, slabs, stairs, fence post, door, bed, plant, no hitbox); sound slots; the **instance-state field editor** with
+  **geometry presets** (full, slabs, joining / upside-down stairs, connecting fence, fence post, door, bed, plant, no hitbox); sound slots; the **instance-state field editor** with
   a live packed-bit counter (red above 16); the **multiblock part editor**; a **3D preview** with a picker per state field (facing, open,
   half...); **Generate item icon from block** (renders it isometrically into the item that places it, like the game's icons).
 * **Sounds**, **Recipes** (smelting), **Entities** (raw JSON list; the format is reserved by the game).
@@ -58,7 +58,8 @@ Top level: `type` "block", `namespace`, `id_name`, `id`, `name`, `stateless`, `g
 | `rotation` | `none` / `horizontal` / `all`; adds a `facing` state field (north, east, south, west [, up, down]) |
 | `placement_facing` | `toward_player` (front faces you) / `away` (stairs, doors, beds) |
 | `multiblock.parts` | `[{"offset": [x, y, z], "state": {...}}]` relative to the facing; every part needs a different state |
-| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator` |
+| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences) |
+| `connects_to` | connecting blocks: group tags of the neighbours they join (full solid cubes always count) |
 | `render.layer` | `opaque` (hides neighbour faces) / `cutout` / `translucent` / `liquid` |
 | `render.connect_group` | faces between equal groups are hidden (`leaves`, `glass`, `ice`, any name) |
 | `render.sway` | `none` / `leaves` / `plant` / `underwater` |

@@ -110,6 +110,7 @@ public class Game : GameWindow
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
+        if (UI.searchFocus && UI.invOpen) { char ch = (char)e.Unicode; if (UI.search.Length < 24 && (char.IsLetterOrDigit(ch) || ch == ' ' || ch == '_')) UI.search += ch; return; }
         if (!UI.startScreen) return;
         char c = (char)e.Unicode;
         if (UI.field == 0) { if (UI.nameStr.Length < 24 && (char.IsLetterOrDigit(c) || c == ' ' || c == '-' || c == '_')) UI.nameStr += c; }
@@ -120,6 +121,12 @@ public class Game : GameWindow
     {
         base.OnKeyDown(e);
         if (Program.Bench > 0) return;
+        if (UI.searchFocus && UI.invOpen)
+        {   // the palette search box has the keyboard: E, numbers etc. are text, Esc / Enter leave the box
+            if (e.Key == Keys.Backspace && UI.search.Length > 0) UI.search = UI.search[..^1];
+            else if (e.Key == Keys.Escape || e.Key == Keys.Enter || e.Key == Keys.KeyPadEnter) UI.searchFocus = false;
+            return;
+        }
         if (UI.startScreen)
         {
             if (e.Key == Keys.Enter || e.Key == Keys.KeyPadEnter) StartGame(null);

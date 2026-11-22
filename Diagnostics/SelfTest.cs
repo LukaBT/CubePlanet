@@ -114,8 +114,11 @@ public static class SelfTest
         {   // a free cell on the ground, away from the earlier tests, with 3 free cells above it
             V3 g = Ground(new V3(C.x, C.y, C.z) * 0 + (new V3(C.x, C.y, C.z) - up * 3.2) + fwd * along + side * across + up * 4, up) + up * .5;
             BlockPos.TryAt(g.X, g.Y, g.Z, out var p);
-            for (int k = 0; k < 3; k++) if (p.TryOffset(0, k, 0, out var q)) q.Set(0);
-            for (int a = -1; a <= 1; a++) for (int c = -1; c <= 1; c++) if (p.TryOffset(a, -1, c, out var q)) q.Set(Stone); // flat floor
+            for (int a = -2; a <= 2; a++) for (int c = -2; c <= 2; c++)
+                {   // a clear 5x5 area, 3 high, on a flat stone floor (neighbouring terrain would join fences or block stairs)
+                    for (int k = 0; k < 3; k++) if (p.TryOffset(a, k, c, out var q)) q.Set(0);
+                    if (p.TryOffset(a, -1, c, out var fl)) fl.Set(Stone);
+                }
             return p;
         }
         int Item(string n) => GameAssets.ItemReg.Id(n);
@@ -150,6 +153,34 @@ public static class SelfTest
         Check(BlockActions.Place(b0, RedBed, -az, out _), "bed placed");
         b0.TryOffset(0, 0, -1, out var bh);
         Check(bh.Id == RedBed && StateText(bh).Contains("part=head"), "bed head is the cell beyond the foot");
+
+        // ---- stairs join like Minecraft's and can be placed upside down
+        var st1 = Spot(32, 0);
+        BlockActions.Place(st1, OakStairs, -az, out _); // high side north
+        Check(StateText(st1).Contains("shape=straight") && StateText(st1).Contains("half=bottom"), $"single stairs: straight, bottom ({StateText(st1)})");
+        st1.TryOffset(0, 0, -1, out var behind);
+        BlockActions.Place(behind, OakStairs, -ax, out _); // behind the high side, facing west
+        Check(StateText(st1).Contains("shape=outer_left"), $"stairs facing west behind -> outer corner on the left ({StateText(st1)})");
+        var st2 = Spot(32, 4); st2.TryOffset(0, 0, 1, out var front);
+        BlockActions.Place(st2, OakStairs, -az, out _); BlockActions.Place(front, OakStairs, ax, out _); // in front, facing east
+        Check(StateText(st2).Contains("shape=inner_right"), $"stairs facing east in front -> inner corner on the right ({StateText(st2)})");
+        var st3 = Spot(32, 8);
+        BlockActions.Place(st3, OakStairs, -az, out _, upperHalf: true);
+        Check(StateText(st3).Contains("half=top") && Collides(OakStairs, st3.State, .5, .75, .75) && !Collides(OakStairs, st3.State, .5, .25, .75), "upside-down stairs: full on top, the step hangs below at the back");
+        // ---- fences connect to fences and solid blocks
+        var fa = Spot(35, 0); BlockActions.Place(fa, OakFence, -az, out _);
+        Check(!StateText(fa).Contains("=true"), $"lone fence has no arms ({StateText(fa)})");
+        fa.TryOffset(1, 0, 0, out var fb); BlockActions.Place(fb, OakFence, -az, out _);
+        Check(StateText(fa).Contains("east=true") && StateText(fb).Contains("west=true"), $"two fences join ({StateText(fa)} / {StateText(fb)})");
+        fa.TryOffset(0, 0, -1, out var fwall); BlockActions.Place(fwall, Stone, -az, out _);
+        Check(StateText(fa).Contains("north=true"), "fence joins a solid block");
+        Check(Collides(OakFence, fa.State, .5, .5, .1) && !Collides(OakFence, fa.State, .1, .5, .9), "fence arm collides, the open side does not");
+        BlockActions.Break(fb);
+        Check(StateText(fa).Contains("east=false"), "breaking the neighbour removes the arm");
+        // ---- bed: solid sides (no see-through holes), mattress + legs
+        int sideTex = DEFS[RedBed].Texture("side"); bool holes = false;
+        for (int k = 0; k < 16 * 16; k++) if (GameAssets.BlockLayers[(sideTex * 256 + k) * 4 + 3] < 255) holes = true;
+        Check(!holes && Variant(RedBed, 0).Boxes.Length == 3, "bed: opaque side texture, mattress and two legs per part");
 
         // ---- chest: block entity with 27 slots; move items with the real slot clicks
         var c0 = Spot(20, 0); BlockActions.Place(c0, Chest, -az, out _);
