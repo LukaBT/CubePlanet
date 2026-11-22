@@ -103,6 +103,7 @@ public static class BlockAccess
         if (ch != null && ch.d != null) return ch.d[(NX & 31) + 32 * ((NZ & 31) + 32 * (NY & 31))];
         ushort e; bool he; lock (EditLock) he = edits.TryGetValue(ek(), out e);
         if (he) return e;
+        if (WorldSave.TryGetSaved(k, out var sd)) return sd[(NX & 31) + 32 * ((NZ & 31) + 32 * (NY & 31))]; // saved chunk that is not loaded
         return Gen(bands[NB], NF, NX, NY, NZ);
     }
 

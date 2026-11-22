@@ -129,7 +129,10 @@ empty, checked file.
 * New definition files: `sound_definitions.txt` (id, id_name, file; blocks/items reference `sounds: {break, place, step, use}`;
   nothing plays yet), `recipe_definitions.txt` (smelting, later crafting), `entity_definitions.txt` (format reserved, empty for now).
 
-## Phase 5 - Saving (whole chunks)
+## Phase 5 - Saving (whole chunks) (done)
+
+Status: done. Block entities are stored inside the chunk records of their chunk (core ones in core.bin); the Cartesian core is saved as its
+edit list. Saved chunks replace generation for those chunks. Self-test: save -> clear -> load is identical.
 
 * `worlds/<name>/world.json` (seed, radius, version, player position, inventory, time) + region files (8x8x8 chunks each, compressed).
 * Every chunk that was touched (edit, water flow, state change) is saved in full: 2-byte block data + state words + block entities.

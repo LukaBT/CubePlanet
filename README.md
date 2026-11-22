@@ -6,6 +6,8 @@ sun shadows, day/night sky with stars, aurora, clouds, atmosphere limb glow, oce
 and radial-gravity player physics.
 
 ## Run
+The start screen lists saved worlds (PLAY / DELETE, delete asks for a second click) and creates new ones (name, radius, seed; Tab switches
+field, Enter creates). Worlds are saved every minute, from the settings panel (SAVE NOW) and when the game closes.
 ```
 dotnet run -c Release                       # start screen lets you type radius + seed
 dotnet run -c Release -- --radius 1200 --seed 1337
@@ -46,7 +48,8 @@ Items/                 ItemDefinition, ItemRegistry, ItemStack, PlayerInventory,
 Sounds/, Entities/     SoundRegistry (IDs only, nothing plays), EntityRegistry (format reserved)
 Worlds/                World (radius, bands, chunks, edits, world creation), BlockAccess (position <-> block, Blk / SetCell), Cube (face axes, seams),
                        Band, Chunk, CoreGrid (Cartesian core), ChunkLoader, ChunkWorkers (worker threads), WaterSim (+ bucket), BlockEditing,
-                       BlockPos (band or core cell), BlockStates (state words + block entities), BlockActions (place / break / use, multiblocks, ticking)
+                       BlockPos (band or core cell), BlockStates (state words + block entities), BlockActions (place / break / use, multiblocks, ticking),
+                       Saving/ (WorldSave: world.json, world list, load / save; RegionFile: 8x8x8-chunk region files)
 Generation/            Noise, Terrain (TerrainGen: heights + biomes), Caves, Columns (caches), Strata, Ores, ChunkGenerator, Features, Structures, GroundCover
 Physics/               Camera, Player (PlayerPhysics), Collision, camera / player state, RayHit
 Rendering/             Renderer (pipelines + frame), FrameUniforms, Highlight, Glsl (loads the embedded shaders)
@@ -109,6 +112,13 @@ an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture I
 * Shaders no longer know block IDs: the mesher writes material flags (sway, emissive, no shadow, ice) into each vertex.
 * Editing: open the `Assets` folder in the AssetEditor ("Open project folder"), change things, then **Export** into `Assets/`
   (Save also works but adds the editor's own per-texture PNG folders and project_settings.json there).
+
+## Saving
+`%APPDATA%/CubePlanet/worlds/<name>/`: `world.json` (name, version, seed, radius, camera, player, sun angle, inventory, and the block / item ID
+tables of the save), `regions/r.<band*6+face>.<cx/8>.<cy/8>.<cz/8>.bin` (up to 8x8x8 chunks each, every chunk deflate-compressed) and `core.bin`
+(edits inside the Cartesian core). Every touched chunk (player edits, water flow, state changes, block entities) is stored whole: 2-byte block
+IDs, state words and its block entities. Untouched chunks are not stored; they are regenerated from the seed. Saved chunks are used exactly as
+saved (a later change to world generation does not change what was built), and IDs are remapped by name when the asset files changed.
 
 ## What was ported 1:1
 Terrain/biome/cave noise (same seed gives the same planet), column & cave caches, cube-face seam wrapping,
@@ -182,7 +192,8 @@ patches to the far plane, where the sky was drawn over them: the white seam line
 `--radius N --seed N`, `--msaa 0|2|4|8`, `--novsync`, and for testing: `--bench SECONDS` (starts immediately with a fixed free camera,
 ignores input, prints FPS + chunk pipeline timings, does not save settings), `--shot file.png`, `--set name=value` (any settings field,
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
-`--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
+`--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
+`--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)

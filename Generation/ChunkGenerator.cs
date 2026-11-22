@@ -30,6 +30,8 @@ public static class ChunkGenerator
         Band B = bands[ch.band]; int f = ch.face;
         var d = new ushort[32768];
         bool has; lock (EditLock) has = ecount.ContainsKey(ch.key);
+        // a chunk saved with the world is used as saved (then newer edits on top), not generated
+        if (WorldSave.TryGetSaved(ch.key, out var savedD)) { d = (ushort[])savedD.Clone(); goto edits; }
         Col c = ColsOf(B, f, ch.cx, ch.cz);
         double r0 = B.inner + ch.cy * CS; int salt = ch.cx * 7919 + ch.cz * 104729;
         List<Feat> fl = null;
@@ -89,6 +91,7 @@ public static class ChunkGenerator
         if (fl != null && fl.Count > 0) ApplyFeats(ch, d, fl);
         if (r0 + CS > R && r0 <= R + c.hi + 2) Cover(ch, d, c, B, f);
         if (r0 + CS > R - 34 && r0 <= R + 2) CoverSea(ch, d, c, B, f);
+    edits:
         if (has)
             lock (EditLock)
                 for (int z = 0; z < CS; z++) for (int x = 0; x < CS; x++) for (int y = 0; y < CS; y++)

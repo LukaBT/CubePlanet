@@ -73,6 +73,7 @@ public static partial class UI
         Slider("Foam", ref SET.wvFoam, 0, 2, .05); Slider("Water opacity", ref SET.wvOp, .4, 1.5, .05);
         if (Btn("Water defaults", "RESET")) { SET.wvA = 1; SET.wvSpd = 1; SET.wvLen = 1; SET.wvK = 1.8; SET.wvDir = 0; SET.wvRip = 1; SET.wvFoam = 1; SET.wvOp = 1; }
         if (Btn("Display", "FULLSCREEN")) OnFullscreen?.Invoke();
+        if (WorldSave.Current != null && Btn("World: " + WorldSave.CurrentName, "SAVE NOW")) { try { WorldSave.Save(); Note("World saved", 2); } catch (Exception ex) { Note("Saving failed: " + ex.Message, 6); } }
         if (Btn("Mode", PlayerPhysics.P.on ? "PLAYER" : "FREE CAMERA")) PlayerPhysics.SetMode(!PlayerPhysics.P.on);
         string[] help = { "WASD MOVE, SPACE JUMP (DOUBLE TAP = FLY)", "CTRL / DOUBLE TAP W SPRINT, SHIFT SNEAK/DOWN", "WHEEL OR 1-9,0 HOTBAR, LMB BREAK, RMB PLACE (BUCKET: SCOOP / POUR)", "MMB PICK BLOCK, V PLAYER/FREE CAM, F FLY", "O ORBIT VIEW, E BLOCK PALETTE, F10 VSYNC, F11 FULLSCREEN", "ESC OR TAB = THIS MENU. CLICK WORLD TO RESUME." };
         foreach (var l in help) { Text(l, panelX + 8, sy0, S * .75, .6f, .7f, .8f); sy0 += 9 * S; }

@@ -10,7 +10,7 @@ public class Game : GameWindow
 {
     static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CubePlanet", "settings.json");
     double lastT, editT, lastSpace, lastW, lastRender; bool blockClick; int hudFrame; string hudCache = "";
-    bool wDown, autoLow;
+    bool wDown, autoLow; int startFrames;
 
     public Game() : base(GameWindowSettings.Default, new NativeWindowSettings
     {
@@ -47,10 +47,18 @@ public class Game : GameWindow
         PlayerInventory.Init(); UI.Pick(2);
         Renderer.VW = FramebufferSize.X; Renderer.VH = FramebufferSize.Y;
         ChunkGenerator.mainTid = Environment.CurrentManagedThreadId;
-        if (Program.Bench > 0) { PlayerPhysics.P.on = false; StartGame(); } // bench: fixed free camera above the spawn point
+        UI.OnStart = StartGame;
+        if (Program.Bench > 0)
+        {   // bench: fixed free camera above the spawn point; --world loads a saved world (saved again at the end only with --benchsave)
+            var bw = Program.WorldArg == null ? null : WorldSave.List().FirstOrDefault(i => i.Name == Program.WorldArg);
+            if (bw == null) { PlayerPhysics.P.on = false; StartGame(null); }
+            else { StartGame(bw); PlayerPhysics.P.on = false; if (!Program.BenchSave) WorldSave.Current = null; }
+        }
+        else if (Program.WorldArg != null) { var w = WorldSave.List().FirstOrDefault(i => i.Name == Program.WorldArg); if (w == null) UI.nameStr = Program.WorldArg; StartGame(w); }
     }
     protected override void OnUnload()
     {
+        if (WorldSave.Current != null) try { WorldSave.Save(); } catch (Exception ex) { Console.Error.WriteLine("Saving the world failed: " + ex.Message); }
         if (Program.Overrides.Count == 0 && Program.Bench <= 0) try { Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)); File.WriteAllText(SettingsPath, JsonSerializer.Serialize(Settings.SET, new JsonSerializerOptions { IncludeFields = true })); } catch { }
         Gpu.Shutdown();
         base.OnUnload();
@@ -66,11 +74,32 @@ public class Game : GameWindow
         bool want = !(UI.startScreen || UI.settingsOpen || UI.invOpen);
         if (want && !Captured) CursorState = CursorState.Grabbed; else if (!want && Captured) CursorState = CursorState.Normal;
     }
-    void StartGame()
+    /// <summary>Starts a saved world (w) or a new one (w == null, from the start screen fields; bench runs are never saved).</summary>
+    void StartGame(WorldSave.Info w)
     {
-        double rad = double.TryParse(UI.radiusStr, out var r) ? r : 1200; int seed = int.TryParse(UI.seedStr, out var s) ? s : 1337; if (seed == 0) seed = 1337;
-        rad = Math.Max(200, Math.Min(10000000, rad));
-        UI.startScreen = false; World.InitWorld(rad, seed); UpdateCursor();
+        if (w != null)
+        {
+            var j = WorldSave.ReadInfo(w.Folder);
+            UI.startScreen = false; World.InitWorld((double)j["radius"], (int)j["seed"]);
+            try { WorldSave.LoadInto(w.Folder); WorldSave.Current = w.Folder; WorldSave.CurrentName = w.Name; UI.Note("Loaded " + w.Name, 3); }
+            catch (Exception ex) { UI.Note("Could not load the world (it will not be saved): " + ex.Message, 10); }
+        }
+        else
+        {
+            double rad = double.TryParse(UI.radiusStr, out var r) ? r : 1200; int seed = int.TryParse(UI.seedStr, out var s) ? s : 1337; if (seed == 0) seed = 1337;
+            rad = Math.Max(200, Math.Min(10000000, rad));
+            UI.startScreen = false; World.InitWorld(rad, seed);
+            if (Program.Bench <= 0)
+            {
+                string name = UI.nameStr.Trim(); var existing = WorldSave.List().Select(i => i.Folder).ToHashSet();
+                if (name.Length == 0) { int n = 1; while (existing.Contains(WorldSave.FolderFor("World " + n))) n++; name = "World " + n; }
+                string folder = WorldSave.FolderFor(name), baseName = name;
+                for (int n = 2; existing.Contains(folder); n++) { name = baseName + " " + n; folder = WorldSave.FolderFor(name); }
+                WorldSave.Current = folder; WorldSave.CurrentName = name;
+                try { WorldSave.Save(); UI.Note("New world: " + name, 3); } catch (Exception ex) { UI.Note("Cannot save to " + folder + ": " + ex.Message, 10); WorldSave.Current = null; }
+            }
+        }
+        UpdateCursor();
     }
     void ToggleSettings()
     {
@@ -82,8 +111,10 @@ public class Game : GameWindow
     {
         base.OnTextInput(e);
         if (!UI.startScreen) return;
-        if (e.Unicode >= '0' && e.Unicode <= '9') { if (UI.field == 0) { if (UI.radiusStr.Length < 8) UI.radiusStr += (char)e.Unicode; } else if (UI.seedStr.Length < 9) UI.seedStr += (char)e.Unicode; }
-        else if (e.Unicode == '-' && UI.field == 1 && UI.seedStr.Length == 0) UI.seedStr = "-";
+        char c = (char)e.Unicode;
+        if (UI.field == 0) { if (UI.nameStr.Length < 24 && (char.IsLetterOrDigit(c) || c == ' ' || c == '-' || c == '_')) UI.nameStr += c; }
+        else if (c >= '0' && c <= '9') { if (UI.field == 1) { if (UI.radiusStr.Length < 8) UI.radiusStr += c; } else if (UI.seedStr.Length < 9) UI.seedStr += c; }
+        else if (c == '-' && UI.field == 2 && UI.seedStr.Length == 0) UI.seedStr = "-";
     }
     protected override void OnKeyDown(KeyboardKeyEventArgs e)
     {
@@ -91,9 +122,13 @@ public class Game : GameWindow
         if (Program.Bench > 0) return;
         if (UI.startScreen)
         {
-            if (e.Key == Keys.Enter || e.Key == Keys.KeyPadEnter) StartGame();
-            else if (e.Key == Keys.Tab) UI.field ^= 1;
-            else if (e.Key == Keys.Backspace) { if (UI.field == 0) { if (UI.radiusStr.Length > 0) UI.radiusStr = UI.radiusStr[..^1]; } else if (UI.seedStr.Length > 0) UI.seedStr = UI.seedStr[..^1]; }
+            if (e.Key == Keys.Enter || e.Key == Keys.KeyPadEnter) StartGame(null);
+            else if (e.Key == Keys.Tab) UI.field = (UI.field + 1) % 3;
+            else if (e.Key == Keys.Backspace)
+            {
+                static string Cut(string t) => t.Length > 0 ? t[..^1] : t;
+                if (UI.field == 0) UI.nameStr = Cut(UI.nameStr); else if (UI.field == 1) UI.radiusStr = Cut(UI.radiusStr); else UI.seedStr = Cut(UI.seedStr);
+            }
             else if (e.Key == Keys.Escape) Close();
             return;
         }
@@ -189,6 +224,8 @@ public class Game : GameWindow
         double sx = (double)w / Math.Max(1, ClientSize.X), sy = (double)h / Math.Max(1, ClientSize.Y);
         UI.mx = MousePosition.X * sx; UI.my = MousePosition.Y * sy; UI.down = MouseState.IsButtonDown(MouseButton.Left);
 
+        if (!World.Started && Program.StartShot != null && ++startFrames == 30) Gpu.ShotPath = Program.StartShot; // --startshot: picture of the start screen, then quit
+        if (!World.Started && Program.StartShot != null && startFrames == 40) { Close(); return; }
         if (!World.Started) { Gpu.BeginFinal(13 / 255f, 18 / 255f, 38 / 255f); UI.Begin(w, h); UI.Draw(dt); UI.End(); UI.clicked = false; Gpu.EndFrame(); return; }
 
         var SET = Settings.SET; var kb = KeyboardState;
@@ -219,7 +256,7 @@ public class Game : GameWindow
             if (PlayerPhysics.P.on) PlayerPhysics.PlayerUpdate(dt, fw, sd, jump, sneak, ctrl);
             else { double alt = Math.Sqrt(Camera.C.x * Camera.C.x + Camera.C.y * Camera.C.y + Camera.C.z * Camera.C.z) - World.R, s = 12 * Camera.spd * Math.Max(1, alt / 25) * dt * (ctrl ? 5 : 1); Camera.CamMove(fw * s, sd * s, up * s, Camera.C.lvl); }
         }
-        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); WaterSim.WaterTick(dt); BlockActions.Tick(dt);
+        Camera.CamUpdate(dt); if (!Camera.C.orbit) ChunkLoader.LoadStep(); WaterSim.WaterTick(dt); BlockActions.Tick(dt); if (Program.Bench <= 0) WorldSave.Tick(dt);
         UI.shift = kb.IsKeyDown(Keys.LeftShift) || kb.IsKeyDown(Keys.RightShift);
         if (ChunkLoader.frameNo % 6 == 0) UI.underwater = !Camera.C.orbit && Blocks.Wet(BlockAccess.GetAt(Camera.C.x, Camera.C.y, Camera.C.z));
         // block editing

@@ -64,8 +64,46 @@ public static class SelfTest
             for (int k = 0; k < r.o.vb.Length / 16; k++) { int u = BitConverter.ToUInt16(r.o.vb, k * 16 + 10); int uu = u & 31, vv = (u >> 5) & 31; if (uu % 16 != 0 || vv % 16 != 0) { frac = true; break; } }
         Check(frac, "box faces get fractional texture coordinates");
         Phase4(up, fwd);
+        SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // saving (PLAN phase 5): save -> forget everything -> load gives identical chunks, states and block entities
+    static void SaveReload()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "cubeplanet_selftest_world");
+        if (Directory.Exists(dir)) Directory.Delete(dir, true);
+        List<long> keys; lock (EditLock) keys = ecount.Where(kv => kv.Value > 0).Select(kv => kv.Key).ToList();
+        (ushort[] d, ushort[] st) Gen(long k)
+        {
+            var (bf, cx, cy, cz) = WorldSave.DecodeKey(k);
+            var c = new Chunk { key = k, band = bf / 6, face = bf % 6, cx = cx, cy = cy, cz = cz }; ChunkGenerator.Ensure(c); return (c.d, c.st);
+        }
+        var before = keys.ToDictionary(k => k, Gen);
+        string Ents() => string.Join("|", BlockStates.entities.Values.OrderBy(e => e.Pos.Key).Select(e =>
+            $"{e.BlockId}:{string.Join(",", e.Numbers.OrderBy(n => n.Key).Select(n => $"{n.Key}={n.Value:0.###}"))}:{string.Join(",", e.Inventories.OrderBy(i => i.Key).SelectMany(i => i.Value.Select(s => s == null ? "-" : $"{s.Item}x{s.Count}/{s.State}")))}"));
+        string entsBefore = Ents(); int nEnts = BlockStates.entities.Count;
+        WorldSave.SaveTo(dir, "selftest");
+        Check(File.Exists(Path.Combine(dir, "world.json")) && Directory.GetFiles(Path.Combine(dir, "regions")).Length > 0, $"world saved ({keys.Count} touched chunks, {nEnts} block entities)");
+        WorldSave.ResetWorldState();
+        Check(BlockStates.entities.Count == 0 && keys.Any(k => !Gen(k).d.SequenceEqual(before[k].d)), "after clearing, the touched chunks generate differently (test is meaningful)");
+        WorldSave.LoadInto(dir, restorePlayer: false);
+        int same = 0, sameSt = 0;
+        foreach (var k in keys)
+        {
+            var (d, st) = Gen(k);
+            if (d.SequenceEqual(before[k].d)) same++;
+            if ((st ?? new ushort[32768]).SequenceEqual(before[k].st ?? new ushort[32768])) sameSt++;
+        }
+        Check(same == keys.Count, $"reloaded block data identical in {same} / {keys.Count} touched chunks");
+        Check(sameSt == keys.Count, $"reloaded state words identical in {sameSt} / {keys.Count} touched chunks");
+        Check(Ents() == entsBefore, "block entities (chest, furnace, generator contents and numbers) identical after reloading");
+        // block lookups in a saved chunk that is not loaded read the saved data (here: the chest, with no player edit left in memory)
+        var chestE = BlockStates.entities.Values.FirstOrDefault(e => e.BlockId == Chest);
+        int editsLeft; lock (EditLock) editsLeft = edits.Count;
+        Check(chestE != null && editsLeft == 0 && chestE.Pos.Id == Chest, "an unloaded saved chunk answers block lookups from the save");
+        Directory.Delete(dir, true);
     }
 
     // block state, multiblocks, behaviours, containers, machines (PLAN phase 4)
