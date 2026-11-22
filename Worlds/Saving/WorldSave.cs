@@ -50,37 +50,51 @@ public static class WorldSave
     public static void WriteAtomic(string path, byte[] data) { string tmp = path + ".tmp"; File.WriteAllBytes(tmp, data); File.Move(tmp, path, true); }
 
     // ---------- save ----------
+    // A save is a snapshot taken on the main thread (copies of the touched chunks, entity bytes, core.bin, world.json: a few ms) and the slow
+    // part (generating unloaded touched chunks, compressing, writing files) run by Write. Autosave runs Write on a background thread, so the game
+    // does not freeze for ~70 ms per 100+ edited chunks every minute; SAVE NOW, closing the game and the self-test write right away.
     static double autosaveT;
+    static Task pending;
     public static void Tick(double dt)
     {
         if (Current == null) return;
-        autosaveT += dt; if (autosaveT < 60) return; autosaveT = 0;
-        try { Save(); UI.Note("World saved", 1.5); } catch (Exception e) { UI.Note("Saving failed: " + e.Message, 6); }
+        if (pending is { IsCompleted: true })
+        {
+            if (pending.IsFaulted) UI.Note("Saving failed: " + pending.Exception?.GetBaseException().Message, 6); else UI.Note("World saved", 1.5);
+            pending = null;
+        }
+        autosaveT += dt; if (autosaveT < 60 || pending != null) return; autosaveT = 0;
+        try { var snap = Snapshot(Current, CurrentName); pending = Task.Run(() => Write(snap)); } catch (Exception e) { UI.Note("Saving failed: " + e.Message, 6); }
     }
+    /// <summary>Waits for a running autosave (before saving again, loading or quitting).</summary>
+    public static void WaitPending() { var t = pending; pending = null; try { t?.Wait(); } catch { } }
     public static void Save() { if (Current != null) SaveTo(Current, CurrentName); }
 
-    public static void SaveTo(string folder, string name)
+    public static void SaveTo(string folder, string name) { WaitPending(); Write(Snapshot(folder, name)); }
+
+    sealed class SaveSnap { public string Folder; public List<RegionFile.Record> Recs = new(); public byte[] Core, Json; }
+
+    static SaveSnap Snapshot(string folder, string name)
     {
-        Directory.CreateDirectory(Path.Combine(folder, "regions"));
+        var snap = new SaveSnap { Folder = folder };
         // touched band chunks: edited (ecount > 0) or loaded from the save
         var keys = new HashSet<long>();
         lock (EditLock) { foreach (var kv in ecount) if (kv.Value > 0) keys.Add(kv.Key); foreach (var k in saved.Keys) keys.Add(k); }
         var ents = BlockStates.entities.Values.GroupBy(e => e.Pos.Core ? long.MinValue : ck(e.Pos.B, e.Pos.F, e.Pos.X >> 5, e.Pos.Y >> 5, e.Pos.Z >> 5)).ToDictionary(g => g.Key, g => g.ToList());
-        var regions = new Dictionary<string, List<RegionFile.Record>>();
         foreach (long k in keys)
         {
             var (bf, cx, cy, cz) = DecodeKey(k); int b = bf / 6, f = bf % 6;
             if (b >= bands.Count) continue;
-            ushort[] d, st;
-            if (chunks.TryGetValue(k, out var ch) && ch.d != null && !ch.core) { d = (ushort[])ch.d.Clone(); st = (ushort[])ch.st?.Clone(); }
-            else { var tmp = new Chunk { key = k, band = b, face = f, cx = cx, cy = cy, cz = cz }; ChunkGenerator.Ensure(tmp); d = tmp.d; st = tmp.st; }
-            var rec = new RegionFile.Record { Band = b, Face = f, Cx = cx, Cy = cy, Cz = cz, D = d, St = st != null && st.Any(v => v != 0) ? st : null };
-            if (ents.TryGetValue(k, out var el)) rec.Entities = el;
-            string rn = RegionFile.NameOf(b, f, cx, cy, cz);
-            if (!regions.TryGetValue(rn, out var rl)) regions[rn] = rl = new();
-            rl.Add(rec);
+            var rec = new RegionFile.Record { Band = b, Face = f, Cx = cx, Cy = cy, Cz = cz };
+            // loaded chunks are copied now; the others are generated (edits and saved data applied) by Write
+            if (chunks.TryGetValue(k, out var ch) && ch.d != null && !ch.core) { rec.D = (ushort[])ch.d.Clone(); var st = ch.st; rec.St = st != null && st.AsSpan().IndexOfAnyExcept((ushort)0) >= 0 ? (ushort[])st.Clone() : null; }
+            if (ents.TryGetValue(k, out var el))
+            {
+                using var ms = new MemoryStream(); using (var w = new BinaryWriter(ms, System.Text.Encoding.UTF8, true)) foreach (var e in el) WriteEntity(w, e);
+                rec.EntityBytes = ms.ToArray(); rec.EntityCount = el.Count;
+            }
+            snap.Recs.Add(rec);
         }
-        foreach (var (rn, recs) in regions) RegionFile.Write(Path.Combine(folder, "regions", rn), recs, WriteEntity);
         // the Cartesian core: its edits are few, kept as a list
         using (var ms = new MemoryStream())
         using (var w = new BinaryWriter(ms))
@@ -90,9 +104,30 @@ public static class WorldSave
             w.Write(cst.Count); foreach (var kv in cst) { w.Write(kv.Key); w.Write(kv.Value); }
             var ce = ents.TryGetValue(long.MinValue, out var cel) ? cel : new List<BlockEntity>();
             w.Write(ce.Count); foreach (var e in ce) WriteEntity(w, e);
-            w.Flush(); WriteAtomic(Path.Combine(folder, "core.bin"), ms.ToArray());
+            w.Flush(); snap.Core = ms.ToArray();
         }
-        WriteAtomic(Path.Combine(folder, "world.json"), System.Text.Encoding.UTF8.GetBytes(WorldJson(name).ToJsonString(new JsonSerializerOptions { WriteIndented = true })));
+        snap.Json = System.Text.Encoding.UTF8.GetBytes(WorldJson(name).ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        return snap;
+    }
+
+    static void Write(SaveSnap snap)
+    {
+        Directory.CreateDirectory(Path.Combine(snap.Folder, "regions"));
+        var regions = new Dictionary<string, List<RegionFile.Record>>();
+        foreach (var rec in snap.Recs)
+        {
+            if (rec.D == null)
+            {
+                var tmp = new Chunk { key = ck(rec.Band, rec.Face, rec.Cx, rec.Cy, rec.Cz), band = rec.Band, face = rec.Face, cx = rec.Cx, cy = rec.Cy, cz = rec.Cz };
+                ChunkGenerator.Ensure(tmp); rec.D = tmp.d; rec.St = tmp.st != null && tmp.st.Any(v => v != 0) ? tmp.st : null;
+            }
+            string rn = RegionFile.NameOf(rec.Band, rec.Face, rec.Cx, rec.Cy, rec.Cz);
+            if (!regions.TryGetValue(rn, out var rl)) regions[rn] = rl = new();
+            rl.Add(rec);
+        }
+        foreach (var (rn, recs) in regions) RegionFile.Write(Path.Combine(snap.Folder, "regions", rn), recs, WriteEntity);
+        WriteAtomic(Path.Combine(snap.Folder, "core.bin"), snap.Core);
+        WriteAtomic(Path.Combine(snap.Folder, "world.json"), snap.Json); // last: a world.json on disk means the rest is there
     }
     static bool IsCoreKey(long k) => k >= long.MinValue + 1 && k < long.MinValue + 1 + (1L << 24);
 
@@ -160,6 +195,7 @@ public static class WorldSave
 
     public static void LoadInto(string folder, bool restorePlayer = true)
     {
+        WaitPending();
         var j = ReadInfo(folder);
         blockMap = BuildMap(j["block_ids"] as JsonObject, n => GameAssets.BlockReg.Has(n) ? GameAssets.BlockReg.Id(n) : 0);
         itemMap = BuildMap(j["item_ids"] as JsonObject, n => GameAssets.ItemReg.Has(n) ? GameAssets.ItemReg.Id(n) : 0);
@@ -218,6 +254,7 @@ public static class WorldSave
     /// <summary>Forgets every edit, state, block entity and saved chunk (self-test: save, clear, load).</summary>
     public static void ResetWorldState()
     {
+        WaitPending();
         lock (EditLock) { edits.Clear(); ecount.Clear(); BlockStates.states.Clear(); saved.Clear(); }
         BlockStates.entities.Clear(); CoreGrid.coreEd.Clear();
         foreach (var ch in chunks.Values) { ch.d = null; ch.st = null; ch.gst = 0; }

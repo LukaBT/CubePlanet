@@ -138,13 +138,20 @@ public static class BlockAccess
         lock (EditLock) { if (state != 0) BlockStates.states[kk] = (ushort)state; else BlockStates.states.Remove(kk); }
         if (BlockStates.entities.Count > 0 && BlockStates.entities.TryGetValue(kk, out var be) && be.BlockId != id) BlockStates.entities.Remove(kk);
         if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.dirty = true; }
+        // neighbour chunks: one touching the edited cell shows a new face at once (dirty: meshed on the main thread this frame); one only
+        // within skylight reach (8 blocks) just gets re-lit by a worker thread. Meshing them all on the main thread froze the game for
+        // tens of ms per edit when placing / breaking fast.
         for (int d = 0; d < 6; d++)
+        {
+            bool touch = Norm(bi, f, bx + DX[d], by + DY[d], bz + DZ[d]) && ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5) != k;
             if (Norm(bi, f, bx + DX[d] * 8, by + DY[d] * 8, bz + DZ[d] * 8))
             {
                 long k2 = ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5);
                 if (!ecount.ContainsKey(k2)) { lock (EditLock) ecount[k2] = 0; if (!chunks.ContainsKey(k2)) lastScan = new V3(1e9, 0, 0); }
-                if (chunks.TryGetValue(k2, out var nc)) nc.dirty = true;
+                if (chunks.TryGetValue(k2, out var nc)) { if (touch) nc.dirty = true; else if (k2 != k) nc.relight = true; }
             }
+            if (touch && Norm(bi, f, bx + DX[d], by + DY[d], bz + DZ[d]) && chunks.TryGetValue(ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5), out var tc)) tc.dirty = true;
+        }
         Wake(bi, f, bx, by, bz);
     }
 }

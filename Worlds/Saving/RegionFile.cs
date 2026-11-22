@@ -11,7 +11,7 @@ namespace CubePlanet;
 public static class RegionFile
 {
     const int Version = 1;
-    public sealed class Record { public int Band, Face, Cx, Cy, Cz; public ushort[] D, St; public List<BlockEntity> Entities = new(); }
+    public sealed class Record { public int Band, Face, Cx, Cy, Cz; public ushort[] D, St; public List<BlockEntity> Entities = new(); public byte[] EntityBytes; public int EntityCount; } // EntityBytes: entities serialized in advance (background save)
 
     public static string NameOf(int band, int face, int cx, int cy, int cz) => $"r.{band * 6 + face}.{cx >> 3}.{cy >> 3}.{cz >> 3}.bin";
 
@@ -31,7 +31,8 @@ public static class RegionFile
                     var bytes = new byte[32768 * 2]; Buffer.BlockCopy(r.D, 0, bytes, 0, bytes.Length); pw.Write(bytes);
                     pw.Write((byte)(r.St != null ? 1 : 0));
                     if (r.St != null) { Buffer.BlockCopy(r.St, 0, bytes, 0, bytes.Length); pw.Write(bytes); }
-                    pw.Write(r.Entities.Count); foreach (var e in r.Entities) writeEntity(pw, e);
+                    if (r.EntityBytes != null) { pw.Write(r.EntityCount); pw.Write(r.EntityBytes); }
+                    else { pw.Write(r.Entities.Count); foreach (var e in r.Entities) writeEntity(pw, e); }
                 }
                 w.Write(r.Band); w.Write(r.Face); w.Write(r.Cx); w.Write(r.Cy); w.Write(r.Cz);
                 w.Write((int)raw.Length); w.Write(raw.GetBuffer(), 0, (int)raw.Length);

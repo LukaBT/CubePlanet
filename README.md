@@ -60,7 +60,7 @@ Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPass
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
 UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windows from ui_definitions), SettingsPanel, Compass, StartScreen) + Hud, UiRegistry
 Util/                  V3, M (math)
-Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), Png (screenshots)
+Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), EditBench (--benchedit), Png (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 AssetEditor/           the Python / Tkinter asset editor (block3d.py = 3D rules + icon renderer, editor3d_tabs.py = Block 3D / Sounds / Recipes / Entities)
 ```
@@ -207,6 +207,7 @@ ignores input, prints FPS + chunk pipeline timings, does not save settings), `--
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
+`--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes on the main thread) and autosave time on the main thread vs in the background.
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)

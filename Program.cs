@@ -39,6 +39,7 @@ public static class Program
             if (args[i] == "--set") Overrides.Add(args[i + 1]); // e.g. --set ao=0 (for this run only, not saved)
             if (args[i] == "--bench" && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double bs)) Bench = bs;
         }
+        if (Array.IndexOf(args, "--benchedit") >= 0) { EditBench.Run(); return; } // headless block-edit cost
         if (Array.IndexOf(args, "--selftest") >= 0) { Environment.ExitCode = SelfTest.Run(); return; } // headless rule checks
         if (Array.IndexOf(args, "--fingerprint") >= 0)
         {   // headless world fingerprint (no window): --fingerprint [--radius N] [--seed N] [--fprd CHUNKS]

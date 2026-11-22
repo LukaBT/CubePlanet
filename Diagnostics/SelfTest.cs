@@ -63,10 +63,31 @@ public static class SelfTest
         if (r?.o != null)
             for (int k = 0; k < r.o.vb.Length / 16; k++) { int u = BitConverter.ToUInt16(r.o.vb, k * 16 + 10); int uu = u & 31, vv = (u >> 5) & 31; if (uu % 16 != 0 || vv % 16 != 0) { frac = true; break; } }
         Check(frac, "box faces get fractional texture coordinates");
+        EditDirtying();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // a block edit re-meshes on the main thread only the chunks whose faces change (its own, a neighbour it touches); chunks merely within
+    // skylight reach are re-lit in the background (meshing them all at once froze the game when building fast)
+    static void EditDirtying()
+    {
+        var (_, _, g) = SpotInFront(9); int bi = BlockAccess.P2b(g.X, g.Y, g.Z); int f = PF, x = PX, y = PY, z = PZ;
+        var made = new List<Chunk>();
+        Chunk Get(int cx, int cy, int cz) { long k = ck(bi, f, cx, cy, cz); if (!chunks.TryGetValue(k, out var c)) { c = new Chunk { key = k, band = bi, face = f, cx = cx, cy = cy, cz = cz }; AddChunk(c); made.Add(c); } ChunkGenerator.Ensure(c); c.built = true; c.dirty = c.relight = false; return c; }
+        int cx = x >> 5, cy = y >> 5, cz = z >> 5;
+        var self = Get(cx, cy, cz); var west = Get(cx - 1, cy, cz); var east = Get(cx + 1, cy, cz);
+        // 4 blocks from the west border: own chunk meshed now, west chunk only re-lit, east chunk (28 away) untouched
+        SetCell(bi, f, cx * 32 + 4, y, z, Stone);
+        Check(self.dirty && !west.dirty && west.relight && !east.dirty && !east.relight, $"edit inside a chunk: own chunk re-meshed, near neighbour re-lit only (west dirty {west.dirty} relight {west.relight}, east {east.dirty}/{east.relight})");
+        foreach (var c in new[] { self, west, east }) c.dirty = c.relight = false;
+        // on the west border: the west chunk shows a new face, so it is re-meshed at once too
+        SetCell(bi, f, cx * 32, y, z, Stone);
+        Check(self.dirty && west.dirty, "edit on a chunk border re-meshes the touching neighbour at once");
+        SetCell(bi, f, cx * 32 + 4, y, z, 0); SetCell(bi, f, cx * 32, y, z, 0);
+        foreach (var c in made) FreeChunk(c);
     }
 
     // saving (PLAN phase 5): save -> forget everything -> load gives identical chunks, states and block entities
