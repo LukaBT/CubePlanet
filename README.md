@@ -60,7 +60,7 @@ Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPass
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
 UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windows from ui_definitions), SettingsPanel, Compass, StartScreen) + Hud, UiRegistry
 Util/                  V3, M (math)
-Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), EditBench (--benchedit), Png (screenshots)
+Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), EditBench (--benchedit), Png, item icon sheet (--iconsheet) (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 AssetEditor/           the Python / Tkinter asset editor (block3d.py = 3D rules + icon renderer, editor3d_tabs.py = Block 3D / Sounds / Recipes / Entities)
 ```
@@ -139,7 +139,7 @@ player & free-cam physics, editing, HUD, compass / UP-DOWN markers, hotbar, pale
 (render distance, LOD, FOV, sensitivity, fly speed, shadows, clouds, fog, time of day, day length, axial tilt,
 and all wave settings).
 
-## Player collision
+## Player collision
 The player walks up ledges up to 0.6 blocks high without jumping (stairs, slabs), like Minecraft's step height: when walking is blocked on
 the ground, the move is tried 0.6 higher and the player settles onto the step if that gets further. Full blocks still need a jump. The camera glides up after
 the step (the body moves at once), so stairs feel smooth. Collision boxes may reach y = 1.5: fences use that, so they cannot be jumped over.
@@ -208,6 +208,7 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
 `--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes on the main thread) and autosave time on the main thread vs in the background.
+`--iconsheet file.png` (no window): every inventory icon in one picture. Block items get their icon at load time from the block's 3D model (128 px, Items/ItemIcons.cs) or, for plants, its texture; only items with `icon` "texture" (door, ingots...) use the item atlas.
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)

@@ -427,22 +427,47 @@ class Project:
             self.defs["item"][iid]["places_block"] = {"namespace": self.s["namespace"], "id_name": name}
         return bid
 
+    # --- item icons: block items are drawn by the game from the block's 3D model ("model") or its texture ("sprite"), like Minecraft;
+    # only "texture" items keep a picture in the item atlas (see block3d.icon_kind)
+    def icon_kind(self, iid):
+        it = self.defs["item"].get(iid)
+        if it is None: return "texture"
+        pb = (it.get("properties", {}).get("definition", {}).get("places_block") or it.get("places_block") or {}).get("id_name")
+        blk = next((b for b in self.defs["block"].values() if b.get("id_name") == pb), None) if pb else None
+        return block3d.icon_kind(it, blk)
+
+    def atlas_tids(self, k):
+        return sorted(t for t in self.tex[k] if k != "item" or self.icon_kind(t) == "texture")
+
+    def refresh_icon_previews(self):
+        """Pictures of model / sprite icons for the editor's item list (the game draws its own at 128 px; they are not saved)."""
+        tex = lambda tid: self.tex["block"].get(tid, {}).get("img")
+        for iid, it in self.defs["item"].items():
+            if self.icon_kind(iid) == "texture": continue
+            pb = (it.get("properties", {}).get("definition", {}).get("places_block") or it.get("places_block") or {}).get("id_name")
+            blk = next((b for b in self.defs["block"].values() if b.get("id_name") == pb), None)
+            if blk is None: continue
+            w, h = self.size("item")
+            try: img = block3d.item_picture(it, blk, tex, w).resize((w, h), Image.NEAREST)
+            except Exception: img = self.blank("item")
+            self.tex["item"][iid] = {"name": it["id_name"], "img": img, "generated": True}
+
     # --- output
     def build_atlas(self, k):
         w, h = self.size(k)
         rows = self.rows(k)
         atlas = Image.new("RGBA", (self.per_row(k) * w, rows * h), (0, 0, 0, 0))
-        for tid, t in self.tex[k].items():
+        for tid in self.atlas_tids(k):
             x, y = self.pos(k, tid)
             if y + h <= rows * h:
-                atlas.paste(t["img"], (x, y))
+                atlas.paste(self.tex[k][tid]["img"], (x, y))
         return atlas
 
     def tex_defs_text(self, k):
         w, h = self.size(k)
         lines = [f"texture_size: {w} {h}", f"textures_per_row: {self.per_row(k)}",
                  f"texture_rows: {self.rows(k)}"]
-        for tid in sorted(self.tex[k]):
+        for tid in self.atlas_tids(k):
             x, y = self.pos(k, tid)
             lines.append(f"{tid} {self.tex[k][tid]['name']} {x} {y}")
         return "\n".join(lines) + "\n"
@@ -457,8 +482,11 @@ class Project:
             for k in ("item", "block"):
                 folder = os.path.join(directory, k + "_texture")
                 os.makedirs(folder, exist_ok=True)
+                keep = set(self.atlas_tids(k))
                 for tid, t in self.tex[k].items():
-                    t["img"].save(os.path.join(folder, f"{k}_texture_ID{tid}.png"), "PNG")
+                    fp = os.path.join(folder, f"{k}_texture_ID{tid}.png")
+                    if tid in keep: t["img"].save(fp, "PNG")
+                    elif os.path.exists(fp): os.remove(fp)  # generated block icon: not a texture
                 for tid in self.stale[k] - set(self.tex[k]):
                     fp = os.path.join(folder, f"{k}_texture_ID{tid}.png")
                     if os.path.exists(fp):
@@ -575,11 +603,12 @@ def load_project(directory):
             p.defs["item"][tid] = p.default_def("item", tid, t["name"])
             warnings.append(f"Item texture {tid} had no item: created '{t['name']}'")
     for iid, d in list(p.defs["item"].items()):
-        if iid not in p.tex["item"]:
+        if iid not in p.tex["item"] and p.icon_kind(iid) == "texture":
             p.tex["item"][iid] = {"name": d["id_name"], "img": p.blank("item")}
             warnings.append(f"Item {iid} had no item texture: created blank one")
-        elif p.tex["item"][iid]["name"] != d["id_name"]:
+        elif iid in p.tex["item"] and p.tex["item"][iid]["name"] != d["id_name"]:
             p.tex["item"][iid]["name"] = d["id_name"]
+    p.refresh_icon_previews()
     return p, warnings
 
 

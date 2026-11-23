@@ -50,6 +50,13 @@ public static unsafe partial class Gpu
         try { File.WriteAllBytes(path, outb); } catch { }
         return outb;
     }
+    /// <summary>Compiles a shader without a GPU (self-test): throws with the compiler's message on an error.</summary>
+    public static void CheckCompiles(string src, bool fragment, string name)
+    {
+        string keep = CacheDir, dir = Path.Combine(Path.GetTempPath(), "cubeplanet_shadercheck"); Directory.CreateDirectory(dir); CacheDir = dir;
+        try { Spirv(src, fragment ? ShaderKind.FragmentShader : ShaderKind.VertexShader, name); }
+        finally { CacheDir = keep; foreach (var f in Directory.GetFiles(dir)) try { File.Delete(f); } catch { } }
+    }
     static ShaderModule Module(byte[] code)
     {
         fixed (byte* p = code)

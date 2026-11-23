@@ -19,6 +19,14 @@ public sealed class ItemDefinition
     public string[] Tags = Array.Empty<string>();
     public StateSchema State = new();
     public JsonElement Json;
+    /// <summary>
+    /// How the inventory icon is made (properties.definition.icon): "model" = the placed block's 3D model, drawn in-game at <see cref="ItemIcons.Size"/> px
+    /// (like Minecraft's block items); "sprite" = the block's texture drawn flat (plants, vines); "texture" = this item's own picture in the item atlas.
+    /// Default: "model" for cube / boxes blocks, "sprite" for cross / attached / liquid blocks, "texture" for items that place no block.
+    /// </summary>
+    public string Icon = "";
+    /// <summary>Block state values the icon shows (properties.definition.icon_state, e.g. fence arms); facing defaults to the front turned to the viewer.</summary>
+    public JsonElement IconState;
 
     public static ItemDefinition Parse(JsonElement e, string file)
     {
@@ -29,6 +37,9 @@ public sealed class ItemDefinition
         const string D = "properties.definition.";
         it.StackSize = (int)Num(e, D + "stack_size", 64);
         if (Get(e, D + "places_block") is { ValueKind: JsonValueKind.Object } pb) it.PlacesBlock = Str(pb, "namespace", "base") + ":" + Str(pb, "id_name");
+        it.Icon = Str(e, D + "icon");
+        if (it.Icon.Length > 0 && it.Icon != "model" && it.Icon != "sprite" && it.Icon != "texture") throw new InvalidDataException($"{file}: item {it.FullName}: unknown icon '{it.Icon}' (use model, sprite, texture)");
+        it.IconState = Get(e, D + "icon_state") ?? default;
         it.Behavior = Str(e, D + "behavior"); it.FuelTime = Num(e, D + "fuel_time"); it.Capacity = (int)Num(e, D + "capacity");
         if (Get(e, "group_tags") is { ValueKind: JsonValueKind.Array } tags) it.Tags = tags.EnumerateArray().Select(t => t.GetString() ?? "").ToArray();
         it.State = StateSchema.Parse(Get(e, "properties.instance_state"), $"{file}: item {it.FullName}", 32);

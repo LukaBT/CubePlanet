@@ -259,3 +259,21 @@ def block_picture(d, texture, size=32, state=None):
     v = variant(d, state)
     boxes = v["boxes"] if model == "boxes" else [((0, 0, 0, 1, 1, 1), v["faces"])]
     return render_iso(boxes, texture, size)
+
+
+def icon_kind(item, block):
+    """How the game makes an item's inventory icon (properties.definition.icon): "model" = the block's 3D model drawn in-game at 128 px,
+    "sprite" = the block's texture drawn flat (plants), "texture" = the item's own picture in the item atlas. Same rules as Items/ItemIcons.cs."""
+    k = defn(item).get("icon", "")
+    if block is None: return "texture"
+    if k: return k
+    return "model" if defn(block).get("model", "cube") in ("cube", "boxes") else "sprite"
+
+
+def item_picture(item, block, texture, size=32):
+    """Editor preview of a block item's icon (the game draws the real one): the block in the item's icon_state, front to the viewer."""
+    if icon_kind(item, block) == "sprite":
+        return block_picture(block, texture, size)
+    st = dict(default_values(block)); st.update(defn(item).get("icon_state") or {})
+    if defn(block).get("rotation", "none") != "none" and "facing" not in (defn(item).get("icon_state") or {}): st["facing"] = "south"
+    return block_picture(block, texture, size, st)

@@ -64,10 +64,32 @@ public static class SelfTest
             for (int k = 0; k < r.o.vb.Length / 16; k++) { int u = BitConverter.ToUInt16(r.o.vb, k * 16 + 10); int uu = u & 31, vv = (u >> 5) & 31; if (uu % 16 != 0 || vv % 16 != 0) { frac = true; break; } }
         Check(frac, "box faces get fractional texture coordinates");
         EditDirtying();
+        Icons();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // item icons: 3D models for cube / box blocks, the block texture for plants, the item atlas picture for the door and plain items
+    static void Icons()
+    {
+        ItemDefinition It(string n) => GameAssets.ItemReg.All.First(i => i.IdName == n);
+        Check(ItemIcons.KindOf(It("stone")) == "model" && ItemIcons.KindOf(It("oak_stairs")) == "model" && ItemIcons.KindOf(It("red_bed")) == "model", "cube / box blocks get 3D model icons");
+        Check(ItemIcons.KindOf(It("poppy")) == "sprite" && ItemIcons.KindOf(It("vine")) == "sprite", "plants / vines get flat sprite icons");
+        Check(ItemIcons.KindOf(It("oak_door")) == "texture" && ItemIcons.KindOf(It("coal")) == "texture", "door and plain items keep their atlas picture");
+        Check(ItemIcons.BoxesOf(It("red_bed")).Count == 6, $"bed icon shows both parts ({ItemIcons.BoxesOf(It("red_bed")).Count} boxes)");
+        Check(ItemIcons.BoxesOf(It("oak_fence")).Count == 5, "fence icon shows the post with east / west bars (icon_state)");
+        var top = GameAssets.IconMips[0]; int S = ItemIcons.Size;
+        double Cover(int id) { int n = 0; for (int i = 0; i < S * S; i++) if (top[(id * S * S + i) * 4 + 3] > 127) n++; return n / (double)(S * S); }
+        double cs = Cover(It("stone").Id), cl = Cover(It("oak_slab").Id);
+        Check(cs > .6 && cs < .85, $"stone icon covers a cube's share of the icon ({cs:0.00})");
+        Check(cl > .3 && cl < cs, $"slab icon is smaller than a full block ({cl:0.00})");
+        Check(ItemIcons.Smooth[It("stone").Id] == 1 && ItemIcons.Smooth[It("poppy").Id] == 0, "3D icons sampled smoothly, flat ones sharply");
+        // the poppy sprite is the block texture scaled up by whole pixels: the texel at (8, 8) of 16 covers an 8x8 square of the icon
+        int pid = It("poppy").Id, o0 = (pid * S * S + 64 * S + 64) * 4, o1 = (pid * S * S + 71 * S + 71) * 4;
+        Check(top[o0] == top[o1] && top[o0 + 1] == top[o1 + 1] && top[o0 + 3] == top[o1 + 3], "sprite icons keep square pixels");
+        try { Gpu.CheckCompiles(Glsl.UI_FS, true, "ui.frag"); Check(true, ""); } catch (Exception e) { Check(false, "ui.frag compiles: " + e.Message); }
     }
 
     // a block edit re-meshes on the main thread only the chunks whose faces change (its own, a neighbour it touches); chunks merely within

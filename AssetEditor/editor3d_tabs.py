@@ -107,7 +107,7 @@ class BlockDesigner(ttk.Frame):
         right = ttk.Frame(self); right.pack(side="left", fill="y", padx=4, pady=4)
         self.preview = ttk.Label(right); self.preview.pack()
         self.state_frame = ttk.LabelFrame(right, text="Preview state"); self.state_frame.pack(fill="x", pady=4)
-        ttk.Button(right, text="Generate item icon from block", command=self.make_icon).pack(fill="x")
+        ttk.Button(right, text="Refresh item icon preview", command=self.make_icon).pack(fill="x")
         mp = ttk.LabelFrame(right, text="Multiblock parts (offset relative to the facing; north = -z)"); mp.pack(fill="x", pady=6)
         self.plb = tk.Listbox(mp, height=4, exportselection=False, font=("Courier", 9)); self.plb.pack(fill="x")
         pf = ttk.Frame(mp); pf.pack(fill="x")
@@ -307,15 +307,11 @@ class BlockDesigner(ttk.Frame):
         self._ph = ImageTk.PhotoImage(bg); self.preview.configure(image=self._ph)
 
     def make_icon(self):
-        d = self.d
-        if d is None: return
-        ref = (d.get("namespace", self.p.s["namespace"]), d["id_name"])
-        iid = next((i for i, it in self.p.defs["item"].items() if (_get(it, "properties.definition.places_block.namespace"), _get(it, "properties.definition.places_block.id_name")) == ref), None)
-        if iid is None: iid = next((i for i, it in self.p.defs["item"].items() if it["id_name"] == d["id_name"]), None)
-        if iid is None: return messagebox.showinfo("Item icon", f"No item places '{d['id_name']}' (create it in the Item Definitions tab).")
-        w, h = self.p.size("item")
-        self.p.tex["item"][iid]["img"] = b3.block_picture(d, lambda tid: self.p.tex["block"].get(tid, {}).get("img"), w).resize((w, h), Image.NEAREST)
-        self.app.dirty = True; self.status.configure(text=f"item texture {iid} '{self.p.tex['item'][iid]['name']}' rendered from the block", foreground="#070")
+        """Block items get their icon from the game (the 3D model at 128 px, or the texture for plants), so nothing is painted into the
+        item atlas; this only refreshes the editor's preview of it."""
+        if self.d is None: return
+        self.p.refresh_icon_previews(); self.app.dirty = True
+        self.status.configure(text="item icon preview refreshed: the game draws block item icons itself (set \"icon\": \"texture\" on the item to paint your own)", foreground="#070")
 
     def flush(self): pass
 

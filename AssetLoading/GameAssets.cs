@@ -16,6 +16,8 @@ public static class GameAssets
     public static byte[] BlockLayers; public static int BlockLayerCount, BlockTexW, BlockTexH;
     /// <summary>Item icons: RGBA, layer = item ID (= item texture ID).</summary>
     public static byte[] ItemLayers; public static int ItemLayerCount, ItemTexW, ItemTexH;
+    /// <summary>Inventory icons (ItemIcons.Size px, mip chain; layer = item ID): 3D block models, flat block sprites, item atlas pictures.</summary>
+    public static byte[][] IconMips; public static int IconLayerCount;
 
     public static void Load()
     {
@@ -44,5 +46,6 @@ public static class GameAssets
         ItemTexW = itdef.Width; ItemTexH = itdef.Height;
         ItemLayers = AtlasLoader.LoadLayers(AssetPaths.Get(AssetPaths.ItemAtlas), itdef, out ItemLayerCount);
         Blocks.Build(BlockReg);
+        IconMips = ItemIcons.Build(ItemLayers, ItemTexW, ItemTexH, ItemLayerCount, out IconLayerCount);
     }
 }

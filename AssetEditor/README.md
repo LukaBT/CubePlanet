@@ -18,7 +18,7 @@ the editor's own `block_texture/`, `item_texture/` folders and `project_settings
 
 | File | Content |
 |---|---|
-| `block_texture_atlas.png`, `item_texture_atlas.png` | Texture grids (RGBA). Block textures 16x16 (square, power of two), item icons 32x32 |
+| `block_texture_atlas.png`, `item_texture_atlas.png` | Texture grids (RGBA). Block textures 16x16 (square, power of two), item pictures 32x32 (only items with `icon` "texture": block items get their icon from the game, see below) |
 | `block_texture_definitions.txt`, `item_texture_definitions.txt` | `texture_size: W H`, `textures_per_row: N`, `texture_rows: N`, then `id name x y` |
 | `block_definitions.txt`, `item_definitions.txt`, `ui_definitions.txt` | `{"blocks": [...]}`, `{"items": [...]}`, `{"uis": [...]}` |
 | `recipe_definitions.txt`, `sound_definitions.txt`, `entity_definitions.txt` | `{"recipes": [...]}`, `{"sounds": [...]}`, `{"entities": []}` (optional when loading) |
@@ -36,7 +36,7 @@ is wrong (unknown model, texture, sound, UI, too many state bits, two parts with
   **geometry presets** (full, slabs, bottom / top slab, vertical slab, joining / upside-down stairs, connecting fence, fence post, door, bed,
   plant, no hitbox); sound slots; the **instance-state field editor** with
   a live packed-bit counter (red above 16); the **multiblock part editor**; a **3D preview** with a picker per state field (facing, open,
-  half...); **Generate item icon from block** (renders it isometrically into the item that places it, like the game's icons).
+  half...); **Refresh item icon preview** (block items are not painted into the item atlas: the game draws their icon itself, see `icon`).
 * **Sounds**, **Recipes** (smelting), **Entities** (raw JSON list; the format is reserved by the game).
 * **Project Settings** - default namespace, texture sizes, atlas grid.
 
@@ -81,6 +81,8 @@ with `"storage": "entity"` live in the block's **entity** (saved with the chunk)
 `type` "item", `namespace`, `id_name`, `id`, `name`, `group_tags`, `properties.definition`: `stack_size` (64), `places_block`
 `{namespace, id_name}`, `fuel_time` (seconds in a furnace), `behavior` (`bucket`), `capacity`; `properties.instance_state`: packed fields only
 (32 bits per stack, e.g. the bucket's `fill`).
+
+Item icons (`properties.definition.icon`), like Minecraft: `"model"` = the game draws the placed block's 3D model at 128 px (default for `cube` / `boxes` blocks; multiblocks such as beds show all parts), `"sprite"` = the block's texture drawn flat (default for `cross` / `attached` / `liquid` blocks: flowers, saplings, vines), `"texture"` = the item's own picture in the item atlas (default for items that place no block; the door uses it for its flat door picture). `icon_state` sets block state values for the icon, e.g. `{"east": true, "west": true}` shows a fence with bars; rotating blocks show their front unless `facing` is given.
 
 ## UI keys
 `window {width, height}` in UI units, `widgets`: `label` (`text`), `slot` (`storage {scope: block | player, key}`, `mode: output_only`),

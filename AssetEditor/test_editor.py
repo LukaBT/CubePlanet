@@ -43,12 +43,13 @@ check(b3.variant(fu, {"lit": True, "facing": "north"})["faces"][5] != fu["textur
 check(b3.schema(blocks["water"])[1] == 3, "water level 1..8 needs 3 bits")
 check(b3.faces_of(b3.flatten(blocks["oak_log"]["textures"]))[2] != b3.faces_of(b3.flatten(blocks["oak_log"]["textures"]))[0], "log top differs from side")
 
-# ---- icons rendered by the editor equal the game's item icons (same projection)
-for n in ("furnace", "chest", "oxygen_generator", "stone", "oak_slab"):
-    gen = b3.block_picture(blocks[n], tex, 32)
-    have = p.tex["item"][items[n]["id"]]["img"].convert("RGBA")
-    diff = sum(1 for a, b in zip(gen.getdata(), have.getdata()) if a != b)
-    check(diff <= 16, f"generated {n} icon matches the game's icon ({diff} pixels differ)")
+# ---- item icons: block items are drawn by the game, only "texture" items stay in the item atlas
+check(p.icon_kind(items["stone"]["id"]) == "model" and p.icon_kind(items["oak_stairs"]["id"]) == "model", "cube / boxes blocks get model icons")
+check(p.icon_kind(items["poppy"]["id"]) == "sprite" and p.icon_kind(items["vine"]["id"]) == "sprite", "plants and vines get flat sprite icons")
+check(p.icon_kind(items["oak_door"]["id"]) == "texture" and p.icon_kind(items["coal"]["id"]) == "texture", "the door and plain items keep their own picture")
+ids = [int(l.split()[0]) for l in p.tex_defs_text("item").splitlines()[3:]]
+check(items["stone"]["id"] not in ids and items["oak_door"]["id"] in ids and items["coal"]["id"] in ids, "item atlas lists only texture items")
+check(p.tex["item"][items["furnace"]["id"]].get("generated") and p.tex["item"][items["furnace"]["id"]]["img"].getbbox() is not None, "editor shows a preview for model icons")
 
 # ---- a preset on a copy
 import copy  # noqa: E402

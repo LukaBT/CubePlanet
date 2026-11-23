@@ -57,8 +57,8 @@ public static class Renderer
             mips.Add(nx); sz = ns;
         }
         Gpu.texBlocks = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, (uint)TW, (uint)TW, 1, (uint)NL, mips.ToArray(), Filter.Nearest, Filter.Nearest, SamplerMipmapMode.Linear, SamplerAddressMode.Repeat);
-        // item icons for the UI (layer = item ID), no mips: they are drawn at about their own size
-        Gpu.texItems = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, (uint)GameAssets.ItemTexW, (uint)GameAssets.ItemTexH, 1, (uint)GameAssets.ItemLayerCount, new[] { GameAssets.ItemLayers }, Filter.Nearest, Filter.Nearest, SamplerMipmapMode.Nearest, SamplerAddressMode.ClampToEdge);
+        // item icons for the UI (layer = item ID, 128 px with mips; see ItemIcons): ui.frag samples flat pictures sharply, 3D models smoothly
+        Gpu.texItems = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, ItemIcons.Size, ItemIcons.Size, 1, (uint)GameAssets.IconLayerCount, GameAssets.IconMips, Filter.Linear, Filter.Linear, SamplerMipmapMode.Linear, SamplerAddressMode.ClampToEdge);
         // 128^3 cloud noise (cached on disk after the first start)
         Gpu.texCloud = Gpu.MakeTexture(ImageType.Type3D, ImageViewType.Type3D, Format.R8G8B8A8Unorm, 4, CloudNoise.S, CloudNoise.S, CloudNoise.S, 1, new[] { CloudNoise.Get(Gpu.Cache) }, Filter.Linear, Filter.Linear, SamplerMipmapMode.Nearest, SamplerAddressMode.Repeat);
         // 64^3 tiling noise (does not depend on the seed, so it is built once at startup)

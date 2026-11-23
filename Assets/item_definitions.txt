@@ -2222,6 +2222,10 @@
           "places_block": {
             "namespace": "base",
             "id_name": "oak_fence"
+          },
+          "icon_state": {
+            "east": true,
+            "west": true
           }
         },
         "instance_state": {}
@@ -2240,7 +2244,8 @@
           "places_block": {
             "namespace": "base",
             "id_name": "oak_door"
-          }
+          },
+          "icon": "texture"
         },
         "instance_state": {}
       }
