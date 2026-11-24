@@ -67,10 +67,47 @@ public static class SelfTest
         Icons();
         CaveWater();
         Hydro();
+        RiverTest();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // rivers: generated near spawn, their flow drawn without any simulation, and kept at their level when water is taken out
+    static void RiverTest()
+    {
+        V3 c = new(C.x, C.y, C.z); int bi = BlockAccess.P2b(c.X, c.Y, c.Z); int f = PF, ccx = PX >> 5, ccz = PZ >> 5; Band B = bands[bi];
+        var rv = WaterBench.RiverStats(B, bi, f, ccx, ccz, 6);
+        Check(rv.cols > 100 && rv.falls > 0, $"rivers with waterfalls near spawn ({rv.cols} river columns, {rv.falls} waterfall columns)");
+        // a river cell near spawn: the first channel column with water at least 2 deep
+        int rx = 0, rz = 0; float S = float.NaN;
+        for (int dz = -2; dz <= 2 && float.IsNaN(S); dz++) for (int dx = -2; dx <= 2 && float.IsNaN(S); dx++)
+            {
+                var col = ColsOf(B, f, ccx + dx, ccz + dz);
+                for (int i = 0; i < 1024; i++) if (!float.IsNaN(col.rs[i]) && col.rs[i] - col.h[i] >= 2) { S = col.rs[i]; rx = (ccx + dx) * 32 + (i & 31); rz = (ccz + dz) * 32 + (i >> 5); break; }
+            }
+        if (float.IsNaN(S)) { Check(false, "a river within 80 blocks of spawn"); return; }
+        int ry = (int)Math.Floor(R + S - .5 - B.inner); // the top water cell (centre below S)
+        var made = new List<Chunk>();
+        for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++)
+                {
+                    long k = ck(bi, f, (rx >> 5) + dx, (ry >> 5) + dy, (rz >> 5) + dz);
+                    if (!chunks.TryGetValue(k, out var ch)) { ch = new Chunk { key = k, band = bi, face = f, cx = (rx >> 5) + dx, cy = (ry >> 5) + dy, cz = (rz >> 5) + dz }; AddChunk(ch); made.Add(ch); }
+                    ChunkGenerator.Ensure(ch); ch.built = true;
+                }
+        Check(Blk(bi, f, rx, ry, rz) == Water && Blk(bi, f, rx, ry + 1, rz) != Water, $"river surface at its level ({S}): water below, none above");
+        WaterFlow.Clear();
+        var rch = chunks[ck(bi, f, rx >> 5, ry >> 5, rz >> 5)]; var m = Mesher.Build(rch, out _); bool drawn = false;
+        if (m?.w != null) for (int k = 0; k < m.w.vb.Length / 16 && !drawn; k++) { int u = BitConverter.ToUInt16(m.w.vb, k * 16 + 10); drawn = ((u >> 10) & 63) >> 3 > 0; }
+        Check(drawn, "an undisturbed river shows its flow (no simulation running)");
+        // take a bucketful out of the river: it is refilled from the reservoir, which pays exactly for it
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); double res0 = WaterSim.Reservoir;
+        var cell = Wcell(bi, f, rx, ry, rz); SetCell(bi, f, rx, ry, rz, Water, 2); // 6 units taken
+        for (int i = 0; i < 6; i++) WaterSim.WaterStep();
+        Check(Wl(Wcell(bi, f, rx, ry, rz)) == 8 && Math.Abs(res0 - WaterSim.Reservoir - 6) < 1e-6, $"a river refills what is taken from it (level {Wl(Wcell(bi, f, rx, ry, rz))}, reservoir -{res0 - WaterSim.Reservoir})");
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        foreach (var ch in made) FreeChunk(ch);
     }
 
     // hydro power: a tank up high, a pipe down to a turbine, a cable to a battery; then a pump lifting water back; flow drawn on the water

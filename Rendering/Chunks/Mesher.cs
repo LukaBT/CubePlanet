@@ -344,10 +344,19 @@ public static class Mesher
         }
         // flow drawn on a water face (WaterFlow snapshot): top faces get the direction (8 steps, measured in the shader's tangent frame
         // t1 = normalize(cross(up, (.31, .83, .47))), t2 = cross(up, t1)) and strength; side faces get the falling strength
+        // rivers (Generation/Rivers.cs): undisturbed river water shows its generated downstream flow, its open sides (waterfalls) falling water
+        var rcol = ColsPeek(B, f, ch.cx, ch.cz); bool riv = false;
+        if (rcol != null) for (int i = 0; i < 1024 && !riv; i++) riv = !float.IsNaN(rcol.rs[i]);
         int FlowBits(int x, int y, int z, int fc)
         {
             if (!Norm(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z)) return 0;
-            int code = WaterFlow.CodeAt(ek()); if (code == 0) return 0;
+            int code = WaterFlow.CodeAt(ek());
+            if (code == 0 && riv && x >= 0 && x < CS && z >= 0 && z < CS)
+            {
+                int i = x + CS * z; float rsf = rcol.rs[i];
+                if (!float.IsNaN(rsf) && R0 + y + .5 - R < rsf) code = rcol.rf[i] | 5 << 6;
+            }
+            if (code == 0) return 0;
             if (DY[fc] == 0) { int fs = (code >> 6) & 7; return fs == 0 ? 0 : fs << 3; }
             if (fc != 2) return 0;
             int s = (code >> 3) & 7; if (s == 0) return 0;
@@ -446,7 +455,7 @@ public static class Mesher
                         else sky = LightAt(nx, ny, nz);
                         if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
                         float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[fc]) : Lay(id, fc);
-                        int flow = wt && WaterFlow.Cells.Count > 0 ? FlowBits(x, y, z, fc) : 0;
+                        int flow = wt && (WaterFlow.Cells.Count > 0 || riv) ? FlowBits(x, y, z, fc) : 0;
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)

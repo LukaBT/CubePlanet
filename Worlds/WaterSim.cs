@@ -182,6 +182,15 @@ public static class WaterSim
             var cur = Wcell(co.b, co.f, co.x, co.y, co.z); if (!cur.ok || cur.id != Water) continue;
             int l = Wl(cur), l0 = l;
             var dn = Wcell(cur.b, cur.F, cur.X, cur.Y - 1, cur.Z);
+            // rivers keep their natural level (Generation/Rivers.cs): a river cell that lost water is topped up from the reservoir and water
+            // resting on a river above its surface goes into it, so a river keeps flowing (and can feed turbines) instead of running dry
+            var rc = ColsOf(bands[cur.b], cur.F, cur.X >> 5, cur.Z >> 5); float rS = rc.rs[(cur.X & 31) + 32 * (cur.Z & 31)];
+            if (!float.IsNaN(rS))
+            {
+                double rel = bands[cur.b].inner + cur.Y + .5 - R;
+                if (rel < rS && l < 8) { Reservoir -= 8 - l; Wput(cur, 8); l = l0 = 8; }
+                else if (rel > rS && dn.ok && dn.id == Water) { Reservoir += l; WaterFlow.Move(cur, 0, -1, 0, l); Wput(cur, 0); continue; }
+            }
             if (dn.ok)
             {
                 // the sea takes in water arriving on top of it (rivers, waterfalls): it goes back into the reservoir springs draw from

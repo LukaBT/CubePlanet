@@ -191,7 +191,7 @@ visibly changes.
 The mesher puts each moving cell's flow into the free vertex bits of its water faces (direction in 8 steps + strength 0..7 on top faces,
 falling strength on side faces) and the water shader draws it: ripples and foam streaks drifting with the flow, faster and whiter the
 stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
-when the drawn flow of a cell changes. Not yet: generated rivers, machines working in unloaded chunks.
+when the drawn flow of a cell changes. Not yet: machines working in unloaded chunks.
 
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).
@@ -252,6 +252,16 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 * **Caves (Caves & Cliffs style):** cheese caverns, spaghetti tunnels with varying thickness, a wide tunnel network in
   some regions, and ravines that open to the surface in lowlands. Caves reach about 100 blocks below sea level
   (`CAVB` in `World.cs`); `World.CaveS()` holds all the thresholds.
+* **Rivers and waterfalls** (Generation/Rivers.cs, applied inside `Terrain()`): channels along the zero line of a large warped noise
+  (a river every few hundred blocks, in ~70 % of the land, 2 .. 8 blocks wide, wider in lowlands, none on high mountains). The water
+  surface comes from the smoothed terrain (no detail octaves) at the nearest point of the river's centre line, 4 blocks lower, in steps of
+  3 blocks: level along a stretch and the same across the river, so generated river water is at rest; where a stretch drops a step its end
+  is a vertical water face across the river: a waterfall. Gravel U-shaped bed, valley sides blending into the land, levees where the ground
+  is lower than the river (the banks next to a waterfall hold the higher stretch), no caves within 8 blocks below a river, no trees in it.
+  Near the coast the surface reaches sea level and the river joins the sea. Undisturbed rivers show their flow (downstream direction from
+  the smoothed ground, strength from the width) and waterfall faces their falling streaks without any simulation. When disturbed, river
+  cells are kept at their natural level by the water simulation (topped up from / drained into the water cycle's reservoir), so a river
+  keeps flowing and can feed turbines through a pipe. The distant LOD terrain does not show rivers.
 * **Aquifers and lava:** like Minecraft's aquifers, the planet is split into ~40-block regions (Voronoi on the sphere, Generation/Aquifers.cs); each is dry (25 %) or has one water level (-54..-2), so flooded caves are level and at rest when generated. Where a cave crosses into a region with another level, a 3-block stone barrier keeps the water apart. The deepest caves hold lava lakes (static blocks, self-lit, solid).
 * **Deepslate:** stone changes to deepslate 56-72 blocks below the surface (and the whole core is deepslate).
 * **Ores:** coal, copper, iron, gold, redstone, lapis, diamond and (mountains only) emerald, each in its own depth range with

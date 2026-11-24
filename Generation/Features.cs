@@ -270,6 +270,7 @@ public static class Features
         F = null; if (PLC.Count > 30000) PLC.Clear();
         double u = HH(f, qx, qz, 3), v = HH(f, qx, qz, 4);
         ColT(B, f, px, pz); int b = gB; double H = gH; int t = gT;
+        if (!double.IsNaN(Rivers.gRS)) return PLC[key] = null; // no trees in rivers
         double hmin = (b == 16 || b == 25 || b == 26) ? .3 : 1.2; // palms may grow right at the waterline
         if (H >= hmin && H < 40 * HS && gI == 0)
         {

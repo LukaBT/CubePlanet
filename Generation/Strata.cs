@@ -16,13 +16,14 @@ public static class Strata
     public static int BaseBlk(Col c, int i, double r, int salt = 0)
     {
         double s = R + c.h[i] - r; gS = 0;
-        if (s <= 0) { double rel = r - R; return rel < 0 ? (c.ice[i] != 0 && rel > -1 ? Ice : Water) : 0; }
+        if (s <= 0) { double rel = r - R; return rel < 0 ? (c.ice[i] != 0 && rel > -1 ? Ice : Water) : rel < c.rs[i] ? Water : 0; } // sea, river, air
         gS = s;
         if (s <= 1) return c.t[i];
         if (s <= 1 + c.fd[i]) { int q = c.f[i]; return q == FillBands ? BANDS[(((int)Math.Floor(r - R) % 24) + 24) % 24] : q; }
         return StoneAt(s, i, r, salt);
     }
-    public static bool Cavable(Col c, int i, double r) => gS > 0 && r - R > -CAVB && gS >= (c.h[i] < 3 ? 3 : 1.2);
+    // caves keep 8 blocks below a river's surface in its channel and bank zone (they would let the river run out)
+    public static bool Cavable(Col c, int i, double r) => gS > 0 && r - R > -CAVB && gS >= (c.h[i] < 3 ? 3 : 1.2) && !(r - R > c.rn[i] - 8);
     public static int Gen(Band B, int f, int bx, int by, int bz)
     {
         Col c = ColsOf(B, f, bx >> 5, bz >> 5); int i = (bx & 31) + 32 * (bz & 31); double r = B.inner + by + .5;
