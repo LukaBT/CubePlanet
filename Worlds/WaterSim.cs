@@ -116,11 +116,15 @@ public static class WaterSim
         return null;
     }
 
-    // work per tick (10 ticks a second): at most 400 cells and 6 pressure searches; WaterTick spreads it over the frames within a time budget
+    // work per tick: the cells that were active when the tick started (at most 400; a cell moved during the tick is queued again but waits
+    // for the next tick, so water moves one block per tick: falling and spreading at TicksPerSecond blocks a second) and 6 pressure searches.
+    // It used to re-process moved cells in the same tick, so a little water could run hundreds of blocks in one tick.
+    // WaterTick spreads a tick's work over the frames within a time budget.
+    public const double TicksPerSecond = 5;
     const int CellsPerTick = 400, PressPerTick = 6;
     static int allowance, pressLeft;
     /// <summary>One whole tick at once (benchmark, tests).</summary>
-    public static void WaterStep() { allowance = CellsPerTick; pressLeft = PressPerTick; WaterWork(double.MaxValue); }
+    public static void WaterStep() { allowance = Math.Min(wactQ.Count, CellsPerTick); pressLeft = PressPerTick; WaterWork(double.MaxValue); }
 
     static void WaterWork(double budgetMs)
     {
@@ -185,15 +189,16 @@ public static class WaterSim
             }
         }
     }
-    /// <summary>10 ticks per second, each tick's work spread over the frames with at most <see cref="FrameBudgetMs"/> per frame (no frame spikes).</summary>
+    /// <summary><see cref="TicksPerSecond"/> ticks, each tick's work spread over the frames with at most <see cref="FrameBudgetMs"/> per frame (no frame spikes).</summary>
     public const double FrameBudgetMs = 1.5;
     public static void WaterTick(double dt)
     {
         wAcc += dt;
-        if (wAcc > .1)
+        if (wAcc > 1 / TicksPerSecond)
         {
-            wAcc = Math.Min(wAcc - .1, .1);
-            allowance = Math.Min(allowance + CellsPerTick, 2 * CellsPerTick); pressLeft = Math.Min(pressLeft + PressPerTick, 2 * PressPerTick);
+            wAcc = Math.Min(wAcc - 1 / TicksPerSecond, 1 / TicksPerSecond);
+            // this tick: the cells queued now (those of an unfinished last tick are at the front of the queue)
+            allowance = Math.Min(Math.Max(allowance, Math.Min(wactQ.Count, CellsPerTick)), 2 * CellsPerTick); pressLeft = Math.Min(pressLeft + PressPerTick, 2 * PressPerTick);
         }
         if (WAct.Count > 0) WaterWork(FrameBudgetMs);
     }

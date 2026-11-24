@@ -158,7 +158,7 @@ get water faces themselves, so they no longer leave holes or gaps in the surface
 something other than open water (a block, ice, a capped or higher water column) is pinned: waves fade out within one block of edges
 instead of pulling the surface away from the faces next to it.
 
-Performance: the simulation runs on the main thread (it changes the same block data the player, physics and renderer use) but costs at most 1.5 ms per frame: each tick's work (400 cells, 6 pressure searches, 10 ticks/s) is spread over frames. Its changes are meshed by the worker threads (a chunk version redoes a mesh that went stale meanwhile), and water only moves in loaded chunks. `--benchwater` (no window) checks generated water is at rest and times a spreading pool.
+Performance: the simulation runs on the main thread (it changes the same block data the player, physics and renderer use) but costs at most 1.5 ms per frame: each tick's work (the cells active when the tick starts, at most 400, and 6 pressure searches; 5 ticks/s) is spread over frames. A cell that moved waits for the next tick, so water falls 5 blocks/s and spreads about 3 blocks/s (Minecraft: about 4). Its changes are meshed by the worker threads (a chunk version redoes a mesh that went stale meanwhile), and water only moves in loaded chunks. `--benchwater` (no window) checks generated water is at rest and times a spreading pool.
 
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).

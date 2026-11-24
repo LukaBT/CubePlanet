@@ -37,6 +37,28 @@ public static class WaterBench
         }
         Console.WriteLine($"BENCHWATER pool: {ticks} ticks until still ({WaterSim.WAct.Count} active left), whole ticks at once: {total / Math.Max(1, ticks):0.00} ms/tick, worst {worst:0.00} ms, " +
                           $"{WaterSim.Moves - sets0} cell changes, {dirty / (double)Math.Max(1, ticks):0.0} chunks to re-mesh per tick");
+        // speed, as the game runs it (60 fps): a block dropped from 12 up, and how far a 4-high column spreads in 1 s
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
+        int sx = x0 + 20, sz = z0 + 20, gy = y0 + 30; while (gy > y0 - 30 && Blk(bi, f, sx, gy - 1, sz) == 0) gy--;
+        for (int y = gy; y < gy + 14; y++) SetCell(bi, f, sx, y, sz, 0);
+        SetCell(bi, f, sx, gy + 12, sz, Water, 8); int fall = 0;
+        bool Landed() { for (int y = gy - 6; y <= gy; y++) for (int dz = -5; dz <= 5; dz++) for (int dx = -5; dx <= 5; dx++) if (Blk(bi, f, sx + dx, y, sz + dz) == Water) return true; return false; }
+        while (fall < 600 && !Landed()) { WaterSim.WaterTick(1 / 60.0); fall++; }
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); SetCell(bi, f, sx, gy, sz, 0);
+        // a dry spot (no lake within 12 blocks)
+        int px = 0, pz = 0, py = 0;
+        foreach (var (ox, oz) in new[] { (-20, -20), (20, -20), (-20, 20), (0, -24), (-24, 0), (24, 0), (0, 24) })
+        {
+            px = x0 + ox; pz = z0 + oz; py = y0 + 30; while (py > y0 - 30 && Blk(bi, f, px, py - 1, pz) == 0) py--;
+            bool wet = false; for (int dz = -12; dz <= 12 && !wet; dz++) for (int dx = -12; dx <= 12 && !wet; dx++) for (int dy = -3; dy <= 6; dy++) if (Blk(bi, f, px + dx, py + dy, pz + dz) == Water) { wet = true; break; }
+            if (!wet) break;
+        }
+        var pre = new HashSet<(int, int, int)>(); for (int dz = -12; dz <= 12; dz++) for (int dx = -12; dx <= 12; dx++) for (int dy = -3; dy <= 6; dy++) if (Blk(bi, f, px + dx, py + dy, pz + dz) == Water) pre.Add((dx, dy, dz));
+        for (int y = 0; y < 4; y++) SetCell(bi, f, px, py + y, pz, Water, 8);
+        for (int i = 0; i < 60; i++) WaterSim.WaterTick(1 / 60.0);
+        int reach = 0; for (int dz = -12; dz <= 12; dz++) for (int dx = -12; dx <= 12; dx++) for (int dy = -3; dy <= 3; dy++) if (Blk(bi, f, px + dx, py + dy, pz + dz) == Water && !pre.Contains((dx, dy, dz))) reach = Math.Max(reach, Math.Abs(dx) + Math.Abs(dz));
+        Console.WriteLine($"BENCHWATER speed: falls 12 blocks in {fall / 60.0:0.00} s ({12 * 60.0 / Math.Max(1, fall):0} blocks/s), a 4-high column spreads {reach} blocks in 1 s (water there before: {pre.Count})");
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
         // the same pool again as the game runs it: 60 frames a second, the tick's work spread over frames within the frame budget
         for (int y = 0; y < 4; y++) for (int z = -8; z < 8; z++) for (int x = -8; x < 8; x++) if (Blk(bi, f, x0 + x, y0 + 6 + y, z0 + z) == 0) SetCell(bi, f, x0 + x, y0 + 6 + y, z0 + z, Water, 8);
         int frames = 0, slow = 0; double fworst = 0, ftotal = 0;

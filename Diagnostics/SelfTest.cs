@@ -98,6 +98,13 @@ public static class SelfTest
         SetCell(b2, PF, (x & ~31) + 10, y, (z & ~31) + 10, Water, 5, 0, true);
         Check(!chn.dirty && chn.relight && chn.ver > v0, "water simulation edits re-mesh in the background");
         SetCell(b2, PF, (x & ~31) + 10, y, (z & ~31) + 10, 0); WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
+        // water moves one block per tick (a moved cell waits for the next tick), so it falls at TicksPerSecond blocks a second
+        int wx = (x & ~31) + 16, wz = (z & ~31) + 16, top = (y & ~31) + 20;
+        for (int yy = top - 8; yy <= top; yy++) SetCell(b2, PF, wx, yy, wz, 0);
+        SetCell(b2, PF, wx, top, wz, Water, 8); WaterSim.WaterStep(); WaterSim.WaterStep();
+        Check(Blk(b2, PF, wx, top - 2, wz) == Water && Blk(b2, PF, wx, top - 3, wz) == 0 && Blk(b2, PF, wx, top, wz) == 0, "water falls one block per tick");
+        for (int yy = top - 8; yy <= top; yy++) SetCell(b2, PF, wx, yy, wz, 0);
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
         if (made) FreeChunk(chn);
     }
 
