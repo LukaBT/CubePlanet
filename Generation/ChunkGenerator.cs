@@ -54,7 +54,7 @@ public static class ChunkGenerator
                 ApplyOres(ch, d, c, r0, f); ch.solid = true; Volatile.Write(ref ch.d, d); return;
             }
         }
-        double[] NG = null, aq = null;
+        double[] NG = null; (double, double)[] aq = null;
         for (int z = 0; z < CS; z++)
             for (int x = 0; x < CS; x++)
             {
@@ -69,18 +69,14 @@ public static class ChunkGenerator
                             NG = new double[729];
                             for (int ky = 0; ky < 9; ky++) for (int kz = 0; kz < 9; kz++) for (int kx = 0; kx < 9; kx++)
                                         NG[(ky * 9 + kz) * 9 + kx] = NodeV(B, f, ch.cx * 8 + kx, ch.cy * 8 + ky, ch.cz * 8 + kz);
-                            // aquifers: a water level per 16x16 column block; cave air below it is flooded
-                            aq = new double[4];
-                            for (int a = 0; a < 4; a++)
-                            {
-                                int bx = ch.cx * CS + (a & 1) * 16 + 8, bz = ch.cz * CS + (a >> 1) * 16 + 8; V3 t = GpA(f, -PI / 4 + bz * B.d, -PI / 4 + bx * B.d, R); var of = OFF[26];
-                                aq[a] = Math.Min(-2, -26 + 28 * Noise3(t.X * .014 + of[0], t.Y * .014 + of[1], t.Z * .014 + of[2]));
-                            }
+                            // aquifers: one water level per region, stone barriers between regions (see Aquifers)
+                            aq = new (double, double)[CS * CS];
+                            for (int a = 0; a < CS * CS; a++) aq[a] = Aquifers.Column(f, -PI / 4 + (ch.cz * CS + a / CS + .5) * B.d, -PI / 4 + (ch.cx * CS + a % CS + .5) * B.d);
                         }
                         int kx2 = x >> 2, ky2 = y >> 2, kz2 = z >> 2, q = (ky2 * 9 + kz2) * 9 + kx2;
                         if (Tri(NG[q], NG[q + 1], NG[q + 81], NG[q + 82], NG[q + 9], NG[q + 10], NG[q + 90], NG[q + 91], (x & 3) / 4.0, (y & 3) / 4.0, (z & 3) / 4.0) > 0)
                         {
-                            double rel = r - R; id = rel < -(CAVB - 20) ? Lava : rel < aq[(z >> 4) * 2 + (x >> 4)] ? Water : 0; // lava lakes at the bottom, flooded caves, else air
+                            id = Aquifers.CaveFill(r - R, id, aq[i]); // lava lakes at the bottom, barriers, flooded caves, else air
                         }
                     }
                     d[x + CS * (z + CS * y)] = (ushort)id;

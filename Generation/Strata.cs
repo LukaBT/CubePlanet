@@ -27,6 +27,7 @@ public static class Strata
     {
         Col c = ColsOf(B, f, bx >> 5, bz >> 5); int i = (bx & 31) + 32 * (bz & 31); double r = B.inner + by + .5;
         int id = BaseBlk(c, i, r, (bx >> 5) * 7919 + (bz >> 5) * 104729);
-        return id != 0 && Cavable(c, i, r) && CaveAt(B, f, bx, by, bz) > 0 ? 0 : id;
+        // same result as the chunk generator (a flooded cave is water here too, so the water simulation sees it at unloaded chunks)
+        return id != 0 && Cavable(c, i, r) && CaveAt(B, f, bx, by, bz) > 0 ? Aquifers.CaveFill(r - R, id, Aquifers.Column(f, -PI / 4 + (bz + .5) * B.d, -PI / 4 + (bx + .5) * B.d)) : id;
     }
 }

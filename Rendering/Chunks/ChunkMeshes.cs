@@ -65,7 +65,7 @@ public static class ChunkMeshes
             var ch = r.ch; Volatile.Write(ref ch.mst, 0);
             if (!chunks.TryGetValue(ch.key, out var cur) || cur != ch) continue; // freed meanwhile
             if (r.failed) { ch.mfail = true; continue; }
-            ch.relight = false; Upload(ch, r.r, r.wait, false);
+            ch.relight = ch.ver != r.ver; Upload(ch, r.r, r.wait, false); // changed while it was meshed (flowing water): mesh it again
         }
         PublishGen();
         buildQ.Clear(); meshQ.Clear();

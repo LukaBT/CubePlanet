@@ -8,7 +8,7 @@ public static class ChunkWorkers
     // Everything Generate() touches is thread-safe: result slots and caches are per thread, player edits are read under EditLock, the chunk itself is claimed via Chunk.gst.
     // Meshing jobs come first (their neighbours are already generated, so a finished mesh shows up right away), then generation.
     internal static readonly object wlock = new(); internal static Chunk[] wlist = Array.Empty<Chunk>(), mlist = Array.Empty<Chunk>(); internal static int wnext, mnext; internal static bool wstarted;
-    public sealed class MeshJobResult { public Chunk ch; public BuildResult r; public List<long> wait; public bool failed; }
+    public sealed class MeshJobResult { public Chunk ch; public BuildResult r; public List<long> wait; public bool failed; public int ver; }
     public static readonly System.Collections.Concurrent.ConcurrentQueue<MeshJobResult> meshDone = new();
     internal static void StartWorkers()
     {
@@ -39,7 +39,8 @@ public static class ChunkWorkers
                 if (Interlocked.CompareExchange(ref c.mst, 1, 0) != 0) continue;
                 ResetBlkCache();
                 long tp = System.Diagnostics.Stopwatch.GetTimestamp();
-                try { var r = Build(c, out var wl); meshDone.Enqueue(new MeshJobResult { ch = c, r = r, wait = wl }); }
+                int ver = Volatile.Read(ref c.ver);
+                try { var r = Build(c, out var wl); meshDone.Enqueue(new MeshJobResult { ch = c, r = r, wait = wl, ver = ver }); }
                 catch { meshDone.Enqueue(new MeshJobResult { ch = c, failed = true }); }
                 Interlocked.Add(ref profMeshTicks, System.Diagnostics.Stopwatch.GetTimestamp() - tp); Interlocked.Increment(ref profMeshN);
                 continue;

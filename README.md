@@ -158,6 +158,8 @@ get water faces themselves, so they no longer leave holes or gaps in the surface
 something other than open water (a block, ice, a capped or higher water column) is pinned: waves fade out within one block of edges
 instead of pulling the surface away from the faces next to it.
 
+Performance: the simulation runs on the main thread (it changes the same block data the player, physics and renderer use) but costs at most 1.5 ms per frame: each tick's work (400 cells, 6 pressure searches, 10 ticks/s) is spread over frames. Its changes are meshed by the worker threads (a chunk version redoes a mesh that went stale meanwhile), and water only moves in loaded chunks. `--benchwater` (no window) checks generated water is at rest and times a spreading pool.
+
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).
   The shaders still contain those uniforms; they are fixed to a clear sky with a few clouds, a light breeze that drifts
@@ -217,7 +219,7 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 * **Caves (Caves & Cliffs style):** cheese caverns, spaghetti tunnels with varying thickness, a wide tunnel network in
   some regions, and ravines that open to the surface in lowlands. Caves reach about 100 blocks below sea level
   (`CAVB` in `World.cs`); `World.CaveS()` holds all the thresholds.
-* **Aquifers and lava:** cave air below a per-region water level is flooded; the deepest caves hold lava lakes (static blocks, self-lit, solid).
+* **Aquifers and lava:** like Minecraft's aquifers, the planet is split into ~40-block regions (Voronoi on the sphere, Generation/Aquifers.cs); each is dry (25 %) or has one water level (-54..-2), so flooded caves are level and at rest when generated. Where a cave crosses into a region with another level, a 3-block stone barrier keeps the water apart. The deepest caves hold lava lakes (static blocks, self-lit, solid).
 * **Deepslate:** stone changes to deepslate 56-72 blocks below the surface (and the whole core is deepslate).
 * **Ores:** coal, copper, iron, gold, redstone, lapis, diamond and (mountains only) emerald, each in its own depth range with
   a deepslate variant. Vein counts and depth ranges are the `ORES` table in `Chunks.cs`.

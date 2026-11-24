@@ -65,10 +65,40 @@ public static class SelfTest
         Check(frac, "box faces get fractional texture coordinates");
         EditDirtying();
         Icons();
+        CaveWater();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // cave water (aquifers): generated level and at rest, the same at unloaded cells (Gen), and the simulation re-meshes in the background
+    static void CaveWater()
+    {
+        V3 c = new(C.x, C.y, C.z); int bi = BlockAccess.P2b(c.X, c.Y, c.Z); int f = PF, ccx = PX >> 5, ccz = PZ >> 5; Band B = bands[bi];
+        var (water, loose) = WaterBench.Unsettled(B, bi, f, ccx, ccz, 2);
+        Check(water > 1000 && loose == 0, $"generated water is at rest: none beside / above air ({loose} of {water} cells)");
+        // a flooded cave chunk: Gen (used for cells of unloaded chunks) gives water exactly where the chunk generator put it
+        int cy = (int)Math.Floor((R - 30 - B.inner) / CS); int same = 0, cells = 0;
+        for (int dz = -2; dz <= 2; dz++) for (int dx = -2; dx <= 2; dx++)
+            {
+                var ch = new Chunk { key = ck(bi, f, ccx + dx, cy, ccz + dz), band = bi, face = f, cx = ccx + dx, cy = cy, cz = ccz + dz }; ChunkGenerator.Ensure(ch);
+                for (int i = 0; i < ch.d.Length; i += 7)
+                {
+                    if (ch.d[i] != Water) continue; cells++;
+                    if (Gen(B, f, ch.cx * 32 + (i & 31), cy * 32 + (i >> 10), ch.cz * 32 + ((i >> 5) & 31)) == Water) same++;
+                }
+            }
+        Check(cells > 0 && same == cells, $"cave water at unloaded cells matches the generator ({same} of {cells})");
+        // simulation changes: meshed by the worker threads (relight + version), never on the main thread this frame
+        var (up, fwd, g) = SpotInFront(11); int b2 = BlockAccess.P2b(g.X, g.Y + 0, g.Z); int x = PX, y = PY, z = PZ;
+        var chn = new Chunk { key = ck(b2, PF, x >> 5, y >> 5, z >> 5), band = b2, face = PF, cx = x >> 5, cy = y >> 5, cz = z >> 5 };
+        bool made = !chunks.ContainsKey(chn.key); if (made) AddChunk(chn); else chn = chunks[chn.key];
+        ChunkGenerator.Ensure(chn); chn.built = true; chn.dirty = chn.relight = false; int v0 = chn.ver;
+        SetCell(b2, PF, (x & ~31) + 10, y, (z & ~31) + 10, Water, 5, 0, true);
+        Check(!chn.dirty && chn.relight && chn.ver > v0, "water simulation edits re-mesh in the background");
+        SetCell(b2, PF, (x & ~31) + 10, y, (z & ~31) + 10, 0); WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
+        if (made) FreeChunk(chn);
     }
 
     // item icons: 3D models for cube / box blocks, the block texture for plants, the item atlas picture for the door and plain items

@@ -126,7 +126,8 @@ public static class BlockAccess
         SetCell(bi, PF, PX, PY, PZ, id);
     }
     /// <summary>Sets a block and its state word (lvl: water level 1..8, stored as the water block's "level" state).</summary>
-    public static void SetCell(int bi, int f, int bx, int by, int bz, int id, int lvl = 0, int state = 0)
+    /// <param name="background">re-mesh on the worker threads instead of this frame (the water simulation: hundreds of changes a second)</param>
+    public static void SetCell(int bi, int f, int bx, int by, int bz, int id, int lvl = 0, int state = 0, bool background = false)
     {
         if (!Norm(bi, f, bx, by, bz)) return;
         bi = NB; f = NF; bx = NX; by = NY; bz = NZ;
@@ -137,7 +138,7 @@ public static class BlockAccess
         if (id == Water && lvl > 0) state = WaterSim.LevelState(lvl);
         lock (EditLock) { if (state != 0) BlockStates.states[kk] = (ushort)state; else BlockStates.states.Remove(kk); }
         if (BlockStates.entities.Count > 0 && BlockStates.entities.TryGetValue(kk, out var be) && be.BlockId != id) BlockStates.entities.Remove(kk);
-        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.dirty = true; }
+        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.ver++; if (background) ch.relight = true; else ch.dirty = true; }
         // neighbour chunks: one touching the edited cell shows a new face at once (dirty: meshed on the main thread this frame); one only
         // within skylight reach (8 blocks) just gets re-lit by a worker thread. Meshing them all on the main thread froze the game for
         // tens of ms per edit when placing / breaking fast.
@@ -148,9 +149,9 @@ public static class BlockAccess
             {
                 long k2 = ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5);
                 if (!ecount.ContainsKey(k2)) { lock (EditLock) ecount[k2] = 0; if (!chunks.ContainsKey(k2)) lastScan = new V3(1e9, 0, 0); }
-                if (chunks.TryGetValue(k2, out var nc)) { if (touch) nc.dirty = true; else if (k2 != k) nc.relight = true; }
+                if (chunks.TryGetValue(k2, out var nc) && k2 != k) { nc.ver++; if (touch && !background) nc.dirty = true; else nc.relight = true; }
             }
-            if (touch && Norm(bi, f, bx + DX[d], by + DY[d], bz + DZ[d]) && chunks.TryGetValue(ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5), out var tc)) tc.dirty = true;
+            if (touch && Norm(bi, f, bx + DX[d], by + DY[d], bz + DZ[d]) && chunks.TryGetValue(ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5), out var tc)) { tc.ver++; if (background) tc.relight = true; else tc.dirty = true; }
         }
         Wake(bi, f, bx, by, bz);
     }

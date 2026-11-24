@@ -22,14 +22,19 @@ public static class WaterSim
 
     internal static bool Wfree(int id) => id == 0 || (SPC[id] != 0 && ATT[id] == 0 && !UWP[id]);
     internal static int Wl(WC c) => c.id == Water ? (BlockStates.TryGet(c.k, out ushort s) ? LevelOf(s) : 8) : 0;
-    internal static void Wput(WC c, int l) => SetCell(c.b, c.F, c.X, c.Y, c.Z, l > 0 ? 9 : 0, l);
+    /// <summary>Cell changes made by the simulation (benchmark counter).</summary>
+    public static long Moves;
+    // the simulation's changes are meshed by the worker threads (background), not on the main thread in the frame they happen
+    internal static void Wput(WC c, int l) { Moves++; SetCell(c.b, c.F, c.X, c.Y, c.Z, l > 0 ? Water : 0, l, 0, true); }
 
     internal static WC Wcell(int bi, int f, int x, int y, int z)
     {
         if (!Norm(bi, f, x, y, z)) return default;
         int b = NB, F = NF, X = NX, Y = NY, Z = NZ; long k = ek(); int id;
+        // water only moves in loaded chunks (like Minecraft): an unloaded cell acts as a wall. Generating terrain for single cells there
+        // made one pressure search take ~20 ms when a body of water reached past the loaded area.
         if (chunks.TryGetValue(ck(b, F, X >> 5, Y >> 5, Z >> 5), out var ch) && ch.d != null) id = ch.d[(X & 31) + 32 * ((Z & 31) + 32 * (Y & 31))];
-        else id = edits.TryGetValue(k, out ushort e) ? e : Gen(bands[b], F, X, Y, Z);
+        else return default;
         return new WC { ok = true, k = k, b = b, F = F, X = X, Y = Y, Z = Z, id = id };
     }
     internal static void Wake(int b, int f, int x, int y, int z)
@@ -58,9 +63,10 @@ public static class WaterSim
     }
 
     // pressure: find the highest and lowest surface of the connected water body (bounded) and move one unit from high to low
+    static readonly HashSet<long> pSeen = new(); static readonly List<WC> pQ = new();
     internal static void Wpress(WC st)
     {
-        var seen = new HashSet<long> { st.k }; var q = new List<WC> { st };
+        var seen = pSeen; var q = pQ; seen.Clear(); q.Clear(); seen.Add(st.k); q.Add(st); // reused: no garbage per search (GC pauses)
         WC hi = default, lo = default, loUp = default; int hiS = 0, hiLv = 0, loS = 0, loLv = 0; bool hasHi = false, hasLo = false;
         for (int qi = 0; qi < q.Count && q.Count < 256; qi++)
         {
@@ -85,34 +91,44 @@ public static class WaterSim
         }
     }
 
-    // nearest drop within 4 cells (a cell at this height whose cell below can take water): returns the first sideways step toward it
+    // nearest drop within 4 cells (a cell at this height whose cell below can take water): returns the first sideways step toward it.
+    // Breadth-first over a 9x9 grid of offsets around the cell; buffers are reused (this runs for every moving water cell).
+    static readonly int[] dQ = new int[81], dFirst = new int[81]; static readonly byte[] dSeen = new byte[81]; static readonly int[] dOut = new int[2];
     internal static int[] Wdrop(WC c, int ro)
     {
-        var seen = new HashSet<long> { c.k }; var fr = new List<(WC c, int[] d)> { (c, null) };
-        for (int dist = 1; dist <= 4; dist++)
+        Array.Clear(dSeen); int qh = 0, qt = 0; dQ[qt++] = 40; dSeen[40] = 1; dFirst[40] = -1;
+        while (qh < qt)
         {
-            var nx = new List<(WC c, int[] d)>();
-            foreach (var o in fr)
-                for (int i = 0; i < 4; i++)
-                {
-                    int dx = N4[(i + ro) & 3][0], dz = N4[(i + ro) & 3][1];
-                    var n = Wcell(o.c.b, o.c.F, o.c.X + dx, o.c.Y, o.c.Z + dz);
-                    if (!n.ok || seen.Contains(n.k)) continue; seen.Add(n.k);
-                    if (!(Wfree(n.id) || (n.id == Water && Wl(n) < 8))) continue;
-                    var d0 = o.d ?? new[] { dx, dz }; var bl = Wcell(n.b, n.F, n.X, n.Y - 1, n.Z);
-                    if (bl.ok && (Wfree(bl.id) || (bl.id == Water && Wl(bl) < 8))) return d0;
-                    nx.Add((n, d0));
-                }
-            fr = nx;
+            int o = dQ[qh++], ox = o % 9 - 4, oz = o / 9 - 4;
+            if (Math.Abs(ox) + Math.Abs(oz) >= 4) continue;
+            for (int i = 0; i < 4; i++)
+            {
+                int dx = N4[(i + ro) & 3][0], dz = N4[(i + ro) & 3][1], nx = ox + dx, nz = oz + dz, ni = (nz + 4) * 9 + nx + 4;
+                if (dSeen[ni] != 0) continue; dSeen[ni] = 1;
+                var n = Wcell(c.b, c.F, c.X + nx, c.Y, c.Z + nz);
+                if (!n.ok || !(Wfree(n.id) || (n.id == Water && Wl(n) < 8))) continue;
+                int first = dFirst[o] < 0 ? (i + ro) & 3 : dFirst[o]; dFirst[ni] = first;
+                var bl = Wcell(n.b, n.F, n.X, n.Y - 1, n.Z);
+                if (bl.ok && (Wfree(bl.id) || (bl.id == Water && Wl(bl) < 8))) { dOut[0] = N4[first][0]; dOut[1] = N4[first][1]; return dOut; }
+                dQ[qt++] = ni;
+            }
         }
         return null;
     }
 
-    public static void WaterStep()
+    // work per tick (10 ticks a second): at most 400 cells and 6 pressure searches; WaterTick spreads it over the frames within a time budget
+    const int CellsPerTick = 400, PressPerTick = 6;
+    static int allowance, pressLeft;
+    /// <summary>One whole tick at once (benchmark, tests).</summary>
+    public static void WaterStep() { allowance = CellsPerTick; pressLeft = PressPerTick; WaterWork(double.MaxValue); }
+
+    static void WaterWork(double budgetMs)
     {
-        int n = 0, pb = 6;
-        while (n++ < 400 && wactQ.Count > 0)
+        long t0 = System.Diagnostics.Stopwatch.GetTimestamp(); double perMs = System.Diagnostics.Stopwatch.Frequency / 1000.0;
+        while (allowance > 0 && wactQ.Count > 0)
         {
+            if ((allowance & 15) == 0 && (System.Diagnostics.Stopwatch.GetTimestamp() - t0) / perMs > budgetMs) return;
+            allowance--;
             long k = wactQ.Dequeue(); if (!WAct.Remove(k, out var co)) continue;
             var cur = Wcell(co.b, co.f, co.x, co.y, co.z); if (!cur.ok || cur.id != Water) continue;
             int l = Wl(cur), l0 = l;
@@ -121,6 +137,22 @@ public static class WaterSim
             {
                 if (Wfree(dn.id)) { Wput(dn, l); Wput(cur, 0); continue; }
                 if (dn.id == Water) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
+            }
+            // a full cell whose four sides are full water or walls cannot move sideways: only pressure may apply (most cells of a big body)
+            if (l == 8)
+            {
+                bool shut = true;
+                for (int ni = 0; ni < 4 && shut; ni++)
+                {
+                    var nc = Wcell(cur.b, cur.F, cur.X + N4[ni][0], cur.Y, cur.Z + N4[ni][1]);
+                    shut = nc.ok && (nc.id == Water ? Wl(nc) == 8 : !Wfree(nc.id));
+                }
+                if (shut)
+                {
+                    var up = Wcell(cur.b, cur.F, cur.X, cur.Y + 1, cur.Z);
+                    if (pressLeft > 0 && up.ok && !Wfree(up.id)) { pressLeft--; Wpress(cur); }
+                    continue;
+                }
             }
             int ro = wrng.Next(4); var dd = Wdrop(cur, ro);
             if (dd != null)
@@ -146,18 +178,24 @@ public static class WaterSim
                 }
             }
             if (l != l0) { Wput(cur, l); continue; }
-            if (l == 8 && pb > 0)
+            if (l == 8 && pressLeft > 0)
             {
                 var up = Wcell(cur.b, cur.F, cur.X, cur.Y + 1, cur.Z);
-                if (up.ok && !Wfree(up.id)) { pb--; Wpress(cur); }
+                if (up.ok && !Wfree(up.id)) { pressLeft--; Wpress(cur); }
             }
         }
     }
-    /// <summary>10 ticks per second.</summary>
+    /// <summary>10 ticks per second, each tick's work spread over the frames with at most <see cref="FrameBudgetMs"/> per frame (no frame spikes).</summary>
+    public const double FrameBudgetMs = 1.5;
     public static void WaterTick(double dt)
     {
         wAcc += dt;
-        if (wAcc > .1) { wAcc = 0; if (WAct.Count > 0) WaterStep(); }
+        if (wAcc > .1)
+        {
+            wAcc = Math.Min(wAcc - .1, .1);
+            allowance = Math.Min(allowance + CellsPerTick, 2 * CellsPerTick); pressLeft = Math.Min(pressLeft + PressPerTick, 2 * PressPerTick);
+        }
+        if (WAct.Count > 0) WaterWork(FrameBudgetMs);
     }
 
     // ---------- bucket: break = scoop up to 8 units out of the targeted water cell (drains it), place = pour everything held ----------

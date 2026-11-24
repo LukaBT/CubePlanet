@@ -13,7 +13,8 @@ public class Chunk
     public ushort[] st;        // state words (BlockStates), null while every block of the chunk is in its default state
     public long waitStamp = -1;
     public int mst;            // mesh claim: 0 idle, 1 a worker is meshing it
-    public bool relight;       // a neighbour it was waiting for appeared: re-mesh in the background
+    public bool relight;       // re-mesh in the background (a neighbour it was waiting for appeared, light near an edit, flowing water)
+    public int ver;            // bumped by every block change: a background mesh started before a change is redone
     public int readyWait;      // frames spent waiting for neighbour data before meshing
     public bool mfail;         // background mesh threw: retry on the main thread
 }
