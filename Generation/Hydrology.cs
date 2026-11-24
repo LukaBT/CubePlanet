@@ -95,6 +95,10 @@ public static class Hydrology
             else continue;
             if (!double.IsNaN(sd)) S[c] = (float)Math.Max(S[c], sd); // never below the water it flows into
         }
+        // a river leaving a lake starts at the lake's level (and steps down further on, behind a lip), so the lake cannot drain through it;
+        // rivers flowing into that river are raised to match (water never stands lower than what it flows into)
+        for (int k = order.Count - 1; k >= 0; k--) { int u = order[k], d = Down[u]; if (Kind[u] == Lake && d >= 0 && Kind[d] == River) S[d] = Math.Max(S[d], S[u]); }
+        foreach (int c in order) { int d = Down[c]; if (Kind[c] == River && d >= 0 && (Kind[d] == River || Kind[d] == Lake)) S[c] = Math.Max(S[c], S[d]); }
         // cells within reach of a river or lake (the column lookup is warped a few blocks and reaches a few cells around)
         Near = new bool[n]; int reach = 2 + (int)Math.Ceiling((7 + Rivers.Bank + 4) / CellBlocks);
         for (int id = 0; id < n; id++)

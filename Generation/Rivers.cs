@@ -63,6 +63,9 @@ public static class Rivers
                 {
                     double depth = 1 + 2 * (1 - (bd / bw) * (bd / bw)) * Math.Min(1, bw / 2);
                     gH = S - depth; gRS = S; gT = gF = Gravel; gFD = 2; gI = 0; gRC = bc;
+                    // rock lip: the last 1.5 blocks of a pool before its waterfall are only 1 deep, so a disturbed river keeps its pools and
+                    // only the top layer (the inflow) spills over, instead of the whole pool running down to the next one
+                    if (sUp > sDn && bt < .5 && bt > .5 - 1.5 / Math.Max(1e-6, (Hydrology.Center(bdn) - Hydrology.Center(bc)).Len * R)) { gH = Math.Max(gH, sUp - 1); gT = gF = Stone; }
                     gRD = M.Nrm(Hydrology.Center(bdn) - Hydrology.Center(bc)); gRW = Strength(Hydrology.Q[bc]);
                     return;
                 }

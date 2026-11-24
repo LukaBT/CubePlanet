@@ -68,6 +68,7 @@ public static class SelfTest
         CaveWater();
         Hydro();
         RiverTest();
+        RiverKeepsWater();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
@@ -129,6 +130,63 @@ public static class SelfTest
         Console.WriteLine($"RIVER river of {Hydrology.Q[ColsOf(B, f, rx >> 5, rz >> 5).rc[(rx & 31) + 32 * (rz & 31)]]:0.0} units/s, dammed 60 s: {lake} water cells above its old level behind the dam, {Hydrology.Live.Count} live river cells");
         Check(risen > 0, $"a dam holds the river back: water rose above the river's level behind it ({risen} cells, {Hydrology.Live.Count} live river cells)");
         WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Hydrology.ClearLive();
+        foreach (var ch in made) FreeChunk(ch);
+    }
+
+    // a disturbed river keeps its pools: wake a river at a waterfall and let it run for 90 s; the pools above the waterfall must stay full
+    // (each pool is held by a rock lip; only the inflow spills over), the river around must keep most of its water
+    static void RiverKeepsWater()
+    {
+        V3 c = new(C.x, C.y, C.z); int bi = BlockAccess.P2b(c.X, c.Y, c.Z); int f = PF; Band B = bands[bi];
+        var rv = WaterBench.RiverStats(B, bi, f, PX >> 5, PZ >> 5, 6);
+        if (rv.falls == 0) { Check(false, "a waterfall near spawn to test"); return; }
+        int fx = rv.fx, fz = rv.fz; var col = ColsOf(B, f, fx >> 5, fz >> 5); float S = col.rs[(fx & 31) + 32 * (fz & 31)];
+        int ry = (int)Math.Floor(R + S - .5 - B.inner);
+        var made = new List<Chunk>();
+        for (int dy = -1; dy <= 1; dy++) for (int dz = -2; dz <= 2; dz++) for (int dx = -2; dx <= 2; dx++)
+                {
+                    long k = ck(bi, f, (fx >> 5) + dx, (ry >> 5) + dy, (fz >> 5) + dz);
+                    if (!chunks.TryGetValue(k, out var ch)) { ch = new Chunk { key = k, band = bi, face = f, cx = (fx >> 5) + dx, cy = (ry >> 5) + dy, cz = (fz >> 5) + dz }; AddChunk(ch); made.Add(ch); }
+                    ChunkGenerator.Ensure(ch); ch.built = true;
+                }
+        // river / lake water near the waterfall (columns that hold river or lake water)
+        int RiverUnits(int rad)
+        {
+            int n = 0;
+            for (int a = -rad; a <= rad; a++) for (int b = -rad; b <= rad; b++)
+                {
+                    var cc = ColsOf(B, f, (fx + a) >> 5, (fz + b) >> 5); int i = ((fx + a) & 31) + 32 * ((fz + b) & 31); if (float.IsNaN(cc.rs[i])) continue;
+                    for (int y = ry - 12; y <= ry + 4; y++) n += Wl(Wcell(bi, f, fx + a, y, fz + b));
+                }
+            return n;
+        }
+        // the pool 4 blocks upstream of the waterfall's lip: everything below its top layer must stay
+        int px = fx, pz = fz; double bestDep = 0;
+        for (int a = -8; a <= 8; a++) for (int b = -8; b <= 8; b++)
+            {
+                var cc = ColsOf(B, f, (fx + a) >> 5, (fz + b) >> 5); int i = ((fx + a) & 31) + 32 * ((fz + b) & 31);
+                double dep = cc.rs[i] - cc.h[i]; if (cc.rs[i] != S || !(dep >= 2.5) || dep <= bestDep) continue;
+                bestDep = dep; px = fx + a; pz = fz + b;
+            }
+        int Column() { int n = 0; for (int y = ry - 4; y < ry; y++) n += Wl(Wcell(bi, f, px, y, pz)); return n; }
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); Hydrology.ClearLive();
+        int near0 = RiverUnits(14), col0 = Column();
+        // break the bank next to the pool's top: the water there is disturbed (it flows into the gap) and the river becomes live
+        foreach (var (a, b) in new[] { (2, 0), (-2, 0), (0, 2), (0, -2), (3, 0), (-3, 0), (0, 3), (0, -3) })
+        {
+            var cc = ColsOf(B, f, (fx + a) >> 5, (fz + b) >> 5); if (!float.IsNaN(cc.rs[((fx + a) & 31) + 32 * ((fz + b) & 31)])) continue;
+            SetCell(bi, f, fx + a, ry, fz + b, 0); break;
+        }
+        foreach (var (a, b) in new[] { (0, 0), (1, 0), (-1, 0), (0, 1), (0, -1) }) WaterSim.Wake(bi, f, fx + a, ry, fz + b);
+        Hydrology.Touch(col.rc[(fx & 31) + 32 * (fz & 31)]);
+        for (int i = 0; i < 450; i++) WaterSim.WaterStep(); // 90 s
+        int near1 = RiverUnits(14), col1 = Column();
+        for (int i = 0; i < 450; i++) WaterSim.WaterStep(); // 180 s
+        int near2 = RiverUnits(14), col2 = Column();
+        Console.WriteLine($"RIVER at a waterfall (surface {S}), disturbed: pool below its top layer {col0} -> {col1} -> {col2} units, river nearby {near0} -> {near1} (90 s) -> {near2} (180 s) units, {Hydrology.Live.Count} live cells");
+        Check(col2 >= col0 * .9, $"a disturbed river's pool above a waterfall stays (below its top layer {col0} -> {col2} units)");
+        Check(near2 >= near1 * .95, $"a disturbed river stops losing water: only its top layer thins ({near0} -> {near1} -> {near2} units within 14 blocks)");
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); Hydrology.ClearLive(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
         foreach (var ch in made) FreeChunk(ch);
     }
 

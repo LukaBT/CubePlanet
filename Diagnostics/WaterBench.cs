@@ -75,7 +75,7 @@ public static class WaterBench
     /// <summary>River columns (and waterfall columns: a neighbour column is a lower river stretch) in a (2r+1)^2 block of chunk columns.</summary>
     internal static (int cols, int falls, double near, int fx, int fz) RiverStats(Band B, int bi, int f, int ccx, int ccz, int r)
     {
-        int cols = 0, falls = 0, fx = 0, fz = 0; double near = double.PositiveInfinity;
+        int cols = 0, falls = 0, fx = 0, fz = 0; double near = double.PositiveInfinity, drop = 0; // fx, fz: the highest waterfall
         for (int cz = ccz - r; cz <= ccz + r; cz++) for (int cx = ccx - r; cx <= ccx + r; cx++)
             {
                 if (cx < 1 || cz < 1 || cx >= B.fc - 1 || cz >= B.fc - 1) continue;
@@ -87,7 +87,7 @@ public static class WaterBench
                     foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
                     {
                         int nx = x + dx, nz = z + dz; var nc = ColsOf(B, f, nx >> 5, nz >> 5); float ns = nc.rs[(nx & 31) + 32 * (nz & 31)];
-                        if (!float.IsNaN(ns) && ns < c.rs[i]) { falls++; fx = x; fz = z; break; }
+                        if (!float.IsNaN(ns) && ns < c.rs[i]) { falls++; if (c.rs[i] - ns > drop) { drop = c.rs[i] - ns; fx = x; fz = z; } break; }
                     }
                 }
             }

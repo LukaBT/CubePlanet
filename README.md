@@ -266,7 +266,9 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
   (~0.5 s, from the seed, nothing saved; `--hydrostats [--hydropng file]` prints / draws it): hollows are filled up to their lowest rim
   (priority flood from the sea) and a filled hollow at least a block deep is a lake with a flat surface; every cell drains towards the sea;
   rain (less in deserts) gathers downhill, and cells with enough catchment are rivers whose flow Q (units/s) sets their width and drawn
-  strength. River surfaces only ever go down (level on flat land, waterfalls where the terrain drops) and end in lakes or the sea. Terrain
+  strength. River surfaces only ever go down (level on flat land, waterfalls where the terrain drops) and end in lakes or the sea; a river
+  leaving a lake starts at the lake's level. Every pool ends at its waterfall in a rock lip 1 block below its surface (the last 1.5 blocks),
+  so a disturbed river keeps its pools and only the top layer carries the flow over the lip. Terrain
   columns draw them from the map: river segments between cell centres (slightly meandering), gravel bed, valley sides and levees so the
   water never spills, lakes filling their hollows with shores above the highest lake nearby; no caves within 40 blocks below river / lake
   water (nor in the top 14 blocks under low coasts), no trees in water. Generated river and lake water is at rest (around spawn 0 of

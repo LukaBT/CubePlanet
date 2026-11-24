@@ -1,2 +1,2 @@
-FINGERPRINT radius 1200 seed 1337 rd 12: 3479 chunks, 53896412 non-air blocks, hash B2E3C3954222ADA1
+FINGERPRINT radius 1200 seed 1337 rd 12: 3479 chunks, 53897177 non-air blocks, hash B882C3849CECE89F
 FINGERPRINT radius 20000 seed 42 rd 12: 4415 chunks, 49518129 non-air blocks, hash B7172353389E6796
