@@ -15,9 +15,9 @@ public static class WaterBench
         V3 g = c; for (int i = 0; i < 400 && GetAt(g.X - up.X * .5, g.Y - up.Y * .5, g.Z - up.Z * .5) == 0; i++) g -= up;
         int bi = BlockAccess.P2b(g.X, g.Y, g.Z); int f = PF, x0 = PX, y0 = PY, z0 = PZ; Band B = bands[bi];
         var (water, loose) = Unsettled(B, bi, f, x0 >> 5, z0 >> 5, 6);
-        Console.WriteLine($"BENCHWATER generated water around spawn: {water} cells, {loose} next to air ({100.0 * loose / Math.Max(1, water):0.00} %, waterfall faces not counted)");
-        var rv = RiverStats(B, bi, f, x0 >> 5, z0 >> 5, 14);
-        Console.WriteLine($"BENCHWATER rivers within {14 * 32} blocks: {rv.cols} river columns, {rv.falls} waterfall columns, nearest {rv.near:0} blocks away");
+        Console.WriteLine($"BENCHWATER generated water around spawn: {water} cells, {loose} next to air ({100.0 * loose / Math.Max(1, water):0.00} %)");
+        var lk = LakeStats(B, bi, f, x0 >> 5, z0 >> 5, 14);
+        Console.WriteLine($"BENCHWATER lakes within {14 * 32} blocks: {lk.cols} lake columns, nearest {lk.near:0} blocks away");
 
         // load chunks around the spot like the game does, then let a pool spread on the ground
         for (int dy = -1; dy <= 1; dy++) for (int dz = -2; dz <= 2; dz++) for (int dx = -2; dx <= 2; dx++)
@@ -72,26 +72,22 @@ public static class WaterBench
         Console.WriteLine($"BENCHWATER in game (60 fps): {frames / 60.0:0.0} s until still, {ftotal / Math.Max(1, frames):0.00} ms/frame, worst frame {fworst:0.00} ms, {slow} of {frames} frames over 3 ms (budget {WaterSim.FrameBudgetMs} ms)");
     }
 
-    /// <summary>River columns (and waterfall columns: a neighbour column is a lower river stretch) in a (2r+1)^2 block of chunk columns.</summary>
-    internal static (int cols, int falls, double near, int fx, int fz) RiverStats(Band B, int bi, int f, int ccx, int ccz, int r)
+    /// <summary>Lake columns in a (2r+1)^2 block of chunk columns, the nearest one's distance from the centre and position.</summary>
+    internal static (int cols, double near, int lx, int lz) LakeStats(Band B, int bi, int f, int ccx, int ccz, int r)
     {
-        int cols = 0, falls = 0, fx = 0, fz = 0; double near = double.PositiveInfinity, drop = 0; // fx, fz: the highest waterfall
+        int cols = 0, lx = 0, lz = 0; double near = double.PositiveInfinity;
         for (int cz = ccz - r; cz <= ccz + r; cz++) for (int cx = ccx - r; cx <= ccx + r; cx++)
             {
-                if (cx < 1 || cz < 1 || cx >= B.fc - 1 || cz >= B.fc - 1) continue;
+                if (cx < 0 || cz < 0 || cx >= B.fc || cz >= B.fc) continue;
                 var c = ColsOf(B, f, cx, cz);
                 for (int i = 0; i < 1024; i++)
                 {
-                    if (float.IsNaN(c.rs[i])) continue; cols++;
-                    int x = cx * 32 + (i & 31), z = cz * 32 + (i >> 5); double dd = Math.Sqrt(Math.Pow(x - ccx * 32 - 16, 2) + Math.Pow(z - ccz * 32 - 16, 2)); if (dd < near) near = dd;
-                    foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
-                    {
-                        int nx = x + dx, nz = z + dz; var nc = ColsOf(B, f, nx >> 5, nz >> 5); float ns = nc.rs[(nx & 31) + 32 * (nz & 31)];
-                        if (!float.IsNaN(ns) && ns < c.rs[i]) { falls++; if (c.rs[i] - ns > drop) { drop = c.rs[i] - ns; fx = x; fz = z; } break; }
-                    }
+                    if (float.IsNaN(c.rs[i]) || c.rs[i] - c.h[i] < 1.5) continue; cols++;
+                    int x = cx * 32 + (i & 31), z = cz * 32 + (i >> 5); double dd = Math.Sqrt(Math.Pow(x - ccx * 32 - 16, 2) + Math.Pow(z - ccz * 32 - 16, 2));
+                    if (dd < near) { near = dd; lx = x; lz = z; }
                 }
             }
-        return (cols, falls, near, fx, fz);
+        return (cols, near, lx, lz);
     }
 
     /// <summary>Water cells in a (2r+1)^2 block of chunk columns from sea level down to the cave floor, and how many touch air beside or below.</summary>
@@ -115,13 +111,7 @@ public static class WaterBench
                     {
                         if (d[i] != Water) continue;
                         int x = cx * 32 + (i & 31), z = cz * 32 + ((i >> 5) & 31), y = cy * 32 + (i >> 10); water++;
-                        bool Open(int nx, int ny, int nz)
-                        {
-                            if (At(nx, ny, nz) != 0) return false;
-                            var c0 = ColsOf(B, f, x >> 5, z >> 5); float s0 = c0.rs[(x & 31) + 32 * (z & 31)];
-                            var c1 = ColsOf(B, f, nx >> 5, nz >> 5); float s1 = c1.rs[(nx & 31) + 32 * (nz & 31)];
-                            return !(!float.IsNaN(s0) && !float.IsNaN(s1) && s1 < s0); // a waterfall face is meant to be open
-                        }
+                        bool Open(int nx, int ny, int nz) => At(nx, ny, nz) == 0;
                         if (Open(x, y - 1, z) || Open(x + 1, y, z) || Open(x - 1, y, z) || Open(x, y, z + 1) || Open(x, y, z - 1)) loose++;
                     }
                 }

@@ -223,7 +223,7 @@ public static class TerrainGen
             gF = Dirt;
         }
         gH = H; gB = bi;
-        if (lw <= 0) Rivers.Apply(x, y, z); // rivers carve the full-detail terrain only (not the distant LOD)
+        if (lw <= 0) Lakes.Apply(x, y, z); // lakes in the full-detail terrain only (not the distant LOD)
     }
 
     public static string BiomeName(V3 p)

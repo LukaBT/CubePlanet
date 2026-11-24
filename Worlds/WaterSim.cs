@@ -27,12 +27,12 @@ public static class WaterSim
     /// It starts at roughly the volume of a planet's oceans, so the sea never visibly changes level.</summary>
     public static double Reservoir = DefaultReservoir;
     public const double DefaultReservoir = 1e9;
-    /// <summary>The row just above sea level (water resting there on the sea flows into it), outside rivers and lakes (a river near sea
-    /// level is not the sea).</summary>
+    /// <summary>The row just above sea level (water resting there on the sea flows into it), outside lakes (a lake near sea level is not
+    /// the sea).</summary>
     public static bool AboveSea(int b, int f, int x, int y, int z)
     {
         double rel = bands[b].inner + y + .5 - R; if (!(rel > 0 && rel < 1)) return false;
-        return ColsOf(bands[b], f, x >> 5, z >> 5).rc[(x & 31) + 32 * (z & 31)] < 0;
+        return float.IsNaN(ColsOf(bands[b], f, x >> 5, z >> 5).rs[(x & 31) + 32 * (z & 31)]);
     }
     /// <summary>Adds up to 'units' to a cell (air or water, levels above 8 rise into the cells above, like PlaceWater). Returns units placed.</summary>
     public static int AddWater(WC c, int units)
@@ -174,7 +174,7 @@ public static class WaterSim
     const int CellsPerTick = 400, PressPerTick = 6;
     static int allowance, pressLeft;
     /// <summary>One whole tick at once (benchmark, tests).</summary>
-    public static void WaterStep() { Hydrology.Tick(1 / TicksPerSecond); allowance = Math.Min(wactQ.Count, CellsPerTick); pressLeft = PressPerTick; WaterWork(double.MaxValue); }
+    public static void WaterStep() { allowance = Math.Min(wactQ.Count, CellsPerTick); pressLeft = PressPerTick; WaterWork(double.MaxValue); }
 
     static void WaterWork(double budgetMs)
     {
@@ -250,7 +250,6 @@ public static class WaterSim
         if (wAcc > 1 / TicksPerSecond)
         {
             wAcc = Math.Min(wAcc - 1 / TicksPerSecond, 1 / TicksPerSecond);
-            Hydrology.Tick(1 / TicksPerSecond); // disturbed rivers: inflow from upstream, outflow downstream
             // this tick: the cells queued now (those of an unfinished last tick are at the front of the queue)
             allowance = Math.Min(Math.Max(allowance, Math.Min(wactQ.Count, CellsPerTick)), 2 * CellsPerTick); pressLeft = Math.Min(pressLeft + PressPerTick, 2 * PressPerTick);
         }

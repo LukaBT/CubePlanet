@@ -32,14 +32,7 @@ public static class Columns
                 Terrain(t.X, t.Y, t.Z, 0);
                 int i = x + CS * z;
                 c.h[i] = (float)gH; c.t[i] = (ushort)gT; c.f[i] = (ushort)gF; c.fd[i] = (byte)gFD; c.ice[i] = (byte)gI; c.b[i] = (byte)gB;
-                c.rs[i] = (float)Rivers.gRS; c.rn[i] = (float)Rivers.gRN; c.rc[i] = Rivers.gRC;
-                if (!double.IsNaN(Rivers.gRS))
-                {   // downstream direction in the block grid (x, z) for drawing the flow
-                    double az = -PI / 4 + (cz * CS + z + .5) * B.d, ax = -PI / 4 + (cx * CS + x + .5) * B.d;
-                    V3 ex = GpA(f, az, ax + B.d, 1) - t, ez = GpA(f, az + B.d, ax, 1) - t;
-                    double fx = M.Dot(Rivers.gRD, ex) / ex.Len, fz = M.Dot(Rivers.gRD, ez) / ez.Len;
-                    c.rf[i] = (byte)((((int)Math.Round(Math.Atan2(fz, fx) / (PI / 4)) + 8) & 7) | Rivers.gRW << 3);
-                }
+                c.rs[i] = (float)Lakes.gLS; c.rn[i] = (float)Lakes.gLN;
                 if (gH > c.hi) c.hi = gH; if (gH < c.lo) c.lo = gH;
             }
         colCache[key] = c; return c;

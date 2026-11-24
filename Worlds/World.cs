@@ -38,7 +38,7 @@ public static class World
         BC = bandOf(R + HMAX + 2) + 1; OUTER = CORE << BC; bands.Clear();
         for (int b = 0; b < BC; b++) { int fc = FC0 << b, cols = fc * CS; bands.Add(new Band { b = b, fc = fc, cols = cols, rows = (CORE / CS) * (1 << b) * CS, inner = CORE << b, d = PI / 2 / cols }); }
         lodDelta = bands[bandOf(R)].d; spd = Math.Max(1, R / 1200);
-        Hydrology.Build(); // planet drainage (rivers, lakes) before anything generates terrain columns
+        Hydrology.Build(); // lakes (filled terrain hollows) before anything generates terrain columns
         Spawn();
     }
     internal static void Spawn()

@@ -154,7 +154,5 @@ public static class BlockAccess
             if (touch && Norm(bi, f, bx + DX[d], by + DY[d], bz + DZ[d]) && chunks.TryGetValue(ck(NB, NF, NX >> 5, NY >> 5, NZ >> 5), out var tc)) { tc.ver++; if (background) tc.relight = true; else tc.dirty = true; }
         }
         Wake(bi, f, bx, by, bz);
-        // a change in a river's / lake's water makes that part of it live (simulated, with inflow and outflow: Hydrology.Tick)
-        if (Hydrology.Built && !Hydrology.Quiet) { var hc = ColsOf(bands[bi], f, bx >> 5, bz >> 5); int rc = hc.rc[(bx & 31) + 32 * (bz & 31)]; if (rc >= 0) Hydrology.Touch(rc); }
     }
 }
