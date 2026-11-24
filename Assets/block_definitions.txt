@@ -11520,6 +11520,628 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "farmland",
+      "id": 139,
+      "name": "Farmland",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "top": 152,
+        "side": 3,
+        "bottom": 3
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "farmland",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.9375,
+              "d": 1
+            }
+          ],
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "moisture": 1
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 2
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 3
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 4
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 5
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 6
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 7
+                },
+                "textures": {
+                  "top": 153
+                }
+              },
+              {
+                "when": {
+                  "moisture": 8
+                },
+                "textures": {
+                  "top": 153
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "dirt",
+              "count": 1
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "default_state": "normal",
+          "hardness": 0.6,
+          "lod_color": [
+            110,
+            90,
+            50
+          ]
+        },
+        "instance_state": {
+          "moisture": {
+            "type": "integer",
+            "min": 0,
+            "max": 8,
+            "default": 0
+          },
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "dry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "wheat",
+      "id": 140,
+      "name": "Wheat",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 154
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "behavior": "crop",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant"
+          },
+          "random_offset": false,
+          "crop": {
+            "seed": "wheat_seeds",
+            "harvest": [
+              {
+                "item": "wheat",
+                "min": 1,
+                "max": 1
+              },
+              {
+                "item": "wheat_seeds",
+                "min": 0,
+                "max": 3
+              }
+            ]
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "age": 0
+                },
+                "textures": {
+                  "all": 154
+                }
+              },
+              {
+                "when": {
+                  "age": 1
+                },
+                "textures": {
+                  "all": 155
+                }
+              },
+              {
+                "when": {
+                  "age": 2
+                },
+                "textures": {
+                  "all": 156
+                }
+              },
+              {
+                "when": {
+                  "age": 3
+                },
+                "textures": {
+                  "all": 157
+                }
+              },
+              {
+                "when": {
+                  "age": 4
+                },
+                "textures": {
+                  "all": 158
+                }
+              },
+              {
+                "when": {
+                  "age": 5
+                },
+                "textures": {
+                  "all": 159
+                }
+              },
+              {
+                "when": {
+                  "age": 6
+                },
+                "textures": {
+                  "all": 160
+                }
+              },
+              {
+                "when": {
+                  "age": 7
+                },
+                "textures": {
+                  "all": 161
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "break": "stone_break"
+          },
+          "default_state": "normal",
+          "hardness": 0.6,
+          "lod_color": [
+            110,
+            90,
+            50
+          ]
+        },
+        "instance_state": {
+          "age": {
+            "type": "integer",
+            "min": 0,
+            "max": 7,
+            "default": 0
+          },
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "dry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "carrots",
+      "id": 141,
+      "name": "Carrots",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 162
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "behavior": "crop",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant"
+          },
+          "random_offset": false,
+          "crop": {
+            "seed": "carrot",
+            "harvest": [
+              {
+                "item": "carrot",
+                "min": 2,
+                "max": 4
+              }
+            ]
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "age": 0
+                },
+                "textures": {
+                  "all": 162
+                }
+              },
+              {
+                "when": {
+                  "age": 1
+                },
+                "textures": {
+                  "all": 162
+                }
+              },
+              {
+                "when": {
+                  "age": 2
+                },
+                "textures": {
+                  "all": 165
+                }
+              },
+              {
+                "when": {
+                  "age": 3
+                },
+                "textures": {
+                  "all": 165
+                }
+              },
+              {
+                "when": {
+                  "age": 4
+                },
+                "textures": {
+                  "all": 168
+                }
+              },
+              {
+                "when": {
+                  "age": 5
+                },
+                "textures": {
+                  "all": 168
+                }
+              },
+              {
+                "when": {
+                  "age": 6
+                },
+                "textures": {
+                  "all": 171
+                }
+              },
+              {
+                "when": {
+                  "age": 7
+                },
+                "textures": {
+                  "all": 171
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "break": "stone_break"
+          },
+          "default_state": "normal",
+          "hardness": 0.6,
+          "lod_color": [
+            110,
+            90,
+            50
+          ]
+        },
+        "instance_state": {
+          "age": {
+            "type": "integer",
+            "min": 0,
+            "max": 7,
+            "default": 0
+          },
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "dry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "potatoes",
+      "id": 142,
+      "name": "Potatoes",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 163
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "behavior": "crop",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant"
+          },
+          "random_offset": false,
+          "crop": {
+            "seed": "potato",
+            "harvest": [
+              {
+                "item": "potato",
+                "min": 2,
+                "max": 4
+              }
+            ]
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "age": 0
+                },
+                "textures": {
+                  "all": 163
+                }
+              },
+              {
+                "when": {
+                  "age": 1
+                },
+                "textures": {
+                  "all": 163
+                }
+              },
+              {
+                "when": {
+                  "age": 2
+                },
+                "textures": {
+                  "all": 166
+                }
+              },
+              {
+                "when": {
+                  "age": 3
+                },
+                "textures": {
+                  "all": 166
+                }
+              },
+              {
+                "when": {
+                  "age": 4
+                },
+                "textures": {
+                  "all": 169
+                }
+              },
+              {
+                "when": {
+                  "age": 5
+                },
+                "textures": {
+                  "all": 169
+                }
+              },
+              {
+                "when": {
+                  "age": 6
+                },
+                "textures": {
+                  "all": 172
+                }
+              },
+              {
+                "when": {
+                  "age": 7
+                },
+                "textures": {
+                  "all": 172
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "break": "stone_break"
+          },
+          "default_state": "normal",
+          "hardness": 0.6,
+          "lod_color": [
+            110,
+            90,
+            50
+          ]
+        },
+        "instance_state": {
+          "age": {
+            "type": "integer",
+            "min": 0,
+            "max": 7,
+            "default": 0
+          },
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "dry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "beetroots",
+      "id": 143,
+      "name": "Beetroots",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 164
+      },
+      "properties": {
+        "definition": {
+          "model": "cross",
+          "behavior": "crop",
+          "render": {
+            "layer": "cutout",
+            "sway": "plant"
+          },
+          "random_offset": false,
+          "crop": {
+            "seed": "beetroot_seeds",
+            "harvest": [
+              {
+                "item": "beetroot",
+                "min": 1,
+                "max": 1
+              },
+              {
+                "item": "beetroot_seeds",
+                "min": 1,
+                "max": 3
+              }
+            ]
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "age": 0
+                },
+                "textures": {
+                  "all": 164
+                }
+              },
+              {
+                "when": {
+                  "age": 1
+                },
+                "textures": {
+                  "all": 167
+                }
+              },
+              {
+                "when": {
+                  "age": 2
+                },
+                "textures": {
+                  "all": 170
+                }
+              },
+              {
+                "when": {
+                  "age": 3
+                },
+                "textures": {
+                  "all": 173
+                }
+              }
+            ]
+          },
+          "sounds": {
+            "break": "stone_break"
+          },
+          "default_state": "normal",
+          "hardness": 0.6,
+          "lod_color": [
+            110,
+            90,
+            50
+          ]
+        },
+        "instance_state": {
+          "age": {
+            "type": "integer",
+            "min": 0,
+            "max": 3,
+            "default": 0
+          },
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "dry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }

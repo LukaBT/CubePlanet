@@ -7,4 +7,11 @@ texture_rows: 16
 131 gold_ingot 96 256
 132 copper_ingot 128 256
 133 oxygen_canister 160 256
+144 wheat_seeds 0 288
+145 wheat 32 288
+146 carrot 64 288
+147 potato 96 288
+148 beetroot 128 288
+149 beetroot_seeds 160 288
+150 wooden_hoe 192 288
 200 bucket 256 384

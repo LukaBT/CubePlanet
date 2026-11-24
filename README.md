@@ -202,6 +202,19 @@ falling strength on side faces) and the water shader draws it: ripples and foam 
 stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
 when the drawn flow of a cell changes. Not yet: machines working in unloaded chunks.
 
+## Farming (water really used)
+Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/FarmingBehaviors.cs).
+* **Wooden Hoe** (right click): tills dirt or grass (air above) into **Farmland**.
+* **Farmland** holds water (`moisture` 0..8 units, darker when wet). Every 8-14 s, if not full, it takes 1 unit from the nearest water
+  within 4 blocks sideways (its own row or one below), so that water's level really drops. Dry farmland without a crop turns back to dirt.
+* **Crops** (Wheat Seeds, Carrot, Potato, Beetroot Seeds plant onto farmland only): every 25-45 s a growing crop drinks 1 unit from its
+  farmland and grows a stage; that water goes to the water cycle's reservoir (the plant gives it off). On dry farmland a crop pauses,
+  wilts back a stage after 3 dry checks, and finally becomes a dead bush. Ripe crops use no water.
+* Breaking a ripe crop gives its harvest (wheat + 0-3 seeds, 2-4 carrots / potatoes, beetroot + 1-3 seeds) into the inventory, an unripe
+  one gives its seed back. Wheat needs 7 units (about one water block) per plant per harvest, so a farm needs a real supply: a lake or
+  river nearby, a spring feeding an irrigation channel, or a pump. An overflowing channel washes crops away.
+* Farm blocks tick only in loaded chunks (like machines).
+
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).
   The shaders still contain those uniforms; they are fixed to a clear sky with a few clouds, a light breeze that drifts

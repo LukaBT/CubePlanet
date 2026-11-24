@@ -64,6 +64,7 @@ public static class BlockActions
             }
         }
         foreach (var (q, _) in cells) if (!Replaceable(q.Id)) { why = $"{d.Name} needs {cells.Count} free cells"; return false; }
+        if (BEH[id] != null && !BEH[id].CanPlaceAt(at, id, out why)) return false;
         foreach (var (q, w) in cells) q.Set(id, (int)w);
         BEH[id]?.OnPlace(at, id);
         foreach (var (q, _) in cells) NotifyNeighbors(q);
@@ -76,9 +77,11 @@ public static class BlockActions
         int id = p.Id; if (id == 0) return;
         int state = p.State; var parts = new List<(BlockPos pos, int part)>();
         Parts(p, id, state, parts);
+        var drops = BEH[id]?.Harvest(p, id, state);
         BEH[id]?.OnBreak(p, id, state);
         foreach (var (q, _) in parts) if (q.Id == id) { BlockStates.entities.Remove(q.Key); q.Set(0); }
         foreach (var (q, _) in parts) NotifyNeighbors(q);
+        if (drops != null) foreach (var s in drops) if (s != null && !s.IsEmpty) PlayerInventory.Add(s); // straight into the inventory (no item drops yet)
     }
 
     /// <summary>Removes p if it is a multiblock part whose other parts are gone (e.g. the other door half was replaced).</summary>

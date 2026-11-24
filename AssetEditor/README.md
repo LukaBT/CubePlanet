@@ -59,7 +59,7 @@ Top level: `type` "block", `namespace`, `id_name`, `id`, `name`, `stateless`, `g
 | `rotation` | `none` / `horizontal` / `all`; adds a `facing` state field (north, east, south, west [, up, down]) |
 | `placement_facing` | `toward_player` (front faces you) / `away` (stairs, doors, beds) |
 | `multiblock.parts` | `[{"offset": [x, y, z], "state": {...}}]` relative to the facing; every part needs a different state |
-| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences, cables, pipes: fields `north` `east` `south` `west`, optional `up` `down`), `turbine`, `pump`, `battery`, `spring` (hydro power, see the game README) |
+| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences, cables, pipes: fields `north` `east` `south` `west`, optional `up` `down`), `turbine`, `pump`, `battery`, `spring`, `drain` (hydro power), `farmland` (state `moisture` 0..8), `crop` (state `age`; key `crop`: `{"seed": item, "harvest": [{"item", "min", "max"}]}`; see the game README) |
 | `connects_to` | connecting blocks: group tags of the neighbours they join (full solid cubes count unless `connect_solid` is false) |
 | `connect_solid` | `true` (default, fences) / `false` (cables, pipes): whether connecting blocks join any full solid cube |
 | `geometry.collision`, `geometry.selection` = `"boxes"` | collide / select with the visible boxes of the current state (cables, pipes) |
@@ -82,7 +82,7 @@ with `"storage": "entity"` live in the block's **entity** (saved with the chunk)
 
 ## Item keys
 `type` "item", `namespace`, `id_name`, `id`, `name`, `group_tags`, `properties.definition`: `stack_size` (64), `places_block`
-`{namespace, id_name}`, `fuel_time` (seconds in a furnace), `behavior` (`bucket`), `capacity`; `properties.instance_state`: packed fields only
+`{namespace, id_name}`, `fuel_time` (seconds in a furnace), `behavior` (`bucket`, `hoe`), `capacity`; `properties.instance_state`: packed fields only
 (32 bits per stack, e.g. the bucket's `fill`).
 
 Item icons (`properties.definition.icon`), like Minecraft: `"model"` = the game draws the placed block's 3D model live in the slot, like Minecraft (default for `cube` / `boxes` blocks; multiblocks such as beds show all parts), `"sprite"` = the block's texture drawn flat (default for `cross` / `attached` / `liquid` blocks: flowers, saplings, vines), `"texture"` = the item's own picture in the item atlas (default for items that place no block; the door uses it for its flat door picture). `icon_state` sets block state values for the icon, e.g. `{"east": true, "west": true}` shows a fence with bars; rotating blocks show their front unless `facing` is given.

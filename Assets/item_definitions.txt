@@ -2585,6 +2585,125 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "wheat_seeds",
+      "id": 144,
+      "name": "Wheat Seeds",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "wheat"
+          },
+          "icon": "texture"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wheat",
+      "id": 145,
+      "name": "Wheat",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "carrot",
+      "id": 146,
+      "name": "Carrot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "carrots"
+          },
+          "icon": "texture"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "potato",
+      "id": 147,
+      "name": "Potato",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "potatoes"
+          },
+          "icon": "texture"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "beetroot",
+      "id": 148,
+      "name": "Beetroot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "beetroot_seeds",
+      "id": 149,
+      "name": "Beetroot Seeds",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "beetroots"
+          },
+          "icon": "texture"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wooden_hoe",
+      "id": 150,
+      "name": "Wooden Hoe",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "behavior": "hoe"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

@@ -18,6 +18,10 @@ public abstract class BlockBehavior
     public virtual void OnTick(BlockEntity e, double dt) { }
     /// <summary>A neighbouring cell changed (placed / broken by a player or another block).</summary>
     public virtual void OnNeighborChanged(BlockPos p, int id, BlockPos from) { }
+    /// <summary>May the block be placed at 'at'? (seeds only on farmland). why = the message shown when not.</summary>
+    public virtual bool CanPlaceAt(BlockPos at, int id, out string why) { why = null; return true; }
+    /// <summary>Items the player gets when breaking it (crops: produce and seeds); null = nothing.</summary>
+    public virtual IEnumerable<ItemStack> Harvest(BlockPos p, int id, int state) => null;
     /// <summary>Extra text for the HUD's TARGET line (machines: mode, flow, power, charge).</summary>
     public virtual string Describe(BlockEntity e) => "";
 
@@ -35,6 +39,8 @@ public abstract class BlockBehavior
         ["battery"] = () => new BatteryBehavior(),
         ["spring"] = () => new SpringBehavior(),
         ["drain"] = () => new DrainBehavior(),
+        ["farmland"] = () => new FarmlandBehavior(),
+        ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>
         Known.TryGetValue(name, out var f) ? f() : throw new InvalidDataException($"{owner}: unknown behavior '{name}' (known: {string.Join(", ", Known.Keys)})");

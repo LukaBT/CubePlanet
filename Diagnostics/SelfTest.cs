@@ -68,6 +68,7 @@ public static class SelfTest
         CaveWater();
         Hydro();
         LakeTest();
+        Farm();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
@@ -98,6 +99,64 @@ public static class SelfTest
         Check(WaterSim.Reservoir == res0 && Units() == u0 - 6, $"lake water is plain water: nothing refills it ({u0} -> {Units()} units, reservoir {(WaterSim.Reservoir - res0):+0;-0;0})");
         WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
         foreach (var ch in made) FreeChunk(ch);
+    }
+
+    // farming: farmland takes water from nearby water, crops drink it to grow (it goes to the reservoir), dry crops wilt, harvest gives items
+    static void Farm()
+    {
+        int Id(string n) => GameAssets.BlockReg.Id(n);
+        var (_, _, g) = SpotInFront(20); int bi = BlockAccess.P2b(g.X, g.Y, g.Z); int f = PF, x0 = PX, y0 = PY + 30, z0 = PZ;
+        var made = new List<Chunk>();
+        for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++)
+                {
+                    long k = ck(bi, f, (x0 >> 5) + dx, (y0 >> 5) + dy, (z0 >> 5) + dz);
+                    if (!chunks.TryGetValue(k, out var c)) { c = new Chunk { key = k, band = bi, face = f, cx = (x0 >> 5) + dx, cy = (y0 >> 5) + dy, cz = (z0 >> 5) + dz }; AddChunk(c); made.Add(c); }
+                    ChunkGenerator.Ensure(c); c.built = true;
+                }
+        BlockPos At(int x, int y, int z) => new(false, bi, f, x0 + x, y0 + y, z0 + z);
+        for (int y = -2; y <= 4; y++) for (int z = -3; z <= 8; z++) for (int x = -3; x <= 26; x++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, y == -1 ? Stone : 0);
+        // a closed water channel (x 0..8, z 0) and farmland beside it (z 1..4); a dry farm far away (x 20..22) and one bare dry farmland
+        for (int x = -1; x <= 9; x++) for (int z = -1; z <= 5; z++) if (x < 0 || x > 8 || z < 0) SetCell(bi, f, x0 + x, y0, z0 + z, Stone);
+        for (int x = 0; x <= 8; x++) SetCell(bi, f, x0 + x, y0, z0, Water, 8);
+        int dirt = Dirt, farm = Id("farmland"), wheat = Id("wheat"), seeds = GameAssets.ItemReg.Id("wheat_seeds");
+        for (int x = 0; x <= 8; x++) for (int z = 1; z <= 4; z++) SetCell(bi, f, x0 + x, y0, z0 + z, dirt);
+        for (int x = 20; x <= 22; x++) SetCell(bi, f, x0 + x, y0, z0 + 2, dirt);
+        SetCell(bi, f, x0 + 25, y0, z0 + 2, dirt);
+        bool tilled = true;
+        foreach (var (x, z) in Enumerable.Range(0, 9).SelectMany(x => Enumerable.Range(1, 4).Select(z => (x, z))).Concat(new[] { (20, 2), (21, 2), (22, 2), (25, 2) })) tilled &= Farming.Till(At(x, 0, z));
+        Check(tilled && At(3, 0, 2).Id == farm, "a hoe tills dirt into farmland");
+        Check(!BlockActions.Place(At(10, 0, 6), wheat, new V3(1, 0, 0), out _) && At(10, 0, 6).Id != wheat, "seeds cannot be planted off farmland");
+        int planted = 0;
+        for (int x = 0; x <= 8; x++) for (int z = 1; z <= 4; z++) if (BlockActions.Place(At(x, 1, z), wheat, new V3(1, 0, 0), out _)) planted++;
+        foreach (int x in new[] { 20, 21, 22 }) BlockActions.Place(At(x, 1, 2), wheat, new V3(1, 0, 0), out _);
+        Check(planted == 36, $"wheat is planted on farmland ({planted} of 36)");
+        // the channel alone holds 72 units, 36 wheat plants drink 252: a spring at its end keeps it supplied (from the water cycle)
+        { var sp = At(-1, 0, 0); int sid = Id("spring"); var ff = DEFS[sid].State.Find("facing"); sp.Set(sid, (int)ff.With(0, Array.IndexOf(ff.Values, "east"))); BEH[sid].OnPlace(sp, sid); BlockStates.entities[sp.Key].SetNum("rate", 4); }
+        for (int x = 0; x <= 8; x++) SetCell(bi, f, x0 + x, y0 + 1, z0, Stone); // covered: a full channel cannot overflow onto the crops
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        int Channel() { int n = 0; for (int x = 0; x <= 8; x++) n += Wl(Wcell(bi, f, x0 + x, y0, z0)); return n; }
+        int Soil() { int n = 0; for (int x = 0; x <= 8; x++) for (int z = 1; z <= 4; z++) { var p = At(x, 0, z); if (Farming.IsFarmland(p.Id)) n += Farming.MoistureAt(p); } return n; }
+        int water0 = Channel();
+        for (int i = 0; i < 4200; i++) { BlockActions.Tick(.1); if ((i & 1) == 1) WaterSim.WaterStep(); } // 7 minutes
+        int ripe = 0; for (int x = 0; x <= 8; x++) for (int z = 1; z <= 4; z++) { var p = At(x, 1, z); if (p.Id == wheat && CropBehavior.AgeOf(wheat, p.State) == CropBehavior.MaxAge(wheat)) ripe++; }
+        double net = WaterSim.Reservoir - WaterSim.DefaultReservoir; int water1 = Channel(), soil = Soil(); // net: given off by plants - taken by the spring
+        int stages = 0; for (int x = 0; x <= 8; x++) for (int z = 1; z <= 4; z++) { var p = At(x, 1, z); if (p.Id == wheat) stages += CropBehavior.AgeOf(wheat, p.State); }
+        Console.WriteLine($"FARM 7 min: {ripe} of 36 watered wheat ripe ({stages} growth stages), channel {water0} -> {water1} units, soil holds {soil}, reservoir {net:+0;-0}");
+        Check(ripe >= 30, $"watered wheat ripens ({ripe} of 36 ripe after 7 minutes)");
+        Check(Math.Abs(water1 + soil + net - water0) < .01, $"farm water is conserved: channel {water0} -> {water1}, soil {soil}, reservoir {net:+0;-0} (sum {water1 + soil + net:0})");
+        bool dryNotRipe = new[] { 20, 21, 22 }.All(x => { var p = At(x, 1, 2); return p.Id == DeadBush || (p.Id == wheat && CropBehavior.AgeOf(wheat, p.State) == 0); });
+        Check(dryNotRipe, $"wheat without water wilts and dries up ({string.Join(", ", new[] { 20, 21, 22 }.Select(x => BN[At(x, 1, 2).Id]))})");
+        Check(At(25, 0, 2).Id == dirt, $"bare dry farmland turns back into dirt ({BN[At(25, 0, 2).Id]})");
+        // harvest: breaking ripe wheat gives wheat (and seeds) into the inventory
+        for (int i = 0; i < PlayerInventory.Main.Length; i++) PlayerInventory.Main[i] = null;
+        int Count(int item) => PlayerInventory.Hotbar.Concat(PlayerInventory.Main).Where(st => st != null && !st.IsEmpty && st.Item == item).Sum(st => st.Count);
+        int wheatItem = GameAssets.ItemReg.Id("wheat"), w0 = Count(wheatItem);
+        for (int x = 0; x <= 8; x++) { var p = At(x, 1, 1); if (p.Id == wheat && CropBehavior.AgeOf(wheat, p.State) == CropBehavior.MaxAge(wheat)) { BlockActions.Break(p); break; } }
+        Check(Count(wheatItem) > w0, "breaking ripe wheat gives wheat");
+        for (int y = -2; y <= 4; y++) for (int z = -3; z <= 8; z++) for (int x = -3; x <= 26; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); }
+        for (int i = 0; i < PlayerInventory.Main.Length; i++) PlayerInventory.Main[i] = null;
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        foreach (var c in made) FreeChunk(c);
     }
 
     // hydro power: a tank up high, a pipe down to a turbine, a cable to a battery; then a pump lifting water back; flow drawn on the water
