@@ -11,4 +11,5 @@ vec4 waveSwell(vec3 up){float pw=max(uWK,1.05)+uSea,g=.45+7.*uSea;
 vec4 waveSum(vec3 up){float pw=max(uWK,1.05)+.5*uSea,g=1.+1.6*uSea;
  return waveSwell(up)+g*(wv1(up,wrot(vec3(.5,-.6,.6)),.7,.06,pw)+wv1(up,wrot(vec3(-.4,-.7,-.55)),1.1,.04,pw)+wv1(up,wrot(vec3(-.1,.95,-.3)),1.6,.025,pw)+wv1(up,wrot(vec3(.6,.3,-.8)),.42,.05,pw));}
 float waveMax(){return .75*max(uWA,.01)*(.34*(.45+7.*uSea)+.175*(1.+1.6*uSea));}
-float gCalm=0.;
+// gFlow: flowing water (xyz world direction, w strength 0..1), set by terrain.frag
+float gCalm=0.;vec4 gFlow=vec4(0.);

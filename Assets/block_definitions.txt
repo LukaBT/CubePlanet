@@ -10574,7 +10574,9 @@
       "id": 128,
       "name": "Oxygen Generator",
       "stateless": false,
-      "group_tags": [],
+      "group_tags": [
+        "energy"
+      ],
       "textures": {
         "north": 137,
         "side": 138,
@@ -10870,6 +10872,601 @@
           ]
         },
         "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "copper_cable",
+      "id": 132,
+      "name": "Copper Cable",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 140
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "energy"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0.375,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 0.25,
+              "d": 0.25
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0.625,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.625,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.625,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            186,
+            102,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "copper_cable",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "water_pipe",
+      "id": 133,
+      "name": "Water Pipe",
+      "stateless": false,
+      "group_tags": [
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 141
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "water_pipe"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.3125,
+              "y": 0.3125,
+              "z": 0.3125,
+              "w": 0.375,
+              "h": 0.375,
+              "d": 0.375
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.3125,
+                    "z": 0,
+                    "w": 0.375,
+                    "h": 0.375,
+                    "d": 0.3125
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.3125,
+                    "z": 0.6875,
+                    "w": 0.375,
+                    "h": 0.375,
+                    "d": 0.3125
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.6875,
+                    "y": 0.3125,
+                    "z": 0.3125,
+                    "w": 0.3125,
+                    "h": 0.375,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.3125,
+                    "z": 0.3125,
+                    "w": 0.3125,
+                    "h": 0.375,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.6875,
+                    "z": 0.3125,
+                    "w": 0.375,
+                    "h": 0.3125,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0,
+                    "z": 0.3125,
+                    "w": 0.375,
+                    "h": 0.3125,
+                    "d": 0.375
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            110,
+            116,
+            122
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "water_pipe",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "water_turbine",
+      "id": 134,
+      "name": "Water Turbine",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "water_pipe"
+      ],
+      "textures": {
+        "north": 142,
+        "south": 143,
+        "side": 144,
+        "top": 145,
+        "bottom": 145
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "turbine",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            70,
+            110,
+            180
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "water_turbine",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "head": {
+            "type": "number",
+            "default": 0
+          },
+          "flow": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "water_pump",
+      "id": 135,
+      "name": "Water Pump",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "water_pipe"
+      ],
+      "textures": {
+        "north": 146,
+        "south": 143,
+        "side": 147,
+        "top": 145,
+        "bottom": 145
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "pump",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            200,
+            170,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "water_pump",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "lift": {
+            "type": "number",
+            "default": 0
+          },
+          "flow": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "battery",
+      "id": 136,
+      "name": "Battery",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "top": 148,
+        "bottom": 148,
+        "side": 149
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "battery",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            60,
+            64,
+            70
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "battery",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "energy": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "spring",
+      "id": 137,
+      "name": "Spring",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 150,
+        "side": 36,
+        "top": 36,
+        "bottom": 36
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "spring",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            90,
+            110,
+            90
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "spring",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "rate": {
+            "type": "number",
+            "default": 4
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          }
+        }
       }
     }
   ]

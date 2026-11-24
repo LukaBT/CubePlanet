@@ -30,7 +30,9 @@ public static class Hud
     {
         var t = TG; if (t == null || t.id == 0) return "";
         var d = DEFS[t.id]; string st = d == null || d.State.Packed.Count == 0 ? "" : " " + d.State.Describe((uint)t.state).ToUpperInvariant();
-        return $"\nTARGET {(d?.Name ?? BN[t.id]).ToUpperInvariant()}{st}";
+        string more = "";
+        if (BEH[t.id] != null && BlockStates.entities.TryGetValue(BlockPos.Of(t).Key, out var be)) { string s = BEH[t.id].Describe(be); if (s.Length > 0) more = "\n" + s; }
+        return $"\nTARGET {(d?.Name ?? BN[t.id]).ToUpperInvariant()}{st}{more}";
     }
     public static void UpdateFps(double dt) { fps += (1 / Math.Max(dt, 1e-3) - fps) * .05; }
 }

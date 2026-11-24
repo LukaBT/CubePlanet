@@ -66,10 +66,87 @@ public static class SelfTest
         EditDirtying();
         Icons();
         CaveWater();
+        Hydro();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
         return fails == 0 ? 0 : 1;
+    }
+
+    // hydro power: a tank up high, a pipe down to a turbine, a cable to a battery; then a pump lifting water back; flow drawn on the water
+    static void Hydro()
+    {
+        int Id(string n) => GameAssets.BlockReg.Id(n);
+        var (_, _, g) = SpotInFront(16); int bi = BlockAccess.P2b(g.X, g.Y, g.Z); int f = PF, x0 = PX, y0 = PY + 24, z0 = PZ;
+        var made = new List<Chunk>();
+        for (int dy = -2; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++)
+                {
+                    long k = ck(bi, f, (x0 >> 5) + dx, (y0 >> 5) + dy, (z0 >> 5) + dz);
+                    if (!chunks.TryGetValue(k, out var c)) { c = new Chunk { key = k, band = bi, face = f, cx = (x0 >> 5) + dx, cy = (y0 >> 5) + dy, cz = (z0 >> 5) + dz }; AddChunk(c); made.Add(c); }
+                    ChunkGenerator.Ensure(c); c.built = true;
+                }
+        BlockPos At(int x, int y, int z) => new(false, bi, f, x0 + x, y0 + y, z0 + z);
+        void Put(int x, int y, int z, int id, string facing = null)
+        {
+            var p = At(x, y, z); uint w = 0; var ff = DEFS[id]?.State.Find("facing");
+            if (facing != null && ff != null) w = ff.With(0, Array.IndexOf(ff.Values, facing));
+            p.Set(id, (int)w); BEH[id]?.OnPlace(p, id); BlockActions.NotifyNeighbors(p);
+        }
+        // clear the space, then build: tank (3x3x4 water on a stone floor at y 9) -> pipe down -> turbine facing down at y 1 -> outlet y 0
+        for (int y = -3; y <= 16; y++) for (int z = -3; z <= 5; z++) for (int x = -3; x <= 8; x++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0);
+        for (int z = -1; z <= 3; z++) for (int x = -1; x <= 3; x++) { SetCell(bi, f, x0 + x, y0 + 9, z0 + z, Stone); for (int y = 10; y <= 14; y++) if (x < 0 || x > 2 || z < 0 || z > 2) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Stone); }
+        for (int y = 10; y <= 13; y++) for (int z = 0; z <= 2; z++) for (int x = 0; x <= 2; x++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Water, 8);
+        for (int z = -3; z <= 5; z++) for (int x = -3; x <= 8; x++) { SetCell(bi, f, x0 + x, y0 - 3, z0 + z, Stone); if (x == -3 || x == 8 || z == -3 || z == 5) for (int y = -2; y <= -1; y++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Stone); } // basin
+        int pipe = Id("water_pipe"), cable = Id("copper_cable"), turb = Id("water_turbine"), bat = Id("battery"), pump = Id("water_pump");
+        for (int y = 9; y >= 2; y--) Put(1, y, 1, pipe);
+        Put(1, 1, 1, turb, "down"); Put(2, 1, 1, cable); Put(3, 1, 1, cable); Put(4, 1, 1, bat);
+        var cst = At(2, 1, 1).State; var cdef = DEFS[cable];
+        Check(cdef.State.Find("east").Index((uint)cst) == 1 && cdef.State.Find("west").Index((uint)cst) == 1 && cdef.State.Find("up").Index((uint)cst) == 0, "cable joins the turbine and the next cable, not the air");
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
+        int Units() { int n = 0; for (int y = -3; y <= 16; y++) for (int z = -3; z <= 5; z++) for (int x = -3; x <= 8; x++) { var c = Wcell(bi, f, x0 + x, y0 + y, z0 + z); n += Wl(c); } return n; }
+        int Tank() { int n = 0; for (int y = 10; y <= 14; y++) for (int z = 0; z <= 2; z++) for (int x = 0; x <= 2; x++) n += Wl(Wcell(bi, f, x0 + x, y0 + y, z0 + z)); return n; }
+        int total0 = Units(), tank0 = Tank();
+        var te = BlockStates.entities[At(1, 1, 1).Key]; var be = BlockStates.entities[At(4, 1, 1).Key];
+        // auto (default): nothing needs energy, so the dam keeps its water
+        for (int i = 0; i < 10; i++) BlockActions.Tick(.1);
+        Check(Tank() == tank0 && be.Num("energy") == 0, "turbine on auto keeps the water when nothing needs energy");
+        te.SetNum("mode", 1); // on: runs and charges the battery
+        for (int i = 0; i < 40; i++) { BlockActions.Tick(.1); WaterSim.WaterStep(); }
+        int moved = tank0 - Tank(); double head = te.Num("head"), expect = moved * head * WaterMachines.K * TurbineBehavior.Efficiency * BatteryBehavior.Efficiency;
+        Check(moved > 20 && Math.Abs(be.Num("energy") - expect) < expect * .2 + 2, $"turbine: {moved} units fell {head:0.0} blocks -> battery {be.Num("energy"):0.0} E (expected ~{expect:0.0})");
+        Check(Units() == total0, $"turbine moves water without creating or losing any ({Units()} vs {total0})");
+        // flow: the falling water under the outlet is measured and drawn (flow bits in the water mesh)
+        WaterFlow.Tick(.6);
+        var oc = chunks[ck(bi, f, x0 >> 5, (y0 - 1) >> 5, z0 >> 5)]; var r = Mesher.Build(oc, out _); bool drawn = false;
+        if (r?.w != null) for (int k = 0; k < r.w.vb.Length / 16 && !drawn; k++) { int u = BitConverter.ToUInt16(r.w.vb, k * 16 + 10); drawn = ((u >> 10) & 63) >> 3 > 0; }
+        var fo = WaterFlow.At(Wcell(bi, f, x0 + 1, y0, z0 + 1).k);
+        Check(fo.fall > 1 && drawn, $"flowing water is measured ({fo.fall:0.0} units/s falling) and drawn in the water mesh");
+        // pump (on): lifts water from the basin back up into the tank through a pipe, using the battery's energy
+        te.SetNum("mode", 2);
+        for (int i = 0; i < 30; i++) WaterSim.WaterStep();
+        // a pool on the basin floor (y -2), the pump above it facing up, pipes up to y 12 and across into the tank's side wall
+        for (int z = 0; z <= 2; z++) for (int x = 5; x <= 7; x++) SetCell(bi, f, x0 + x, y0 - 2, z0 + z, Water, 8);
+        Put(6, -1, 1, pump, "up"); for (int y = 0; y <= 12; y++) Put(6, y, 1, pipe); Put(5, 12, 1, pipe); Put(4, 12, 1, pipe); Put(3, 12, 1, pipe);
+        Put(4, 0, 1, cable); Put(4, -1, 1, cable); Put(5, -1, 1, cable); // battery (4,1,1) -> (4,0,1) -> (4,-1,1) -> (5,-1,1) -> pump (6,-1,1)
+        var pe = BlockStates.entities[At(6, -1, 1).Key]; pe.SetNum("mode", 1);
+        double e0 = be.Num("energy"); int tankB = Tank(), totalB = Units();
+        for (int i = 0; i < 30; i++) BlockActions.Tick(.1);
+        int lifted = Tank() - tankB; double used = e0 - be.Num("energy");
+        Check(lifted > 0 && used > 0 && Units() + 0 == totalB, $"pump lifts {lifted} units into the tank using {used:0.0} E (water kept: {Units()} vs {totalB})");
+        Check(lifted * te.Num("head") * WaterMachines.K * .8 < used, "pumping up costs more than the turbine gets back (no free energy)");
+        Console.WriteLine($"HYDRO turbine: {moved} units x head {head:0.0} -> battery {be.Num("energy"):0.0} E; flow under the outlet {fo.fall:0.0} u/s falling; pump: {lifted} units up for {used:0.0} E; round trip {lifted * head * WaterMachines.K * .8 * .95 / Math.Max(1e-9, used) * 100:0} %");
+        // auto: an oxygen generator touching the battery needs energy, the battery is empty, so the turbine opens by itself
+        pe.SetNum("mode", 2); te.SetNum("mode", 0); be.SetNum("energy", 0); Put(4, 2, 1, Id("oxygen_generator"), "north");
+        var og = BlockStates.entities[At(4, 2, 1).Key]; int tankC = Tank();
+        for (int i = 0; i < 20; i++) BlockActions.Tick(.1);
+        Check(og.Num("energy") > 5 && Tank() < tankC, $"turbine on auto runs when a machine needs energy (generator got {og.Num("energy"):0.0} E, {tankC - Tank()} units used)");
+        // spring: water comes from the reservoir, which loses exactly what the world gains
+        Put(0, 2, 4, Id("spring"), "east"); double res0 = WaterSim.Reservoir; int w0 = Units();
+        for (int i = 0; i < 20; i++) BlockActions.Tick(.1);
+        Check(Units() - w0 > 0 && Math.Abs(Units() - w0 - (res0 - WaterSim.Reservoir)) < .01, $"spring adds {Units() - w0} units, the reservoir loses the same ({res0 - WaterSim.Reservoir:0})");
+        for (int y = -3; y <= 16; y++) for (int z = -3; z <= 5; z++) for (int x = -3; x <= 8; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); }
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        foreach (var c in made) FreeChunk(c);
     }
 
     // cave water (aquifers): generated level and at rest, the same at unloaded cells (Gen), and the simulation re-meshes in the background
@@ -127,6 +204,9 @@ public static class SelfTest
         int pid = It("poppy").Id, o0 = (pid * S * S + 64 * S + 64) * 4, o1 = (pid * S * S + 71 * S + 71) * 4;
         Check(top[o0] == top[o1] && top[o0 + 1] == top[o1 + 1] && top[o0 + 3] == top[o1 + 3], "sprite icons keep square pixels");
         try { Gpu.CheckCompiles(Glsl.UI_FS, true, "ui.frag"); Check(true, ""); } catch (Exception e) { Check(false, "ui.frag compiles: " + e.Message); }
+        // terrain / water shaders, put together as Renderer does (flowing water look)
+        try { Gpu.CheckCompiles(Glsl.WAVE + Glsl.PV_VS, false, "terrain.vert"); Gpu.CheckCompiles(Glsl.WAVE + Glsl.COMMON_BODY + Glsl.PV_FS, true, "terrain.frag"); Check(true, ""); }
+        catch (Exception e) { Check(false, "terrain shaders compile: " + e.Message); }
     }
 
     // a block edit re-meshes on the main thread only the chunks whose faces change (its own, a neighbour it touches); chunks merely within

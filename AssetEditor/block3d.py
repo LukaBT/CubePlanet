@@ -201,9 +201,12 @@ def variant(d, state):
     for ov in geo.get("state_overrides", []) or []:
         if not matches(state, ov.get("when")): continue
         if "boxes" in ov: boxes = ov["boxes"]
+        if "add_boxes" in ov: boxes = list(boxes) + list(ov["add_boxes"])  # cable / pipe arms: one override per side
         if "collision" in ov: coll = ov["collision"]
         if "selection" in ov: sel = ov["selection"]
         if "textures" in ov: tex = {**tex, **flatten(ov["textures"])}
+    if coll == "boxes": coll = boxes  # collide with the visible boxes of this state
+    if sel == "boxes": sel = boxes
     v = {"faces": faces_of(tex), "boxes": [(norm_box(b), faces_of({**tex, **flatten(b.get("textures"))})) for b in boxes],
          "collision": None if coll is None else [norm_box(b) for b in coll], "selection": None if sel is None else [norm_box(b) for b in sel]}
     f = state.get("facing", "north") if pd.get("rotation", "none") != "none" else "north"

@@ -1,5 +1,5 @@
 layout(location=0)in ivec4 aPi;layout(location=1)in uvec2 aSU;layout(location=2)in vec4 aNn;layout(location=3)in uvec4 aMf;
-uniform mat4 uVP;uniform vec3 uO,uC,uWdir;uniform float uWt,uWnd,uTime;out vec2 vUv;flat out float vL;out float vS,vO;out vec3 vN;out vec3 vP;out float vAO;flat out uint vF;
+uniform mat4 uVP;uniform vec3 uO,uC,uWdir;uniform float uWt,uWnd,uTime;out vec2 vUv;flat out float vL;out float vS,vO;out vec3 vN;out vec3 vP;out float vAO;flat out uint vF;flat out vec4 vFl;
 void main(){vec3 aP=vec3(aPi.xyz)*.00390625,aN=aNn.xyz;float aL=float(aPi.w),aS=float(aSU.x)*(1./120.);vec2 aUv=vec2(float(aSU.y&31u),float((aSU.y>>5)&31u))*.0625;
  vAO=float((aSU.y>>10)&3u);uint mf=aMf.w&63u;vF=mf;vec3 p=aP+uO;float sf=step(1.5,aS),oq=floor(max(aS-2.,0.)*.5)*sf;
  if(uWt>.5&&uWt<1.5&&sf>.5){vec3 wp=p+uC,up=normalize(wp);p+=up*waveSum(up).x*(oq*.125);}
@@ -7,4 +7,6 @@ void main(){vec3 aP=vec3(aPi.xyz)*.00390625,aN=aNn.xyz;float aL=float(aPi.w),aS=
  if(uWt<.5&&uWnd>.01){float lf=float(mf&1u),pl=float((mf>>1)&1u);
   if(lf+pl>.5){vec3 wp=p+uC;float g=.5+.5*sin(dot(wp,uWdir)*.07-uTime*(1.2+3.*uWnd)),a=uWnd*(lf*.12+pl*.34*aUv.y*aUv.y);
    p+=(uWdir*(.35+.65*g)+cross(normalize(wp),uWdir)*sin(dot(wp,vec3(.9,.7,1.1))*.9+uTime*(3.+5.*uWnd))*.35)*a;}}
+ // water flow (Mesher.FlowBits): bits 10..15 = direction (3 bits, 45 degree steps in the t1 / t2 frame) + strength (3 bits)
+ vFl=vec4(0.);if(uWt>.5&&uWt<1.5){uint fb=(aSU.y>>10)&63u;float fs=float(fb>>3)/7.;if(fs>0.){vec3 uq=normalize(aP+uO+uC),q1=normalize(cross(uq,vec3(.31,.83,.47))),q2=cross(uq,q1);float fa=float(fb&7u)*.7853982;vFl=vec4(q1*cos(fa)+q2*sin(fa),fs);}}
  vP=p;gl_Position=uVP*vec4(p,1.);vUv=aUv;vL=aL;vS=aS-2.*sf-2.*oq;vO=oq*.125;vN=aN;}

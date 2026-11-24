@@ -18,6 +18,8 @@ public abstract class BlockBehavior
     public virtual void OnTick(BlockEntity e, double dt) { }
     /// <summary>A neighbouring cell changed (placed / broken by a player or another block).</summary>
     public virtual void OnNeighborChanged(BlockPos p, int id, BlockPos from) { }
+    /// <summary>Extra text for the HUD's TARGET line (machines: mode, flow, power, charge).</summary>
+    public virtual string Describe(BlockEntity e) => "";
 
     static readonly Dictionary<string, Func<BlockBehavior>> Known = new()
     {
@@ -28,6 +30,10 @@ public abstract class BlockBehavior
         ["oxygen_generator"] = () => new OxygenGeneratorBehavior(),
         ["stairs"] = () => new StairsBehavior(),
         ["connecting"] = () => new ConnectingBehavior(),
+        ["turbine"] = () => new TurbineBehavior(),
+        ["pump"] = () => new PumpBehavior(),
+        ["battery"] = () => new BatteryBehavior(),
+        ["spring"] = () => new SpringBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>
         Known.TryGetValue(name, out var f) ? f() : throw new InvalidDataException($"{owner}: unknown behavior '{name}' (known: {string.Join(", ", Known.Keys)})");

@@ -25,6 +25,8 @@ public readonly struct BlockPos : IEquatable<BlockPos>
         p = new BlockPos(false, NB, NF, NX, NY, NZ); return true;
     }
     public int Id => Core ? CoreCell(X, Y, Z) : Blk(B, F, X, Y, Z);
+    /// <summary>The cell's chunk is loaded (reading Id elsewhere would generate terrain for that one cell).</summary>
+    public bool Loaded => Core || (chunks.TryGetValue(ck(B, F, X >> 5, Y >> 5, Z >> 5), out var ch) && ch.d != null);
     public int State => BlockStates.Get(this);
     /// <summary>Same key as the player-edit / state / entity tables (band cells: Mix hash; core cells: a separate range).</summary>
     public long Key => Core ? long.MinValue + 1 + cEk(X, Y, Z) : Mix(B * 6 + F, X, Y, Z);

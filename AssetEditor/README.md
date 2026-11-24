@@ -55,12 +55,15 @@ Top level: `type` "block", `namespace`, `id_name`, `id`, `name`, `stateless`, `g
 | `boxes` | `[{"x","y","z","w","h","d", "textures": {...}}]` block units 0..1, y up; textures are cut to the box |
 | `geometry.collision` | boxes the player collides with; missing = full block for cubes, none otherwise; `[]` = walk through |
 | `geometry.selection` | boxes the cursor targets; missing = full block (none for liquids) |
-| `geometry.state_overrides` | `[{"when": {field: value}, "boxes", "collision", "selection", "textures"}]` in order, matching ones win |
+| `geometry.state_overrides` | `[{"when": {field: value}, "boxes", "add_boxes", "collision", "selection", "textures"}]` in order, matching ones win; `add_boxes` adds boxes instead of replacing them (cable / pipe arms: one override per side) |
 | `rotation` | `none` / `horizontal` / `all`; adds a `facing` state field (north, east, south, west [, up, down]) |
 | `placement_facing` | `toward_player` (front faces you) / `away` (stairs, doors, beds) |
 | `multiblock.parts` | `[{"offset": [x, y, z], "state": {...}}]` relative to the facing; every part needs a different state |
-| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences) |
-| `connects_to` | connecting blocks: group tags of the neighbours they join (full solid cubes always count) |
+| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences, cables, pipes: fields `north` `east` `south` `west`, optional `up` `down`), `turbine`, `pump`, `battery`, `spring` (hydro power, see the game README) |
+| `connects_to` | connecting blocks: group tags of the neighbours they join (full solid cubes count unless `connect_solid` is false) |
+| `connect_solid` | `true` (default, fences) / `false` (cables, pipes): whether connecting blocks join any full solid cube |
+| `geometry.collision`, `geometry.selection` = `"boxes"` | collide / select with the visible boxes of the current state (cables, pipes) |
+| group tags `energy`, `energy_cable`, `water_pipe` | `energy`: cables connect to it; `energy_cable`: carries energy between machines; `water_pipe`: pipes connect to it and carry water for turbines / pumps |
 | `render.layer` | `opaque` (hides neighbour faces) / `cutout` / `translucent` / `liquid` |
 | `render.connect_group` | faces between equal groups are hidden (`leaves`, `glass`, `ice`, any name) |
 | `render.sway` | `none` / `leaves` / `plant` / `underwater` |

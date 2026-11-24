@@ -35,7 +35,8 @@ public static class Mesher
                 ushort* u = (ushort*)(pb + k * 16 + 8);
                 u[0] = (ushort)Math.Clamp(Math.Round(v[o + 6] * 120), 0, 65535);
                 int ui = (int)v[o + 3], ao = 3 - ((ui >> 5) & 3);
-                u[1] = (ushort)((ui & 31) | (((int)v[o + 4] & 31) << 5) | (ao << 10)); // bits: u (5, 1/16 block), v (5), ao (2)
+                int fl = (ui >> 7) & 63; // water flow (water faces only; the water pass has no ambient occlusion): replaces the ao bits, 6 bits
+                u[1] = (ushort)((ui & 31) | (((int)v[o + 4] & 31) << 5) | (fl != 0 ? fl << 10 : ao << 10)); // bits: u (5, 1/16 block), v (5), ao (2) or flow (6)
                 sbyte* nn = (sbyte*)(pb + k * 16 + 12);
                 nn[0] = (sbyte)Math.Round(v[o + 7] * 127); nn[1] = (sbyte)Math.Round(v[o + 8] * 127); nn[2] = (sbyte)Math.Round(v[o + 9] * 127); ((byte*)nn)[3] = (byte)(lf >> 16); // 4th byte: material flags (Blocks.Mat*)
             }
@@ -341,6 +342,21 @@ public static class Mesher
             vv = (int)M.JsRound(8 * M.Sm(.7, 1, cnt / 12.0));
             oc[k] = vv; return vv;
         }
+        // flow drawn on a water face (WaterFlow snapshot): top faces get the direction (8 steps, measured in the shader's tangent frame
+        // t1 = normalize(cross(up, (.31, .83, .47))), t2 = cross(up, t1)) and strength; side faces get the falling strength
+        int FlowBits(int x, int y, int z, int fc)
+        {
+            if (!Norm(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z)) return 0;
+            int code = WaterFlow.CodeAt(ek()); if (code == 0) return 0;
+            if (DY[fc] == 0) { int fs = (code >> 6) & 7; return fs == 0 ? 0 : fs << 3; }
+            if (fc != 2) return 0;
+            int s = (code >> 3) & 7; if (s == 0) return 0;
+            double ang = (code & 7) * Math.PI / 4, gx = Math.Cos(ang), gz = Math.Sin(ang);
+            V3 c0 = Pt(x + .5, y + 1, z + .5), ex = Pt(x + 1, y + 1, z + .5) - Pt(x, y + 1, z + .5), ez = Pt(x + .5, y + 1, z + 1) - Pt(x + .5, y + 1, z);
+            V3 w = ex * gx + ez * gz, upv = M.Nrm(c0), t1 = M.Nrm(M.Cross(upv, new V3(.31, .83, .47))), t2 = M.Cross(upv, t1);
+            int bin = ((int)Math.Round(Math.Atan2(M.Dot(w, t2), M.Dot(w, t1)) / (Math.PI / 4)) + 8) & 7;
+            return bin | s << 3;
+        }
         const double WSURF = .8; // surface height of a full (8/8) water cell
         // disturbed water cells carry a level 1..8 (their state word); the surface vertex height is the average of the surrounding surface cells
         int Wlv(int x, int y, int z) => Norm(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z) && WLGet(ek(), out int lv) ? lv : 0;
@@ -430,6 +446,7 @@ public static class Mesher
                         else sky = LightAt(nx, ny, nz);
                         if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
                         float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[fc]) : Lay(id, fc);
+                        int flow = wt && WaterFlow.Cells.Count > 0 ? FlowBits(x, y, z, fc) : 0;
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)
                         bool doAO = aoOn && !wt && !isT && OPQ[id] != 0;
                         if (doAO)
@@ -447,7 +464,7 @@ public static class Mesher
                         else { aoq[0] = aoq[1] = aoq[2] = aoq[3] = 3; }
                         for (int i = 0; i < 4; i++)
                         {
-                            A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] * 16 + 32 * (3 - aoq[i])); A.Add(CV[i] * 16); A.Add(lay);
+                            A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] * 16 + 32 * (3 - aoq[i]) + 128 * flow); A.Add(CV[i] * 16); A.Add(lay);
                             A.Add((float)(sky + (ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0)));
                             A.Add((float)fx); A.Add((float)fy); A.Add((float)fz);
                         }

@@ -5,10 +5,14 @@ namespace CubePlanet;
 /// "water_in" slot into a "water" tank, and turns energy + water into "oxygen"; every 100 oxygen fills one oxygen canister in "output".
 /// Block entity fields: inventories "fuel", "water_in", "output"; numbers "energy" (0..100), "water" (0..32 units), "oxygen" (0..100).
 /// </summary>
-public sealed class OxygenGeneratorBehavior : BlockBehavior
+public sealed class OxygenGeneratorBehavior : BlockBehavior, IEnergyMachine
 {
     public const double MaxEnergy = 100, MaxWater = 32, MaxOxygen = 100;
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
+    // also takes energy from a network (cables), up to 20 E/s, besides burning fuel
+    public void Plan(BlockEntity e, double dt, ref EnergyPlan p) => p.Demand = Math.Max(0, Math.Min(20 * dt, MaxEnergy - e.Num("energy")));
+    public void Settle(BlockEntity e, double dt, double made, double got) => e.SetNum("energy", Math.Min(MaxEnergy, e.Num("energy") + got));
+    public override string Describe(BlockEntity e) => $"ENERGY {e.Num("energy"):0}  WATER {e.Num("water"):0}  OXYGEN {e.Num("oxygen"):0}";
 
     public override void OnTick(BlockEntity e, double dt)
     {

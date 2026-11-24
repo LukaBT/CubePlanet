@@ -60,6 +60,7 @@ Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPass
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
 UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windows from ui_definitions), SettingsPanel, Compass, StartScreen) + Hud, UiRegistry
 Util/                  V3, M (math)
+Energy/                EnergyNet (cable networks, balancing), WaterMachines (turbine, pump, battery, spring, pipe water paths)
 Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), EditBench (--benchedit), Png, item icon sheet (--iconsheet) (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 AssetEditor/           the Python / Tkinter asset editor (block3d.py = 3D rules + icon renderer, editor3d_tabs.py = Block 3D / Sounds / Recipes / Entities)
@@ -159,6 +160,38 @@ something other than open water (a block, ice, a capped or higher water column) 
 instead of pulling the surface away from the faces next to it.
 
 Performance: the simulation runs on the main thread (it changes the same block data the player, physics and renderer use) but costs at most 1.5 ms per frame: each tick's work (the cells active when the tick starts, at most 400, and 6 pressure searches; 5 ticks/s) is spread over frames. A cell that moved waits for the next tick, so water falls 5 blocks/s and spreads about 3 blocks/s (Minecraft: about 4). Its changes are meshed by the worker threads (a chunk version redoes a mesh that went stale meanwhile), and water only moves in loaded chunks. `--benchwater` (no window) checks generated water is at rest and times a spreading pool.
+
+## Hydro power and energy
+**Blocks** (all in the creative palette, search "water" / "cable"):
+* **Copper Cable** joins machines into an energy network (it connects to blocks with the group tag `energy`, in all 6 directions);
+  machines touching each other are connected too.
+* **Water Pipe** carries water for turbines and pumps. A pipe opens at its ends only (the side opposite its single connection).
+* **Water Turbine**: water flows from its back (intake) to its front (outlet; it faces you when placed, up or down when you look up or
+  down). Energy = units x head x 0.1 x 0.8 E, head = the intake's water surface over the outlet's (a pipe from a lake's bottom down to the
+  turbine is a penstock). At most 16 units (2 blocks) of water a second.
+* **Water Pump**: lifts water from its back to its front (or to the top end of a pipe column) for units x lift x 0.1 / 0.75 E.
+* **Battery**: 2000 E, 50 E/s in or out, 95 % each way.
+* **Spring**: water comes out of its front (right click: 1, 2, 4, 8, 16 units/s) for rivers, waterfalls and fountains.
+* The **oxygen generator** also takes energy from a network now (besides burning fuel).
+
+Right click a turbine or pump to switch **auto / on / off**. Auto is the useful one:
+* the network is balanced every 0.1 s: production of turbines set to "on" against demand (machines, pumps set to "on");
+* surplus charges batteries, then runs pumps on auto (pumped storage: water goes up while energy is spare), the rest is wasted;
+* a deficit opens turbines on auto (a dam keeps its water until energy is needed: the lake is the storage), then batteries; if still short,
+  every consumer gets the same share.
+
+Pump up + turbine down gives back about 50 % (0.75 x 0.8 and the batteries): storage, never free energy. Looking at a machine shows its
+mode, head / lift, flow and power in the HUD.
+
+**Water cycle** (no water is ever created): the world's water + `WaterSim.Reservoir` (saved in world.json) stays constant. Springs draw
+from the reservoir; water arriving on top of the sea goes back into it. The reservoir starts at about an ocean's volume, so the sea never
+visibly changes.
+
+**Flow**: every move of the water simulation (and of machines) is measured per cell (Worlds/WaterFlow.cs, units/s smoothed over 1.5 s).
+The mesher puts each moving cell's flow into the free vertex bits of its water faces (direction in 8 steps + strength 0..7 on top faces,
+falling strength on side faces) and the water shader draws it: ripples and foam streaks drifting with the flow, faster and whiter the
+stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
+when the drawn flow of a cell changes. Not yet: generated rivers, machines working in unloaded chunks.
 
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).

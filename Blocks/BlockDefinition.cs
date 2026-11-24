@@ -48,7 +48,8 @@ public sealed class BlockDefinition
     public ModelBox[] Boxes = Array.Empty<ModelBox>();
     /// <summary>null = full block.</summary>
     public BlockBox[] Collision, Selection;
-    public sealed class Override { public JsonElement When; public ModelBox[] Boxes; public BlockBox[] Collision, Selection; public bool HasCollision, HasSelection; public Dictionary<string, int> Textures; }
+    /// <summary>A state override: Boxes replace the model's boxes, AddBoxes are added to them (cable / pipe arms: one override per side).</summary>
+    public sealed class Override { public JsonElement When; public ModelBox[] Boxes, AddBoxes; public BlockBox[] Collision, Selection; public bool HasCollision, HasSelection; public Dictionary<string, int> Textures; }
     public Override[] Overrides = Array.Empty<Override>();
     public sealed class Part { public int X, Y, Z; public JsonElement State; }
     public Part[] Parts = Array.Empty<Part>();
@@ -56,6 +57,10 @@ public sealed class BlockDefinition
     public Dictionary<string, string> Sounds = new();
     public static readonly string[] FaceNames = { "east", "west", "top", "bottom", "south", "north" };
     public bool RandomOffset = true, Waterlogged, CastsShadow = true;
+    /// <summary>geometry.collision / geometry.selection = "boxes": the visible boxes of the current state (cables, pipes).</summary>
+    public bool CollideBoxes, SelectBoxes;
+    /// <summary>connect_solid (default true): "connecting" blocks also join full solid cubes (fences do, cables and pipes don't).</summary>
+    public bool ConnectSolid = true;
     public double Emissive, Hardness = 1;
     public int[] LodColor = { 128, 128, 128 };
     public JsonElement Json; // the full definition, for keys other systems read
@@ -99,12 +104,17 @@ public sealed class BlockDefinition
         foreach (var mb in b.Boxes) mb.Faces = FacesOf(mb.Tex == null ? b.Textures : Merge(b.Textures, mb.Tex));
         b.Collision = BlockBox.ParseList(Get(e, D + "geometry.collision")) ?? (b.Model == "cube" ? null : Array.Empty<BlockBox>());
         b.Selection = BlockBox.ParseList(Get(e, D + "geometry.selection")) ?? (b.Model == "liquid" ? Array.Empty<BlockBox>() : null);
+        b.CollideBoxes = Str(e, D + "geometry.collision") == "boxes"; b.SelectBoxes = Str(e, D + "geometry.selection") == "boxes";
+        if (b.CollideBoxes) b.Collision = b.Boxes.Select(m => m.Box).ToArray();
+        if (b.SelectBoxes) b.Selection = b.Boxes.Select(m => m.Box).ToArray();
+        b.ConnectSolid = Bool(e, D + "connect_solid", true);
         b.Collision = FullToNull(b.Collision); b.Selection = FullToNull(b.Selection);
         if (Get(e, D + "geometry.state_overrides") is { ValueKind: JsonValueKind.Array } ovs)
             b.Overrides = ovs.EnumerateArray().Select(o =>
             {
                 var ov = new Override { When = Get(o, "when") ?? default };
                 if (Get(o, "boxes") is { ValueKind: JsonValueKind.Array } ob) ov.Boxes = ParseBoxes(ob);
+                if (Get(o, "add_boxes") is { ValueKind: JsonValueKind.Array } oa) ov.AddBoxes = ParseBoxes(oa);
                 if (Get(o, "collision") is { ValueKind: JsonValueKind.Array } oc) { ov.Collision = FullToNull(BlockBox.ParseList(oc)); ov.HasCollision = true; }
                 if (Get(o, "selection") is { ValueKind: JsonValueKind.Array } os) { ov.Selection = FullToNull(BlockBox.ParseList(os)); ov.HasSelection = true; }
                 if (Get(o, "textures") is { ValueKind: JsonValueKind.Object } ot) { ov.Textures = new(); Flatten(ov.Textures, ot, ""); }

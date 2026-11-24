@@ -140,3 +140,14 @@ texture_rows: 16
 137 oxygen_generator_front 144 128
 138 oxygen_generator_side 160 128
 139 oxygen_generator_top 176 128
+140 copper_cable 192 128
+141 water_pipe 208 128
+142 turbine_front 224 128
+143 machine_intake 240 128
+144 turbine_side 0 144
+145 machine_top 16 144
+146 pump_front 32 144
+147 pump_side 48 144
+148 battery_top 64 144
+149 battery_side 80 144
+150 spring_front 96 144

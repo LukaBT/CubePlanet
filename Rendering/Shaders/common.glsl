@@ -97,6 +97,25 @@ vec3 waterShade(vec3 wp,vec3 V,vec3 n,vec3 up,vec3 alb,float dist,float dep,out 
   float cr=smoothstep(.55,.9,wvv.x/waveMax())*smoothstep(.4,.7,texture(uN,wp*.3+vec3(T*.03,0.,T*.02)).r)*.6;
   foam=max(foam,cr)*lod*uWF*(1.+1.2*uSea);
   body=mix(body,lightIt(vec3(.9,.95,1.),nw,up,wp,1.,1.,dist),clamp(foam,0.,1.));}
+ // flowing water (gFlow): on top faces ripples and foam streaks drift along the flow, faster and whiter the stronger it is;
+ // on side faces (a waterfall) white streaks run down
+ if(gFlow.w>0.){
+  float fs=gFlow.w,fl=1.-smoothstep(70.,260.,dist),ff=0.;vec3 fd=gFlow.xyz;
+  if(topF>.5){
+   float sp=.4+3.2*fs;vec3 pr=cross(up,fd);
+   float ph=fract(T*.3),ph2=fract(T*.3+.5),wgt=abs(ph-.5)*2.;   // two phases of the moving pattern, blended so it never stretches
+   vec3 a1=wp*.5-fd*(ph*sp*1.67),a2=wp*.5-fd*(ph2*sp*1.67);
+   float h1=texture(uN,a1).r,h2=texture(uN,a2).r;
+   vec2 g1=vec2(texture(uN,a1+t1*.03).r-h1,texture(uN,a1+t2*.03).r-h1),g2=vec2(texture(uN,a2+t1*.03).r-h2,texture(uN,a2+t2*.03).r-h2);
+   vec2 gg=mix(g1,g2,wgt)*14.;nw=normalize(nw-(t1*gg.x+t2*gg.y)*(.05+.12*fs)*fl);
+   float st=texture(uN,fd*(dot(wp,fd)*.12-T*sp*.12)+pr*dot(wp,pr)*.9+vec3(.37,.11,.73)).r;
+   ff=smoothstep(.66-.18*fs,.86,st)*(.15+.75*fs);
+  }else{
+   vec3 pr=normalize(cross(up,ng));float st=texture(uN,vec3(dot(wp,pr)*1.4,dot(wp,up)*.16+T*(.5+1.5*fs),.53)).r;
+   ff=smoothstep(.5-.25*fs,.8,st)*(.35+.6*fs);
+  }
+  ff*=fl;body=mix(body,lightIt(vec3(.92,.96,1.),nw,up,wp,1.,1.,dist),clamp(ff,0.,1.));foam=max(foam,ff);
+ }
  if(under){vec3 rf=refract(V,nw,1.333);vec3 od=dot(rf,rf)>.01?normalize(rf):reflect(V,nw);float win=smoothstep(.62,.72,cs);
   al=.9;return mix(body*.45,skyCol(od,up,uS)*vec3(.7,.9,1.)*.9,win);}
  float fr=.06+.94*pow(1.-clamp(cs,0.,1.),4.5);

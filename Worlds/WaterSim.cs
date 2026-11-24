@@ -22,6 +22,51 @@ public static class WaterSim
 
     internal static bool Wfree(int id) => id == 0 || (SPC[id] != 0 && ATT[id] == 0 && !UWP[id]);
     internal static int Wl(WC c) => c.id == Water ? (BlockStates.TryGet(c.k, out ushort s) ? LevelOf(s) : 8) : 0;
+    // ---------- water cycle: total water = water in the world + Reservoir, never created or destroyed ----------
+    /// <summary>Units "in the sea and the air": springs draw from it, the sea surface takes water arriving on top of it back into it.
+    /// It starts at roughly the volume of a planet's oceans, so the sea never visibly changes level.</summary>
+    public static double Reservoir = DefaultReservoir;
+    public const double DefaultReservoir = 1e9;
+    /// <summary>The row just above sea level (water resting there on the sea flows into it).</summary>
+    public static bool AboveSea(int b, int y) { double rel = bands[b].inner + y + .5 - R; return rel > 0 && rel < 1; }
+    /// <summary>Adds up to 'units' to a cell (air or water, levels above 8 rise into the cells above, like PlaceWater). Returns units placed.</summary>
+    public static int AddWater(WC c, int units)
+    {
+        int placed = 0;
+        for (int i = 0; i < 16 && units > 0 && c.ok; i++)
+        {
+            if (c.id != Water && !Wfree(c.id)) break;
+            int l = Wl(c), t = Math.Min(8, l + units);
+            if (t > l) { Wput(c, t); units -= t - l; placed += t - l; }
+            c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z);
+        }
+        return placed;
+    }
+    /// <summary>Takes up to 'units' from a water cell (and the water above it). Returns units taken.</summary>
+    public static int TakeWater(WC c, int units)
+    {
+        int taken = 0; var top = c;
+        for (int i = 0; i < 64; i++) { var u = Wcell(top.b, top.F, top.X, top.Y + 1, top.Z); if (!u.ok || u.id != Water) break; top = u; }
+        // take from the top of the column down (the surface sinks)
+        for (int i = 0; i < 64 && units > 0 && top.ok && top.id == Water; i++)
+        {
+            int l = Wl(top), m = Math.Min(l, units);
+            Wput(top, l - m); units -= m; taken += m;
+            if (top.k == c.k) break;
+            top = Wcell(top.b, top.F, top.X, top.Y - 1, top.Z);
+        }
+        return taken;
+    }
+    /// <summary>Surface height (in blocks along the band's rows) of the water column at c, or the cell's floor for air.</summary>
+    public static double Surface(WC c)
+    {
+        if (!c.ok) return double.NaN;
+        if (c.id != Water) return c.Y;
+        var top = c;
+        for (int i = 0; i < 64; i++) { var u = Wcell(top.b, top.F, top.X, top.Y + 1, top.Z); if (!u.ok || u.id != Water) break; top = u; }
+        return top.Y + Wl(top) / 8.0;
+    }
+
     /// <summary>Cell changes made by the simulation (benchmark counter).</summary>
     public static long Moves;
     // the simulation's changes are meshed by the worker threads (background), not on the main thread in the frame they happen
@@ -139,8 +184,10 @@ public static class WaterSim
             var dn = Wcell(cur.b, cur.F, cur.X, cur.Y - 1, cur.Z);
             if (dn.ok)
             {
-                if (Wfree(dn.id)) { Wput(dn, l); Wput(cur, 0); continue; }
-                if (dn.id == Water) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
+                // the sea takes in water arriving on top of it (rivers, waterfalls): it goes back into the reservoir springs draw from
+                if (dn.id == Water && Wl(dn) == 8 && AboveSea(cur.b, cur.Y)) { Reservoir += l; WaterFlow.Move(cur, 0, -1, 0, l); Wput(cur, 0); continue; }
+                if (Wfree(dn.id)) { WaterFlow.Move(cur, 0, -1, 0, l); Wput(dn, l); Wput(cur, 0); continue; }
+                if (dn.id == Water) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); WaterFlow.Move(cur, 0, -1, 0, m); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
             }
             // a full cell whose four sides are full water or walls cannot move sideways: only pressure may apply (most cells of a big body)
             if (l == 8)
@@ -165,7 +212,7 @@ public static class WaterSim
                 if (nc.ok && (nc.id == Water || Wfree(nc.id)))
                 {
                     int ln = Wl(nc), m = Math.Min(l, 8 - ln);
-                    if (m > 0) { Wput(nc, ln + m); l -= m; Wput(cur, l); continue; }
+                    if (m > 0) { WaterFlow.Move(cur, dd[0], 0, dd[1], m); Wput(nc, ln + m); l -= m; Wput(cur, l); continue; }
                 }
             }
             for (int ni = 0; ni < 4; ni++)
@@ -174,11 +221,11 @@ public static class WaterSim
                 var nc = Wcell(cur.b, cur.F, cur.X + dx, cur.Y, cur.Z + dz);
                 if (!nc.ok || (nc.id != Water && !Wfree(nc.id))) continue;
                 int lo = Wl(nc);
-                if (l - lo >= 2) { int m = (l - lo) >> 1; l -= m; Wput(nc, lo + m); }
+                if (l - lo >= 2) { int m = (l - lo) >> 1; l -= m; WaterFlow.Move(cur, dx, 0, dz, m); Wput(nc, lo + m); }
                 else if (l - lo == 1 && lo > 0)
                 {
                     var n2 = Wcell(cur.b, cur.F, cur.X + 2 * dx, cur.Y, cur.Z + 2 * dz);
-                    if (n2.ok && (n2.id == Water || Wfree(n2.id)) && Wl(n2) < lo) { l -= 1; Wput(nc, lo + 1); }
+                    if (n2.ok && (n2.id == Water || Wfree(n2.id)) && Wl(n2) < lo) { l -= 1; WaterFlow.Move(cur, dx, 0, dz, 1); Wput(nc, lo + 1); }
                 }
             }
             if (l != l0) { Wput(cur, l); continue; }
@@ -193,6 +240,7 @@ public static class WaterSim
     public const double FrameBudgetMs = 1.5;
     public static void WaterTick(double dt)
     {
+        WaterFlow.Tick(dt);
         wAcc += dt;
         if (wAcc > 1 / TicksPerSecond)
         {

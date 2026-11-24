@@ -17,10 +17,13 @@ public sealed class BlockVariant
         {
             if (!d.State.Matches(word, ov.When)) continue;
             if (ov.Boxes != null) boxes = ov.Boxes;
+            if (ov.AddBoxes != null) boxes = boxes.Concat(ov.AddBoxes).ToArray();
             if (ov.HasCollision) coll = ov.Collision;
             if (ov.HasSelection) sel = ov.Selection;
             if (ov.Textures != null) tex = BlockDefinition.Merge(tex, ov.Textures);
         }
+        if (d.CollideBoxes) coll = boxes.Select(m => m.Box).ToArray();
+        if (d.SelectBoxes) sel = boxes.Select(m => m.Box).ToArray();
         var v = new BlockVariant { Collision = coll, Selection = sel, Faces = BlockDefinition.FacesOf(tex) };
         v.Boxes = boxes.Select(mb => new BlockDefinition.ModelBox { Box = mb.Box, Tex = mb.Tex, Faces = BlockDefinition.FacesOf(mb.Tex == null ? tex : BlockDefinition.Merge(tex, mb.Tex)) }).ToArray();
         var facing = d.Rotation != "none" ? d.State.Find("facing") : null;
