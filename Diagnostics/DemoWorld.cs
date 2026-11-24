@@ -32,7 +32,14 @@ public static class DemoWorld
         string folder = WorldSave.FolderFor(name);
         if (Directory.Exists(folder)) { Console.WriteLine($"DEMOWORLD a world folder '{folder}' already exists: not touching it"); return 1; }
         World.InitWorldData(1200, 1337); ChunkGenerator.mainTid = Environment.CurrentManagedThreadId;
-        // a dry, gently sloped spot near spawn (no water in the building area or around it)
+        if (!FindSite()) { Console.WriteLine("DEMOWORLD no dry building site near spawn"); return 1; }
+        Build();
+        return Finish(folder, name, Simulate(secs), 17, -9, 17, 9, 5, true);
+    }
+
+    /// <summary>A dry, gently sloped spot near spawn (no water in the building area or around it); sets bi, f, x0, y0, z0 and loads it.</summary>
+    static bool FindSite()
+    {
         V3 c = new(C.x, C.y, C.z), up = M.Nrm(c); V3 g = c;
         for (int i = 0; i < 400 && GetAt(g.X - up.X * .5, g.Y - up.Y * .5, g.Z - up.Z * .5) == 0; i++) g -= up;
         bi = BlockAccess.P2b(g.X, g.Y, g.Z); f = PF; int sx = PX, sy = PY, sz = PZ;
@@ -45,17 +52,20 @@ public static class DemoWorld
             for (int y = -4; y <= 32 && !wet; y++) for (int z = -16; z <= 20 && !wet; z++) for (int x = -8; x <= 50; x++) if (Blk(bi, f, x0 + x, y0 + y, z0 + z) == Water) { wet = true; break; }
             if (!wet) { found = true; break; }
         }
-        if (!found) { Console.WriteLine("DEMOWORLD no dry building site near spawn"); return 1; }
-        Build();
-        var report = Simulate(secs);
-        // stand between the plants, looking at them
-        var eye = At(17, 0, -9); V3 feet = eye.Center - M.Nrm(eye.Center) * .5;
-        P.on = true; P.fly = false; P.p = feet; var target = At(17, 9, 5).Center; V3 upv = M.Nrm(feet);
+        return found;
+    }
+
+    /// <summary>Stands the player at (ex, 0, ez) looking at (tx, ty, tz), saves the world, prints the report; hydro: also the checks after saving.</summary>
+    static int Finish(string folder, string name, string report, int ex, int ez, int tx, int ty, int tz, bool hydro)
+    {
+        var eye = At(ex, 0, ez); V3 feet = eye.Center - M.Nrm(eye.Center) * .5;
+        P.on = true; P.fly = false; P.p = feet; var target = At(tx, ty, tz).Center; V3 upv = M.Nrm(feet);
         C.x = feet.X + upv.X * 1.6; C.y = feet.Y + upv.Y * 1.6; C.z = feet.Z + upv.Z * 1.6;
         C.f = M.Nrm(target - new V3(C.x, C.y, C.z)); C.u = upv; C.orbit = false;
         WorldSave.SaveTo(folder, name);
         Console.WriteLine(report);
         Console.WriteLine($"DEMOWORLD saved '{name}' in {folder}");
+        if (!hydro) return 0;
         // after saving (does not change the saved world): with plant A off and a machine needing energy, plant B's turbine releases the tank
         foreach (int x in new[] { 3, 5, 7 }) E(x, 1, 4).SetNum("mode", 2);
         int Tank() { int n = 0; for (int y = 17; y <= 22; y++) for (int z = 3; z <= 7; z++) for (int x = 26; x <= 30; x++) n += Wl(Wcell(bi, f, x0 + x, y0 + y, z0 + z)); return n; }
@@ -68,6 +78,69 @@ public static class DemoWorld
         double bat = new[] { (12, 1, 4), (12, 1, 3), (12, 1, 5), (13, 1, 4) }.Sum(p => BlockStates.entities.TryGetValue(At(p.Item1, p.Item2, p.Item3).Key, out var b) ? b.Num("energy") : -1e9);
         Console.WriteLine($"DEMOWORLD reloaded: {BlockStates.entities.Count} machines, batteries {bat:0} E, upper tank {Tank()} units, turbine A mode {ModeOf(3, 1, 4)}, pump mode {ModeOf(33, 0, 5)}, player on {P.on}");
         return 0;
+    }
+
+    // ---------- --demofarm NAME [--demosecs S]: three farms side by side ----------
+    // A (x 0..10): a spring feeds a glass-covered channel (z 4), farmland 4 rows on each side: wheat, carrots | potatoes, beetroots.
+    // B (x 16..26): the same crops with no water near: they pause, wilt, dry up.
+    // C (x 32..40): a pond (3 x 3, 1 deep = 72 units) with no supply, wheat all around: the pond sinks as they drink, then they stall.
+    public static int RunFarm(string name, double secs)
+    {
+        string folder = WorldSave.FolderFor(name);
+        if (Directory.Exists(folder)) { Console.WriteLine($"DEMOWORLD a world folder '{folder}' already exists: not touching it"); return 1; }
+        World.InitWorldData(1200, 1337); ChunkGenerator.mainTid = Environment.CurrentManagedThreadId;
+        if (!FindSite()) { Console.WriteLine("DEMOWORLD no dry building site near spawn"); return 1; }
+        int stone = Id("stone_bricks"), glass = Id("glass");
+        for (int y = -1; y <= 12; y++) for (int z = -12; z <= 16; z++) for (int x = -4; x <= 44; x++) Cell(x, y, z, y == -1 ? stone : 0);
+        string[] RowCrop = { "wheat", "wheat", "carrots", "carrots", null, "potatoes", "potatoes", "beetroots", "beetroots" };
+        void Field(int xa, bool water)
+        {
+            for (int z = 0; z <= 8; z++) for (int x = xa; x <= xa + 10; x++)
+                {
+                    if (z == 4) { if (water) { Cell(x, 0, z, Water, 8); Cell(x, 1, z, glass); } else Cell(x, 0, z, stone); continue; }
+                    Put(x, 0, z, "farmland"); Put(x, 1, z, RowCrop[z]);
+                }
+            if (water) { Cell(xa + 11, 0, 4, stone); Cell(xa + 11, 1, 4, stone); Put(xa - 1, 0, 4, "spring", "east"); E(xa - 1, 0, 4).SetNum("rate", 4); Cell(xa - 1, 1, 4, stone); }
+            else { Cell(xa - 1, 0, 4, stone); Cell(xa + 11, 0, 4, stone); }
+        }
+        Field(0, true);
+        // hotbar: hoe, seeds, produce to plant, a bucket
+        string[] give = { "wooden_hoe", "wheat_seeds", "carrot", "potato", "beetroot_seeds", "bucket" };
+        for (int i = 0; i < give.Length; i++) PlayerInventory.Hotbar[i] = new ItemStack(GameAssets.ItemReg.Id(give[i]), give[i] == "wooden_hoe" || give[i] == "bucket" ? 1 : 64);
+        PlayerInventory.Selected = 0;
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        int Pond() { int n = 0; for (int z = 3; z <= 5; z++) for (int x = 35; x <= 37; x++) n += Wl(Wcell(bi, f, x0 + x, y0, z0 + z)); return n; }
+        int ticks = (int)(secs * 10);
+        for (int i = 0; i < ticks; i++) { BlockActions.Tick(.1); WaterFlow.Tick(.1); if ((i & 1) == 1) WaterSim.WaterStep(); }
+        // B and C start now, so they are watched from the beginning: B half grown with no water (wilts), C a full pond that sinks
+        Field(16, false);
+        for (int z = 0; z <= 8; z++) for (int x = 16; x <= 26; x++) { var p = At(x, 1, z); int id = p.Id; if (BEH[id] is CropBehavior) BlockStates.Set(p, (int)DEFS[id].State.Find("age").With(0, CropBehavior.MaxAge(id) / 2)); }
+        for (int z = 1; z <= 7; z++) for (int x = 33; x <= 39; x++)
+            {
+                if (x >= 35 && x <= 37 && z >= 3 && z <= 5) { Cell(x, 0, z, Water, 8); continue; }
+                Put(x, 0, z, "farmland"); Put(x, 1, z, "wheat");
+            }
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); int pond0 = Pond();
+        string Stages(int xa, int xb, int za, int zb)
+        {
+            int sum = 0, n = 0, dead = 0, ripe = 0;
+            for (int z = za; z <= zb; z++) for (int x = xa; x <= xb; x++)
+                {
+                    var p = At(x, 1, z); int id = p.Id;
+                    if (id == DeadBush) { dead++; n++; continue; }
+                    if (BEH[id] is not CropBehavior) continue;
+                    int a = CropBehavior.AgeOf(id, p.State), mx = CropBehavior.MaxAge(id); sum += a * 7 / Math.Max(1, mx); n++; if (a == mx) ripe++;
+                }
+            return $"{n} crops, average stage {(n == 0 ? 0 : sum / (double)n):0.0} of 7, {ripe} ripe, {dead} dried up";
+        }
+        int stray = 0;
+        for (int y = 0; y <= 6; y++) for (int z = -12; z <= 16; z++) for (int x = -4; x <= 44; x++)
+                {
+                    bool ok = (z == 4 && x >= 0 && x <= 10 && y == 0) || (x >= 35 && x <= 37 && z >= 3 && z <= 5 && y == 0);
+                    if (!ok && Blk(bi, f, x0 + x, y0 + y, z0 + z) == Water) stray++;
+                }
+        string report = $"FARMDEMO after {secs:0} s: A (irrigated) {Stages(0, 10, 0, 8)}; B (dry) {Stages(16, 26, 0, 8)}; C (pond) {Stages(33, 39, 1, 7)}, pond {pond0} units; stray water {stray}";
+        return Finish(folder, name, report, 20, -6, 20, 0, 4, false);
     }
 
     static void Load()

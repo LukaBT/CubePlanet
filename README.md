@@ -209,11 +209,14 @@ Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/Fa
   within 4 blocks sideways (its own row or one below), so that water's level really drops. Dry farmland without a crop turns back to dirt.
 * **Crops** (Wheat Seeds, Carrot, Potato, Beetroot Seeds plant onto farmland only): every 25-45 s a growing crop drinks 1 unit from its
   farmland and grows a stage; that water goes to the water cycle's reservoir (the plant gives it off). On dry farmland a crop pauses,
-  wilts back a stage after 3 dry checks, and finally becomes a dead bush. Ripe crops use no water.
+  wilts back a stage after 3 dry checks; a seed (first stage) lies dormant 3 times as long, then dries up into a dead bush. Ripe crops
+  use no water.
 * Breaking a ripe crop gives its harvest (wheat + 0-3 seeds, 2-4 carrots / potatoes, beetroot + 1-3 seeds) into the inventory, an unripe
   one gives its seed back. Wheat needs 7 units (about one water block) per plant per harvest, so a farm needs a real supply: a lake or
   river nearby, a spring feeding an irrigation channel, or a pump. An overflowing channel washes crops away.
 * Farm blocks tick only in loaded chunks (like machines).
+* `--demofarm NAME [--demosecs S]` (no window) builds a saved world with three farms: A irrigated (a spring feeding a glass-covered channel),
+  B the same crops with no water (half grown, wilting), C wheat around a pond with no supply (the pond sinks as they drink).
 
 ## Deliberately left out (as requested)
 * Weather (rain, snow, wind sway control, fog/storm presets, lightning, thunder, weather sounds, snow cover / wet look).

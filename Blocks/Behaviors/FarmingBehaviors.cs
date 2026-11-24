@@ -10,7 +10,8 @@ namespace CubePlanet;
 /// so that water's level really drops. Without water and without a crop it dries out and turns back into dirt.</item>
 /// <item>Crops ("crop" behaviour, state "age"): every <see cref="CropMin"/> .. <see cref="CropMax"/> s a growing crop drinks 1 unit from
 /// the farmland under it and grows a stage; the water goes into the water cycle's reservoir (the plant gives it off). On dry farmland it
-/// pauses, then wilts back a stage every <see cref="WiltAfter"/> dry checks, and finally becomes a dead bush. Ripe crops use no water.</item>
+/// pauses, then wilts back a stage every <see cref="WiltAfter"/> dry checks; a seed (first stage) lies dormant 3 times as long before it
+/// dries up into a dead bush. Ripe crops use no water.</item>
 /// <item>Breaking a crop gives its harvest ("crop": {"seed", "harvest": [{"item", "min", "max"}]}) when ripe, else its seed back.
 /// A hoe (item behaviour "hoe") tills dirt or grass into farmland.</item>
 /// </list>
@@ -133,7 +134,7 @@ public sealed class CropBehavior : BlockBehavior
             return;
         }
         double dry = e.Num("dry") + 1; e.SetNum("dry", dry);
-        if (dry < Farming.WiltAfter) return;
+        if (dry < (age == 0 ? Farming.WiltAfter * 3 : Farming.WiltAfter)) return; // a seed lies dormant much longer before it dries up
         e.SetNum("dry", 0);
         if (age > 0) BlockStates.Set(p, (int)Age(id).With((uint)p.State, age - 1 - Age(id).Min)); // wilts back a stage
         else { BlockStates.entities.Remove(p.Key); p.Set(DeadBush); BlockActions.NotifyNeighbors(p); } // dried up
