@@ -28,10 +28,12 @@ public static class ChunkGenerator
     internal static void GenerateCore(Chunk ch)
     {
         Band B = bands[ch.band]; int f = ch.face;
-        var d = new ushort[32768];
+        // chunk block data lives on the pinned object heap: flying fast creates ~400 of these 64 KB arrays a second, and on the normal heap
+        // every short garbage collection copied the surviving ones around (25 ms pauses); pinned arrays are never moved
+        var d = GC.AllocateArray<ushort>(32768, pinned: true);
         bool has; lock (EditLock) has = ecount.ContainsKey(ch.key);
         // a chunk saved with the world is used as saved (then newer edits on top), not generated
-        if (WorldSave.TryGetSaved(ch.key, out var savedD)) { d = (ushort[])savedD.Clone(); goto edits; }
+        if (WorldSave.TryGetSaved(ch.key, out var savedD)) { Array.Copy(savedD, d, d.Length); goto edits; }
         Col c = ColsOf(B, f, ch.cx, ch.cz);
         double r0 = B.inner + ch.cy * CS; int salt = ch.cx * 7919 + ch.cz * 104729;
         List<Feat> fl = null;

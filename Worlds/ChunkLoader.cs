@@ -19,8 +19,8 @@ public static class ChunkLoader
         double cx = C.x, cy = C.y, cz = C.z; int rd = RD;
         scanTask = Task.Run(() =>
         {
-            long t0p = System.Diagnostics.Stopwatch.GetTimestamp();
-            try { return ScanCore(cx, cy, cz, rd, ec); } finally { Interlocked.Add(ref profScanTicks, System.Diagnostics.Stopwatch.GetTimestamp() - t0p); Interlocked.Increment(ref profScanN); }
+            long t0p = System.Diagnostics.Stopwatch.GetTimestamp(); var th = Thread.CurrentThread; var pr = th.Priority; th.Priority = ThreadPriority.BelowNormal;
+            try { return ScanCore(cx, cy, cz, rd, ec); } finally { th.Priority = pr; Interlocked.Add(ref profScanTicks, System.Diagnostics.Stopwatch.GetTimestamp() - t0p); Interlocked.Increment(ref profScanN); }
         });
     }
     internal static void ApplyScan()

@@ -59,6 +59,7 @@ public static class Renderer
         Gpu.texBlocks = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, (uint)TW, (uint)TW, 1, (uint)NL, mips.ToArray(), Filter.Nearest, Filter.Nearest, SamplerMipmapMode.Linear, SamplerAddressMode.Repeat);
         // item icons for the UI (layer = item ID, 128 px with mips; see ItemIcons): ui.frag samples flat pictures sharply, 3D models smoothly
         Gpu.texItems = Gpu.MakeTexture(ImageType.Type2D, ImageViewType.Type2DArray, Format.R8G8B8A8Unorm, 4, ItemIcons.Size, ItemIcons.Size, 1, (uint)GameAssets.IconLayerCount, GameAssets.IconMips, Filter.Linear, Filter.Linear, SamplerMipmapMode.Linear, SamplerAddressMode.ClampToEdge);
+        GameAssets.IconMips = null; // only needed for the upload: ~50 MB less heap for the garbage collector to go through
         // 128^3 cloud noise (cached on disk after the first start)
         Gpu.texCloud = Gpu.MakeTexture(ImageType.Type3D, ImageViewType.Type3D, Format.R8G8B8A8Unorm, 4, CloudNoise.S, CloudNoise.S, CloudNoise.S, 1, new[] { CloudNoise.Get(Gpu.Cache) }, Filter.Linear, Filter.Linear, SamplerMipmapMode.Nearest, SamplerAddressMode.Repeat);
         // 64^3 tiling noise (does not depend on the seed, so it is built once at startup)
@@ -76,6 +77,12 @@ public static class Renderer
 
     internal static readonly List<Chunk> visList = new();
 
+    /// <summary>Milliseconds the phases of the last frame took (for the bench's slow-frame report): 0 shadow prep, 1 chunk work (mesh uploads,
+    /// main-thread meshes), 2 LOD uploads, 3 LOD collect, 4 shadow pass, 5 scene recording, 6 update (Game), 7 UI, 8 end frame (submit / present).</summary>
+    public static readonly double[] Phase = new double[11]; // + 9 begin frame (waiting for the GPU), 10 time between frames
+    public static readonly string[] PhaseName = { "shadowprep", "chunkwork", "lodupload", "lodcollect", "shadows", "scene", "update", "ui", "endframe", "gpuwait", "between" };
+    public static void Prof(int i, ref long t) { long n = System.Diagnostics.Stopwatch.GetTimestamp(); Phase[i] = (n - t) * 1000.0 / System.Diagnostics.Stopwatch.Frequency; t = n; }
+
     /// <summary>Records the 3D part of the frame: uploads + shadow pass, then the main render pass (the UI is drawn into it afterwards).</summary>
     public static void Render()
     {
@@ -84,15 +91,15 @@ public static class Renderer
         if (lastAO >= 0 && (SET.ao > .5) != (lastAO > .5)) RemeshAll();
         lastAO = SET.ao; Gpu.SetAniso(SET.aniso > .5);
         wvT = (wvT + Math.Min(.1, Math.Max(0, tn - wvLast)) * SET.wvSpd * (1 + .5 * SEA)) % 5000; wvLast = tn;
-        ShadowPrep();
+        long q0 = System.Diagnostics.Stopwatch.GetTimestamp(); ShadowPrep(); Prof(0, ref q0);
         // build the chunks that are still missing nearest-first (the dictionary order is arbitrary once chunks have been freed and re-added);
         // edited chunks (rebuilds) go before everything else, and when a lot is queued we spend a bit more of the frame on it
-        ChunkWork(t0);
-        LodUploads(t0);
-        CollectLod();
+        ChunkWork(t0); Prof(1, ref q0);
+        LodUploads(t0); Prof(2, ref q0);
+        CollectLod(); Prof(3, ref q0);
         ShadowCollect();
         FillUniforms(fogK, tn, hz);
-        ShadowDraw();
+        ShadowDraw(); Prof(4, ref q0);
 
         Gpu.BeginScene();
         // 1) opaque voxel terrain; remember which chunks are visible for the water/glass passes

@@ -77,6 +77,10 @@ public class Game : GameWindow
     /// <summary>Starts a saved world (w) or a new one (w == null, from the start screen fields; bench runs are never saved).</summary>
     void StartGame(WorldSave.Info w)
     {
+        // while playing, the garbage collector avoids blocking full collections (concurrent GC is on in the project; those pauses were the
+        // occasional 50-100 ms freezes when flying fast)
+        System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency;
+        Thread.CurrentThread.Priority = ThreadPriority.AboveNormal; // the game / render thread goes first; all background work is below normal
         if (w != null)
         {
             var j = WorldSave.ReadInfo(w.Folder);
@@ -185,6 +189,7 @@ public class Game : GameWindow
     }
 
     double benchT0 = -1, benchLast; int benchFrames; double benchWorst; bool shotDone, turned; double turnWorst; double loadDoneT = -1;
+    long profT, frameEndT; readonly double[] prevPhase = new double[11]; int g0Last = -1, g1Last, g2Last; readonly List<string> slow = new(); int slow25, slow50;
     void BenchStep(double now)
     {
         if (benchT0 < 0)
@@ -198,6 +203,17 @@ public class Game : GameWindow
             return;
         }
         double ft = now - benchLast; benchLast = now;
+        // --flyspeed V: fly the free camera forward at V blocks/s (level with the ground) and record what each slow frame spent its time on
+        if (Program.FlySpeed > 0) Camera.CamMove(Program.FlySpeed * Math.Min(ft, 100) / 1000, 0, 0, true);
+        int g0 = GC.CollectionCount(0), g1 = GC.CollectionCount(1), g2 = GC.CollectionCount(2);
+        if (g0Last >= 0 && now - benchT0 > 3000 && ft > 25)
+        {
+            slow25++; if (ft > 50) slow50++;
+            if (slow.Count < 25)
+                slow.Add($"SLOW {(now - benchT0) / 1000:0.0}s {ft:0} ms: " + string.Join(" ", Renderer.PhaseName.Select((n, i) => (n, v: i >= 9 ? Renderer.Phase[i] : prevPhase[i])).Where(p => p.v >= 1).Select(p => $"{p.n} {p.v:0}")) +
+                         $" | gc0 +{g0 - g0Last} gc1 +{g1 - g1Last} gc2 +{g2 - g2Last} | chunks {World.chunks.Count}");
+        }
+        g0Last = g0; g1Last = g1; g2Last = g2;
         if (Program.TurnAt >= 0)
         {
             double el = (now - benchT0) / 1000;
@@ -218,6 +234,7 @@ public class Game : GameWindow
             Console.WriteLine($"PROF mesh (workers) {ChunkWorkers.profMeshN} meshes, {ms(ChunkWorkers.profMeshTicks) / Math.Max(1, ChunkWorkers.profMeshN):0.00} ms avg");
             Console.WriteLine($"PROF mesh (main thread) {ChunkWorkers.profBuildN} builds, {ms(ChunkWorkers.profBuildTicks) / Math.Max(1, ChunkWorkers.profBuildN):0.00} ms avg, {ChunkWorkers.profRebuild} were rebuilds");
             Console.WriteLine($"PROF scan {ChunkWorkers.profScanN}x, {ms(ChunkWorkers.profScanTicks) / Math.Max(1, ChunkWorkers.profScanN):0.0} ms avg (background)");
+            if (Program.FlySpeed > 0) { Console.WriteLine($"FLY {Program.FlySpeed} blocks/s: {slow25} frames over 25 ms, {slow50} over 50 ms"); foreach (var s in slow) Console.WriteLine(s); }
             Console.WriteLine($"PROF total main-thread mesh time {ms(ChunkWorkers.profBuildTicks):0} ms, wall {(now - benchT0) / 1000:0.0} s, first-load done at {loadDoneT:0.0} s");
         }
     }
@@ -227,7 +244,9 @@ public class Game : GameWindow
         double now = Renderer.NowMs; double dt = Math.Min((now - lastT) / 1000.0, .1); if (dt <= 0) dt = .016; lastT = now;
         int w = FramebufferSize.X, h = FramebufferSize.Y; Renderer.VW = w; Renderer.VH = h; if (w == 0 || h == 0) { Thread.Sleep(10); return; } // minimised
         Gpu.SetRenderScale(Settings.SET.rscale);
+        profT = System.Diagnostics.Stopwatch.GetTimestamp(); if (frameEndT != 0) Renderer.Phase[10] = (profT - frameEndT) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
         if (!Gpu.BeginFrame(Settings.SET.vsync > .5)) return;
+        Renderer.Prof(9, ref profT);
         double sx = (double)w / Math.Max(1, ClientSize.X), sy = (double)h / Math.Max(1, ClientSize.Y);
         UI.mx = MousePosition.X * sx; UI.my = MousePosition.Y * sy; UI.down = MouseState.IsButtonDown(MouseButton.Left);
 
@@ -272,7 +291,9 @@ public class Game : GameWindow
         if ((L || Rt) && editT <= 0 && !Camera.C.orbit) { BlockEditing.Edit(L, Rt && !L, sneak, UI.rclicked); editT = .15; }
         if (Camera.C.orbit) Highlight.TG = null; else if (ChunkLoader.frameNo % 2 == 0) Highlight.TG = BlockEditing.Raycast(PlayerPhysics.P.on ? 6 : 10);
 
-        Renderer.Render();
+        Renderer.Prof(6, ref profT);
+        long sceneT = System.Diagnostics.Stopwatch.GetTimestamp(); Renderer.Render(); Renderer.Phase[5] = 0; Renderer.Prof(5, ref sceneT);
+        Renderer.Phase[5] -= Renderer.Phase[0] + Renderer.Phase[1] + Renderer.Phase[2] + Renderer.Phase[3] + Renderer.Phase[4]; profT = System.Diagnostics.Stopwatch.GetTimestamp();
         if (Program.Bench > 0) BenchStep(now);
 
         // UI
@@ -281,7 +302,7 @@ public class Game : GameWindow
         // click on the world while a menu is open: close it and capture the mouse again
         if (UI.clicked && !UI.startScreen && UI.settingsOpen && !UI.PanelHit) { UI.settingsOpen = false; blockClick = true; }
         UI.clicked = false; UI.rclicked = false;
-        UpdateCursor();
-        Gpu.EndFrame();
+        UpdateCursor(); Renderer.Prof(7, ref profT);
+        Gpu.EndFrame(); Renderer.Prof(8, ref profT); frameEndT = profT; Array.Copy(Renderer.Phase, prevPhase, prevPhase.Length);
     }
 }

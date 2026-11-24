@@ -25,7 +25,8 @@ public static class LodTerrain
     {
         long k = LodKey(f, lv, i, j);
         if (lodPending.Count >= LOD_INFLIGHT || !lodPending.Add(k)) return;
-        ThreadPool.UnsafeQueueUserWorkItem(_ => { var (vd, o) = BuildLodData(f, lv, i, j); lodDone.Enqueue((k, vd, o)); }, null);
+        // background work runs below the main thread's priority (it took the CPU away from it: frames of 25 - 33 ms when flying fast)
+        ThreadPool.UnsafeQueueUserWorkItem(_ => { var th = Thread.CurrentThread; var pr = th.Priority; th.Priority = ThreadPriority.BelowNormal; try { var (vd, o) = BuildLodData(f, lv, i, j); lodDone.Enqueue((k, vd, o)); } finally { th.Priority = pr; } }, null);
     }
     /// <summary>Uploads finished LOD patches (before any render pass of the frame).</summary>
     internal static void LodUploads(double t0)
