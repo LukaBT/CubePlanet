@@ -37,7 +37,9 @@ public static class World
         HS = R <= 1200 ? Math.Max(.4, R / 1000) : Math.Min(2.5, 1.2 * Math.Pow(rr0, .2)); OD = 24 * Math.Max(1, HS); HMAX = Math.Ceiling(96 * HS + 12); MH = 70 * HS; HA = Math.Acos(R / (R + HMAX)) + .02; DEP = Math.Max(48, R - CORE);
         BC = bandOf(R + HMAX + 2) + 1; OUTER = CORE << BC; bands.Clear();
         for (int b = 0; b < BC; b++) { int fc = FC0 << b, cols = fc * CS; bands.Add(new Band { b = b, fc = fc, cols = cols, rows = (CORE / CS) * (1 << b) * CS, inner = CORE << b, d = PI / 2 / cols }); }
-        lodDelta = bands[bandOf(R)].d; spd = Math.Max(1, R / 1200); Spawn();
+        lodDelta = bands[bandOf(R)].d; spd = Math.Max(1, R / 1200);
+        Hydrology.Build(); // planet drainage (rivers, lakes) before anything generates terrain columns
+        Spawn();
     }
     internal static void Spawn()
     {

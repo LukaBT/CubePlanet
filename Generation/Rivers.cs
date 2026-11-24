@@ -1,84 +1,92 @@
 namespace CubePlanet;
 
 /// <summary>
-/// Rivers and waterfalls, applied to every terrain column by <see cref="TerrainGen.Terrain"/> (not to the low-detail LOD terrain).
+/// Rivers and lakes in the terrain columns, drawn from the planet's drainage map (<see cref="Hydrology"/>), applied to every full-detail
+/// terrain column by <see cref="TerrainGen.Terrain"/>:
 /// <list type="bullet">
-/// <item>Channels follow the zero line of a large, domain-warped noise (a river every few hundred blocks), in about 70 % of the land,
-/// 2 .. 8 blocks wide (wider in lowlands), none on high mountains or in the sea.</item>
-/// <item>The water surface S comes from the smoothed terrain (the same terrain without its detail octaves) 4 blocks lower, rounded down
-/// to steps of <see cref="Step"/> blocks: constant along a stretch, so river water is level and at rest when generated; where it drops a step
-/// the upper stretch ends in a vertical water face: a waterfall. Near the coast S reaches sea level and the river joins the sea.</item>
-/// <item>The column is carved: a U-shaped gravel bed in the channel, a valley sloping up on both banks, and a levee up to S + 1 where the
-/// ground would be lower than the river (so it never spills sideways). Caves stay away from rivers (<see cref="Strata.Cavable"/>).</item>
-/// <item>Results per column (thread-static, like the rest of the terrain): <see cref="gRS"/> river surface (NaN = no river water),
-/// <see cref="gRN"/> surface of a river within the bank zone (no caves above it), <see cref="gRD"/> downstream direction (world) and
-/// <see cref="gRW"/> flow strength 0..7 for drawing.</item>
+/// <item>River: each river cell's water runs in a straight segment from its centre to the centre of the cell it drains into (slightly
+/// meandering: the column position is warped a few blocks). Within the half width (from the river's flow) the column is the river bed
+/// (1 .. 3 deep, gravel) under water up to the cell's surface; the surface of the half nearer the downstream cell is that cell's, so a step
+/// in the surface is a straight line across the river: a waterfall where the terrain drops.</item>
+/// <item>Banks: the ground near a river blends down to 1 block above the water and never lower (a levee where it would be lower); right
+/// next to the water it also holds the higher surface of a waterfall.</item>
+/// <item>Lake: in a lake cell (and the ring around it) every column whose ground is below the lake's surface is water up to it; columns
+/// close to a lake are kept at least 1 block above its surface, so lakes never spill.</item>
 /// </list>
-/// The water simulation keeps river water at its natural level when it is disturbed (WaterSim: topped up from / drained into the water
-/// cycle's reservoir), so a river keeps flowing and can feed turbines, while its total water stays accounted for.
+/// Results (thread-static like the rest of the terrain): <see cref="gRS"/> water surface (NaN = none), <see cref="gRN"/> surface of water
+/// nearby (no caves above it - 8), <see cref="gRD"/> downstream direction (world), <see cref="gRW"/> flow strength 0..7 for drawing,
+/// <see cref="gRC"/> the drainage cell (-1 = none) whose water this is.
 /// </summary>
 public static class Rivers
 {
-    public const double Step = 3, Spacing = 320, Bank = 7;
-    [ThreadStatic] public static double gRS, gRN; [ThreadStatic] public static V3 gRD; [ThreadStatic] public static int gRW;
-    [ThreadStatic] static bool busy;
+    public const double Bank = 6;
+    [ThreadStatic] public static double gRS, gRN; [ThreadStatic] public static V3 gRD; [ThreadStatic] public static int gRW, gRC;
 
-    static double N(double x, double y, double z, int k, double f) { var o = OFF[k]; return Noise3(x * f + o[0], y * f + o[1], z * f + o[2]); }
-    // the channel noise (warped so rivers meander); its zero line is the river's centre
-    static double Chan(double x, double y, double z)
-    {
-        double wx = N(x, y, z, 44, 1 / 260.0) * 70, wy = N(x, y, z, 45, 1 / 260.0) * 70, wz = N(x, y, z, 46, 1 / 260.0) * 70;
-        return N(x + wx, y + wy, z + wz, 43, 1 / Spacing);
-    }
-    /// <summary>Smoothed terrain height (no detail octaves) at a point on the sphere of radius R.</summary>
-    static double Smooth(double x, double y, double z)
-    {
-        double sh = gH, ss = gS; int st = gT, sf = gF, sfd = gFD, si = gI, sb = gB;
-        busy = true; try { double r = Math.Sqrt(x * x + y * y + z * z); Terrain(x / r, y / r, z / r, 48); return gH; }
-        finally { busy = false; gH = sh; gS = ss; gT = st; gF = sf; gFD = sfd; gI = si; gB = sb; }
-    }
+    static double Nz(double x, double y, double z, int k, double f) { var o = OFF[k]; return Noise3(x * f + o[0], y * f + o[1], z * f + o[2]); }
+
+    /// <summary>Flow strength 0..7 drawn for a flow of q units per second.</summary>
+    public static int Strength(double q) => Math.Clamp((int)Math.Round(1 + Math.Log2(1 + q) * 1.1), 1, 7);
+    static int CellAt(int f, int ii, int jj) => ii >= 0 && ii < Hydrology.N && jj >= 0 && jj < Hydrology.N ? Hydrology.Id(f, ii, jj) : Hydrology.CellOf(Hydrology.Center(f, ii, jj));
 
     /// <summary>Carves the column at (x, y, z) (a point on the sphere of radius R) whose terrain results are in the g* slots.</summary>
     public static void Apply(double x, double y, double z)
     {
-        gRS = gRN = double.NaN; gRW = 0;
-        if (busy || gH < -1 || gH > 70 * HS) return;
-        double reg = N(x, y, z, 47, 1 / 1500.0), regF = M.Sm(-.4, -.15, reg);
-        if (regF <= 0) return;
-        double n = Chan(x, y, z);
-        double r = Math.Sqrt(x * x + y * y + z * z); V3 up = new(x / r, y / r, z / r);
-        double gx = Chan(x + 1, y, z) - n, gy = Chan(x, y + 1, z) - n, gz = Chan(x, y, z + 1) - n, gu = gx * up.X + gy * up.Y + gz * up.Z;
-        V3 g = new(gx - up.X * gu, gy - up.Y * gu, gz - up.Z * gu); double gl = g.Len; if (gl < 1e-9) return;
-        double d = Math.Abs(n) / gl; // blocks to the river's centre line
-        if (d > 4 * regF + Bank) return;
-        // level and width come from the nearest point of the centre line, so they are the same across the river (a waterfall is a straight
-        // line across it, and the banks next to a stretch get that stretch's level)
-        V3 gn = g * (1 / gl), t = M.Nrm(M.Cross(up, gn)), P = new(x, y, z), pc = P - gn * (n / gl); pc = pc * (r / pc.Len);
-        double hl = Smooth(pc.X, pc.Y, pc.Z), S = Level(hl);
-        double w = (1 + 3 * M.Sm(45 * HS, 5, hl)) * regF; // half width
-        if (w < .6 || d > w + Bank) return;
-        if (S > gH + 6) return; // the smoothed ground is far above this spot (a deep local hole): no river here
-        gRN = S;
-        if (d <= w)
+        gRS = gRN = double.NaN; gRW = 0; gRC = -1;
+        if (!Hydrology.Built || gH < -2) return;
+        { double rr = Math.Sqrt(x * x + y * y + z * z); if (!Hydrology.Near[Hydrology.CellOf(new V3(x / rr, y / rr, z / rr))]) return; } // no water anywhere near
+        // a little meander: the column is looked up a few blocks away (smoothly varying)
+        double wx = Nz(x, y, z, 44, 1 / 40.0) * 3, wy = Nz(x, y, z, 45, 1 / 40.0) * 3, wz = Nz(x, y, z, 46, 1 / 40.0) * 3;
+        V3 P = new(x + wx, y + wy, z + wz); P = P * (R / P.Len); V3 up = P * (1 / R);
+        Hydrology.CellOf(up, out int f, out double gi, out double gj);
+        int ci = (int)Math.Round(gi), cj = (int)Math.Round(gj); double cb = Hydrology.CellBlocks;
+
+        // ---- rivers: nearest segment (cell centre -> downstream cell centre) among the cells around
+        double best = double.PositiveInfinity, bd = 0, bt = 0, bw = 0; int bc = -1, bdn = -1;
+        int reach = 1 + (int)Math.Ceiling((7 + Bank) / cb);
+        for (int di = -reach; di <= reach; di++) for (int dj = -reach; dj <= reach; dj++)
+            {
+                int c = CellAt(f, ci + di, cj + dj);
+                if (Hydrology.Kind[c] != Hydrology.River) continue;
+                int dn = Hydrology.Down[c]; if (dn < 0) continue;
+                V3 a = Hydrology.Center(c) * R, b = Hydrology.Center(dn) * R, ab = b - a; double l2 = M.Dot(ab, ab);
+                double t = l2 > 0 ? Math.Clamp(M.Dot(P - a, ab) / l2, 0, 1) : 0; double d = (P - (a + ab * t)).Len;
+                double w = Hydrology.W[c] + (Hydrology.Kind[dn] == Hydrology.River ? (Hydrology.W[dn] - Hydrology.W[c]) * t : 0);
+                if (d - w < best) { best = d - w; bd = d; bt = t; bw = w; bc = c; bdn = dn; }
+            }
+        if (bc >= 0 && best <= Bank)
         {
-            double depth = 1 + 2 * (1 - (d / w) * (d / w)) * Math.Min(1, w / 2); // U-shaped bed, 1 .. 3 deep
-            gH = S - depth; gRS = S; gT = gF = Gravel; gFD = 2; gI = 0;
-            // downstream: along the channel, towards the lower smoothed ground
-            double a = Smooth(pc.X + t.X * 10, pc.Y + t.Y * 10, pc.Z + t.Z * 10), b = Smooth(pc.X - t.X * 10, pc.Y - t.Y * 10, pc.Z - t.Z * 10);
-            gRD = a <= b ? t : t * -1; gRW = Math.Clamp((int)Math.Round(2 + w * .8 + Math.Min(2, Math.Abs(a - b) * .3)), 1, 7);
+            double sUp = Hydrology.S[bc], sDn = Hydrology.Kind[bdn] == Hydrology.Sea ? 0 : Hydrology.S[bdn];
+            double S = bt < .5 ? sUp : sDn;
+            {
+                gRN = S; // (no "skip where the ground is far below": banks must always hold the water, or a river at a cliff edge leaks)
+                if (bd <= bw)
+                {
+                    double depth = 1 + 2 * (1 - (bd / bw) * (bd / bw)) * Math.Min(1, bw / 2);
+                    gH = S - depth; gRS = S; gT = gF = Gravel; gFD = 2; gI = 0; gRC = bc;
+                    gRD = M.Nrm(Hydrology.Center(bdn) - Hydrology.Center(bc)); gRW = Strength(Hydrology.Q[bc]);
+                    return;
+                }
+                double lev = bd - bw < 2.5 ? Math.Max(sUp, sDn) : S, k = (bd - bw) / Bank;
+                gH = gH > S + 1 ? S + 1 + (gH - S - 1) * k * k : S + 1;
+                gH = Math.Max(gH, lev + 1);
+            }
         }
-        else
+
+        // ---- lakes: lake cells here or around (within 1 cell: may fill, within 2: shore). Only the highest lake nearby fills a column (two
+        // lakes at different levels next to each other get a shore between them), every other column near a lake stays above the highest
+        double Lmax = double.NegativeInfinity, Lfill = double.NegativeInfinity; int lc = -1;
+        for (int di = -2; di <= 2; di++) for (int dj = -2; dj <= 2; dj++)
+            {
+                int c = CellAt(f, ci + di, cj + dj);
+                if (Hydrology.Kind[c] != Hydrology.Lake) continue;
+                double L = Hydrology.S[c]; Lmax = Math.Max(Lmax, L);
+                if (Math.Max(Math.Abs(di), Math.Abs(dj)) <= 1 && L > Lfill) { Lfill = L; lc = c; }
+            }
+        if (lc >= 0 && Lfill >= Lmax && gH < Lfill) { gRS = Lfill; gRN = Lfill; gRC = lc; if (gH > Lfill - 2) gT = Sand; gI = 0; return; }
+        if (Lmax > double.NegativeInfinity)
         {
-            // valley sides: from S + 1 at the water's edge blending into the untouched ground at the bank zone's edge; a levee up to S + 1
-            // where the ground is lower than the river
-            // right next to the water, a bank also holds the higher stretch of a waterfall 2 blocks up- or downstream
-            double lev = S;
-            if (d - w < 2.5) { lev = Math.Max(lev, Level(Smooth(pc.X + t.X * 2, pc.Y + t.Y * 2, pc.Z + t.Z * 2))); lev = Math.Max(lev, Level(Smooth(pc.X - t.X * 2, pc.Y - t.Y * 2, pc.Z - t.Z * 2))); }
-            double k = (d - w) / Bank;
-            gH = gH > S + 1 ? S + 1 + (gH - S - 1) * k * k : S + 1;
-            gH = Math.Max(gH, lev + 1);
+            if (gH < Lmax + 1) gH = Lmax + 1; // shore
+            gRN = double.IsNaN(gRN) ? Lmax : Math.Max(gRN, Lmax);
         }
     }
-    /// <summary>River surface for a smoothed ground height: 4 blocks lower, in steps of <see cref="Step"/>, never below sea level.</summary>
-    static double Level(double hl) => Math.Max(0, Step * Math.Floor((hl - 4) / Step));
 }

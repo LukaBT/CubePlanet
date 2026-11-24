@@ -22,8 +22,9 @@ public static class Strata
         if (s <= 1 + c.fd[i]) { int q = c.f[i]; return q == FillBands ? BANDS[(((int)Math.Floor(r - R) % 24) + 24) % 24] : q; }
         return StoneAt(s, i, r, salt);
     }
-    // caves keep 8 blocks below a river's surface in its channel and bank zone (they would let the river run out)
-    public static bool Cavable(Col c, int i, double r) => gS > 0 && r - R > -CAVB && gS >= (c.h[i] < 3 ? 3 : 1.2) && !(r - R > c.rn[i] - 8);
+    // caves keep away from water they would let run out: 40 blocks below a river's / lake's surface near it, and the top 14 blocks below
+    // sea level under low coasts and shallow sea (ground lower than 16)
+    public static bool Cavable(Col c, int i, double r) => gS > 0 && r - R > -CAVB && gS >= (c.h[i] < 3 ? 3 : 1.2) && !(r - R > c.rn[i] - 40) && !(c.h[i] < 16 && r - R > -14);
     public static int Gen(Band B, int f, int bx, int by, int bz)
     {
         Col c = ColsOf(B, f, bx >> 5, bz >> 5); int i = (bx & 31) + 32 * (bz & 31); double r = B.inner + by + .5;

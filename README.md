@@ -261,16 +261,22 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 * **Caves (Caves & Cliffs style):** cheese caverns, spaghetti tunnels with varying thickness, a wide tunnel network in
   some regions, and ravines that open to the surface in lowlands. Caves reach about 100 blocks below sea level
   (`CAVB` in `World.cs`); `World.CaveS()` holds all the thresholds.
-* **Rivers and waterfalls** (Generation/Rivers.cs, applied inside `Terrain()`): channels along the zero line of a large warped noise
-  (a river every few hundred blocks, in ~70 % of the land, 2 .. 8 blocks wide, wider in lowlands, none on high mountains). The water
-  surface comes from the smoothed terrain (no detail octaves) at the nearest point of the river's centre line, 4 blocks lower, in steps of
-  3 blocks: level along a stretch and the same across the river, so generated river water is at rest; where a stretch drops a step its end
-  is a vertical water face across the river: a waterfall. Gravel U-shaped bed, valley sides blending into the land, levees where the ground
-  is lower than the river (the banks next to a waterfall hold the higher stretch), no caves within 8 blocks below a river, no trees in it.
-  Near the coast the surface reaches sea level and the river joins the sea. Undisturbed rivers show their flow (downstream direction from
-  the smoothed ground, strength from the width) and waterfall faces their falling streaks without any simulation. When disturbed, river
-  cells are kept at their natural level by the water simulation (topped up from / drained into the water cycle's reservoir), so a river
-  keeps flowing and can feed turbines through a pipe. The distant LOD terrain does not show rivers.
+* **Rivers and lakes from the terrain** (Generation/Hydrology.cs, Generation/Rivers.cs): when a world is created, the smoothed terrain is
+  sampled about every 8 blocks over all 6 cube faces (at most 512 x 512 per face on big planets) and the planet's drainage is computed
+  (~0.5 s, from the seed, nothing saved; `--hydrostats [--hydropng file]` prints / draws it): hollows are filled up to their lowest rim
+  (priority flood from the sea) and a filled hollow at least a block deep is a lake with a flat surface; every cell drains towards the sea;
+  rain (less in deserts) gathers downhill, and cells with enough catchment are rivers whose flow Q (units/s) sets their width and drawn
+  strength. River surfaces only ever go down (level on flat land, waterfalls where the terrain drops) and end in lakes or the sea. Terrain
+  columns draw them from the map: river segments between cell centres (slightly meandering), gravel bed, valley sides and levees so the
+  water never spills, lakes filling their hollows with shores above the highest lake nearby; no caves within 40 blocks below river / lake
+  water (nor in the top 14 blocks under low coasts), no trees in water. Generated river and lake water is at rest (around spawn 0 of
+  ~500 000 water cells touch air apart from waterfall faces). Undisturbed rivers are drawn flowing without any simulation.
+  **Disturbed rivers** (Hydrology.Tick): a drainage cell whose water changes becomes live (saved with the world). A live cell receives the
+  flow of every upstream river / lake cell that is not live at its upstream edge, its own rain at its centre, and gives water that rises
+  above its natural level near its downstream edge back to the river below, but only while the way there is open. So a dam makes a lake
+  rise behind it until it overflows, blocked water comes out next to the blockage, taking water out is refilled at the river's real rate,
+  and a turbine on a river gets at most what the river carries. Everything goes through the water cycle's reservoir (total stays exact).
+  The distant LOD terrain does not show rivers yet; on big planets the coarse cells make many small lakes and rivers.
 * **Aquifers and lava:** like Minecraft's aquifers, the planet is split into ~40-block regions (Voronoi on the sphere, Generation/Aquifers.cs); each is dry (25 %) or has one water level (-54..-2), so flooded caves are level and at rest when generated. Where a cave crosses into a region with another level, a 3-block stone barrier keeps the water apart. The deepest caves hold lava lakes (static blocks, self-lit, solid).
 * **Deepslate:** stone changes to deepslate 56-72 blocks below the surface (and the whole core is deepslate).
 * **Ores:** coal, copper, iron, gold, redstone, lapis, diamond and (mountains only) emerald, each in its own depth range with

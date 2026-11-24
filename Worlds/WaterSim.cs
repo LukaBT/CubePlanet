@@ -27,8 +27,13 @@ public static class WaterSim
     /// It starts at roughly the volume of a planet's oceans, so the sea never visibly changes level.</summary>
     public static double Reservoir = DefaultReservoir;
     public const double DefaultReservoir = 1e9;
-    /// <summary>The row just above sea level (water resting there on the sea flows into it).</summary>
-    public static bool AboveSea(int b, int y) { double rel = bands[b].inner + y + .5 - R; return rel > 0 && rel < 1; }
+    /// <summary>The row just above sea level (water resting there on the sea flows into it), outside rivers and lakes (a river near sea
+    /// level is not the sea).</summary>
+    public static bool AboveSea(int b, int f, int x, int y, int z)
+    {
+        double rel = bands[b].inner + y + .5 - R; if (!(rel > 0 && rel < 1)) return false;
+        return ColsOf(bands[b], f, x >> 5, z >> 5).rc[(x & 31) + 32 * (z & 31)] < 0;
+    }
     /// <summary>Adds up to 'units' to a cell (air or water, levels above 8 rise into the cells above, like PlaceWater). Returns units placed.</summary>
     public static int AddWater(WC c, int units)
     {
@@ -169,7 +174,7 @@ public static class WaterSim
     const int CellsPerTick = 400, PressPerTick = 6;
     static int allowance, pressLeft;
     /// <summary>One whole tick at once (benchmark, tests).</summary>
-    public static void WaterStep() { allowance = Math.Min(wactQ.Count, CellsPerTick); pressLeft = PressPerTick; WaterWork(double.MaxValue); }
+    public static void WaterStep() { Hydrology.Tick(1 / TicksPerSecond); allowance = Math.Min(wactQ.Count, CellsPerTick); pressLeft = PressPerTick; WaterWork(double.MaxValue); }
 
     static void WaterWork(double budgetMs)
     {
@@ -182,19 +187,10 @@ public static class WaterSim
             var cur = Wcell(co.b, co.f, co.x, co.y, co.z); if (!cur.ok || cur.id != Water) continue;
             int l = Wl(cur), l0 = l;
             var dn = Wcell(cur.b, cur.F, cur.X, cur.Y - 1, cur.Z);
-            // rivers keep their natural level (Generation/Rivers.cs): a river cell that lost water is topped up from the reservoir and water
-            // resting on a river above its surface goes into it, so a river keeps flowing (and can feed turbines) instead of running dry
-            var rc = ColsOf(bands[cur.b], cur.F, cur.X >> 5, cur.Z >> 5); float rS = rc.rs[(cur.X & 31) + 32 * (cur.Z & 31)];
-            if (!float.IsNaN(rS))
-            {
-                double rel = bands[cur.b].inner + cur.Y + .5 - R;
-                if (rel < rS && l < 8) { Reservoir -= 8 - l; Wput(cur, 8); l = l0 = 8; }
-                else if (rel > rS && dn.ok && dn.id == Water) { Reservoir += l; WaterFlow.Move(cur, 0, -1, 0, l); Wput(cur, 0); continue; }
-            }
             if (dn.ok)
             {
                 // the sea takes in water arriving on top of it (rivers, waterfalls): it goes back into the reservoir springs draw from
-                if (dn.id == Water && Wl(dn) == 8 && AboveSea(cur.b, cur.Y)) { Reservoir += l; WaterFlow.Move(cur, 0, -1, 0, l); Wput(cur, 0); continue; }
+                if (dn.id == Water && Wl(dn) == 8 && AboveSea(cur.b, cur.F, cur.X, cur.Y, cur.Z)) { Reservoir += l; WaterFlow.Move(cur, 0, -1, 0, l); Wput(cur, 0); continue; }
                 if (Wfree(dn.id)) { WaterFlow.Move(cur, 0, -1, 0, l); Wput(dn, l); Wput(cur, 0); continue; }
                 if (dn.id == Water) { int ld = Wl(dn); if (ld < 8) { int m = Math.Min(l, 8 - ld); WaterFlow.Move(cur, 0, -1, 0, m); Wput(dn, ld + m); l -= m; if (l == 0) { Wput(cur, 0); continue; } } }
             }
@@ -254,6 +250,7 @@ public static class WaterSim
         if (wAcc > 1 / TicksPerSecond)
         {
             wAcc = Math.Min(wAcc - 1 / TicksPerSecond, 1 / TicksPerSecond);
+            Hydrology.Tick(1 / TicksPerSecond); // disturbed rivers: inflow from upstream, outflow downstream
             // this tick: the cells queued now (those of an unfinished last tick are at the front of the queue)
             allowance = Math.Min(Math.Max(allowance, Math.Min(wactQ.Count, CellsPerTick)), 2 * CellsPerTick); pressLeft = Math.Min(pressLeft + PressPerTick, 2 * PressPerTick);
         }

@@ -81,16 +81,18 @@ public static class SelfTest
         var rv = WaterBench.RiverStats(B, bi, f, ccx, ccz, 6);
         Check(rv.cols > 100 && rv.falls > 0, $"rivers with waterfalls near spawn ({rv.cols} river columns, {rv.falls} waterfall columns)");
         // a river cell near spawn: the first channel column with water at least 2 deep
-        int rx = 0, rz = 0; float S = float.NaN;
+        int rx = 0, rz = 0, rdir = 0; float S = float.NaN;
         for (int dz = -2; dz <= 2 && float.IsNaN(S); dz++) for (int dx = -2; dx <= 2 && float.IsNaN(S); dx++)
             {
                 var col = ColsOf(B, f, ccx + dx, ccz + dz);
-                for (int i = 0; i < 1024; i++) if (!float.IsNaN(col.rs[i]) && col.rs[i] - col.h[i] >= 2) { S = col.rs[i]; rx = (ccx + dx) * 32 + (i & 31); rz = (ccz + dz) * 32 + (i >> 5); break; }
+                for (int i = 0; i < 1024; i++)
+                    if (!float.IsNaN(col.rs[i]) && col.rs[i] - col.h[i] >= 2 && col.rc[i] >= 0 && Hydrology.Kind[col.rc[i]] == Hydrology.River && col.rs[i] >= 6)
+                    { S = col.rs[i]; rx = (ccx + dx) * 32 + (i & 31); rz = (ccz + dz) * 32 + (i >> 5); rdir = col.rf[i] & 7; break; }
             }
         if (float.IsNaN(S)) { Check(false, "a river within 80 blocks of spawn"); return; }
         int ry = (int)Math.Floor(R + S - .5 - B.inner); // the top water cell (centre below S)
         var made = new List<Chunk>();
-        for (int dy = -1; dy <= 1; dy++) for (int dz = -1; dz <= 1; dz++) for (int dx = -1; dx <= 1; dx++)
+        for (int dy = -1; dy <= 1; dy++) for (int dz = -2; dz <= 2; dz++) for (int dx = -2; dx <= 2; dx++)
                 {
                     long k = ck(bi, f, (rx >> 5) + dx, (ry >> 5) + dy, (rz >> 5) + dz);
                     if (!chunks.TryGetValue(k, out var ch)) { ch = new Chunk { key = k, band = bi, face = f, cx = (rx >> 5) + dx, cy = (ry >> 5) + dy, cz = (rz >> 5) + dz }; AddChunk(ch); made.Add(ch); }
@@ -101,12 +103,32 @@ public static class SelfTest
         var rch = chunks[ck(bi, f, rx >> 5, ry >> 5, rz >> 5)]; var m = Mesher.Build(rch, out _); bool drawn = false;
         if (m?.w != null) for (int k = 0; k < m.w.vb.Length / 16 && !drawn; k++) { int u = BitConverter.ToUInt16(m.w.vb, k * 16 + 10); drawn = ((u >> 10) & 63) >> 3 > 0; }
         Check(drawn, "an undisturbed river shows its flow (no simulation running)");
-        // take a bucketful out of the river: it is refilled from the reservoir, which pays exactly for it
-        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); double res0 = WaterSim.Reservoir;
-        var cell = Wcell(bi, f, rx, ry, rz); SetCell(bi, f, rx, ry, rz, Water, 2); // 6 units taken
-        for (int i = 0; i < 6; i++) WaterSim.WaterStep();
-        Check(Wl(Wcell(bi, f, rx, ry, rz)) == 8 && Math.Abs(res0 - WaterSim.Reservoir - 6) < 1e-6, $"a river refills what is taken from it (level {Wl(Wcell(bi, f, rx, ry, rz))}, reservoir -{res0 - WaterSim.Reservoir})");
-        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        // all water in the loaded chunks + the reservoir: never changes
+        double Total() { double n = WaterSim.Reservoir; foreach (var ch in chunks.Values) if (ch.d != null && !ch.core) for (int i = 0; i < ch.d.Length; i++) if (ch.d[i] == Water) n += Wl(Wcell(ch.band, ch.face, ch.cx * 32 + (i & 31), ch.cy * 32 + (i >> 10), ch.cz * 32 + ((i >> 5) & 31))); return n; }
+        // take a bucketful out of the river: the cell becomes live and the river's inflow refills it
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); Hydrology.ClearLive(); double tot0 = Total();
+        SetCell(bi, f, rx, ry, rz, Water, 2); double taken = 6;
+        Check(Hydrology.Live.Count > 0, "taking water from a river makes that part of it live");
+        for (int i = 0; i < 40; i++) WaterSim.WaterStep();
+        double avg = 0; int na = 0; for (int a = -1; a <= 1; a++) for (int b = -1; b <= 1; b++) { var w = Wcell(bi, f, rx + a, ry, rz + b); if (w.ok && (w.id == Water || Wfree(w.id))) { avg += Wl(w); na++; } }
+        avg /= Math.Max(1, na);
+        Check(avg >= 5, $"the river's inflow refills what was taken (top layer around it {avg:0.0} / 8 on average; flowing water is not always full)");
+        Check(Math.Abs(Total() + taken - tot0) < .5, $"water in the world + reservoir unchanged ({Total() + taken - tot0:+0.0;-0.0;0} units)");
+        // a dam: a thick wall across the river 5 blocks downstream; the river's water rises behind it
+        double ang = rdir * Math.PI / 4; int ddx = (int)Math.Round(Math.Cos(ang)), ddz = (int)Math.Round(Math.Sin(ang));
+        for (int a = -10; a <= 10; a++) for (int b = -10; b <= 10; b++)
+            {
+                double along = a * Math.Cos(ang) + b * Math.Sin(ang), across = -a * Math.Sin(ang) + b * Math.Cos(ang);
+                if (along < 5 || along > 7 || Math.Abs(across) > 9) continue;
+                for (int y = ry - 5; y <= ry + 6; y++) SetCell(bi, f, rx + a, y, rz + b, Stone);
+            }
+        for (int i = 0; i < 300; i++) WaterSim.WaterStep(); // 60 s
+        int risen = 0;
+        for (int a = -4; a <= 4; a++) for (int b = -4; b <= 4; b++) if (a * Math.Cos(ang) + b * Math.Sin(ang) < 4 && Blk(bi, f, rx + a, ry + 1, rz + b) == Water) risen++;
+        int lake = 0; for (int a = -12; a <= 12; a++) for (int b = -12; b <= 12; b++) for (int y = ry + 1; y <= ry + 6; y++) if (Blk(bi, f, rx + a, y, rz + b) == Water) lake++;
+        Console.WriteLine($"RIVER river of {Hydrology.Q[ColsOf(B, f, rx >> 5, rz >> 5).rc[(rx & 31) + 32 * (rz & 31)]]:0.0} units/s, dammed 60 s: {lake} water cells above its old level behind the dam, {Hydrology.Live.Count} live river cells");
+        Check(risen > 0, $"a dam holds the river back: water rose above the river's level behind it ({risen} cells, {Hydrology.Live.Count} live river cells)");
+        WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Hydrology.ClearLive();
         foreach (var ch in made) FreeChunk(ch);
     }
 

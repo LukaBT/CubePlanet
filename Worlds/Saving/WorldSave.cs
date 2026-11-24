@@ -144,6 +144,7 @@ public static class WorldSave
             ["player"] = new JsonObject { ["on"] = P.on, ["fly"] = P.fly, ["pos"] = V(P.p), ["selected"] = PlayerInventory.Selected },
             ["sun_angle"] = SUNA,
             ["water_reservoir"] = WaterSim.Reservoir, // water cycle: units in the sea / air (springs draw from it)
+            ["live_rivers"] = new JsonArray(Hydrology.Live.Select(c => (JsonNode)c).ToArray()), // disturbed river / lake cells (simulated)
             ["inventory"] = new JsonObject { ["hotbar"] = Stacks(PlayerInventory.Hotbar), ["main"] = Stacks(PlayerInventory.Main) },
             ["block_ids"] = blocks, ["item_ids"] = items,
         };
@@ -239,6 +240,7 @@ public static class WorldSave
         P.vh = new V3(); P.vu = 0; if (P.on) SyncCam();
         SUNA = (double)j["sun_angle"]; SunVec();
         WaterSim.Reservoir = j["water_reservoir"] is JsonNode wr ? (double)wr : WaterSim.DefaultReservoir;
+        Hydrology.ClearLive(); if (j["live_rivers"] is JsonArray lr) foreach (var c in lr) if ((int)c >= 0 && (int)c < Hydrology.Kind.Length) Hydrology.Live.Add((int)c);
         void Stacks(JsonNode a, ItemStack[] into)
         {
             if (a is not JsonArray arr) return;
@@ -258,7 +260,7 @@ public static class WorldSave
     {
         WaitPending();
         lock (EditLock) { edits.Clear(); ecount.Clear(); BlockStates.states.Clear(); saved.Clear(); }
-        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Hydrology.ClearLive();
         foreach (var ch in chunks.Values) { ch.d = null; ch.st = null; ch.gst = 0; }
     }
 

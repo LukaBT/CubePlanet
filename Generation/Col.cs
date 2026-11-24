@@ -10,4 +10,6 @@ public class Col
     /// <summary>Rivers: water surface (relative to sea level, NaN = none), surface of a river whose bank zone this is (no caves above it - 8),
     /// drawn flow (direction along the block grid in 45 degree steps | strength 0..7 &lt;&lt; 3).</summary>
     public float[] rs = new float[1024], rn = new float[1024]; public byte[] rf = new byte[1024];
+    /// <summary>Drainage cell (Hydrology) whose river / lake water this column holds, -1 = none.</summary>
+    public int[] rc = new int[1024];
 }
