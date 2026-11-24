@@ -78,7 +78,8 @@ public static class WaterMachines
         if (n <= 0 || !from.ok || !to.ok) return 0;
         int took = TakeWater(from, n); if (took == 0) return 0;
         var t2 = Wcell(to.b, to.F, to.X, to.Y, to.Z); // re-read: taking may have changed it if both are the same column
-        int put = AddWater(t2, took);
+        int put = StackAdd(t2, took);
+        if (put < took) put += SpreadAdd(t2, took - put);
         if (put < took) AddWater(Wcell(from.b, from.F, from.X, from.Y, from.Z), took - put);
         if (put > 0)
         {
@@ -87,12 +88,68 @@ public static class WaterMachines
         }
         return put;
     }
-    /// <summary>Units a cell can still take (its own room plus the cell above).</summary>
+    /// <summary>Units a cell can still take: its own room plus up to 7 cells above (water stacks up over an outlet, then spreads out;
+    /// the simulation does not level a 1-unit difference, so counting only the outlet cell could stall a pump with its tank half empty).</summary>
     public static int Room(WC c)
     {
-        if (!c.ok || (c.id != Water && !Wfree(c.id))) return 0;
-        var u = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z);
-        return 8 - Wl(c) + (u.ok && (u.id == Water || Wfree(u.id)) ? 8 - Wl(u) : 0);
+        int n = 0; var c0 = c;
+        for (int i = 0; i < 8 && c.ok && (c.id == Water || Wfree(c.id)) && (i == 0 || Contained(c)); i++) { n += 8 - Wl(c); c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); }
+        foreach (var s in SurfaceAround(c0)) n += 8 - Wl(s);
+        return n;
+    }
+    /// <summary>Water put into this cell stays in its basin: each side is solid, water, or air resting on water (not open air beyond the
+    /// basin's walls), so a pump stops when its tank is full instead of spilling over the walls.</summary>
+    static bool Contained(WC c)
+    {
+        foreach (var n in WaterSim.N4)
+        {
+            var s = Wcell(c.b, c.F, c.X + n[0], c.Y, c.Z + n[1]); if (!s.ok) return false;
+            if (s.id == Water || !Wfree(s.id)) continue;
+            var below = Wcell(s.b, s.F, s.X, s.Y - 1, s.Z); if (!below.ok || below.id != Water) return false;
+        }
+        return true;
+    }
+    /// <summary>Like AddWater (fill the cell, then the cells above), but only while the water stays contained (see <see cref="Contained"/>).</summary>
+    static int StackAdd(WC c, int units)
+    {
+        int placed = 0;
+        for (int i = 0; i < 8 && units > 0 && c.ok && (c.id == Water || Wfree(c.id)) && (i == 0 || Contained(c)); i++)
+        {
+            int l = Wl(c), t = Math.Min(8, l + units);
+            if (t > l) { Wput(c, t); units -= t - l; placed += t - l; }
+            c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z);
+        }
+        return placed;
+    }
+    /// <summary>The not-full water cells of the surface row of the water body around an outlet (breadth-first along that row, up to 64
+    /// cells): an outlet whose own column is full pushes water into them, lowest first, like water pressed into a tank spreading under
+    /// pressure (the simulation alone does not level 1-unit differences).</summary>
+    static List<WC> SurfaceAround(WC c)
+    {
+        var res = new List<WC>(); if (!c.ok || c.id != Water) return res;
+        var top = c; for (int i = 0; i < 64; i++) { var u = Wcell(top.b, top.F, top.X, top.Y + 1, top.Z); if (!u.ok || u.id != Water) break; top = u; }
+        var seen = new HashSet<long> { top.k }; var q = new Queue<WC>(); q.Enqueue(top);
+        while (q.Count > 0 && seen.Count < 64)
+        {
+            var s = q.Dequeue(); if (Wl(s) < 8) res.Add(s);
+            foreach (var n in WaterSim.N4)
+            {
+                var nb = Wcell(s.b, s.F, s.X + n[0], s.Y, s.Z + n[1]);
+                if (nb.ok && nb.id == Water && seen.Add(nb.k)) q.Enqueue(nb);
+            }
+        }
+        res.Sort((a, b) => Wl(a).CompareTo(Wl(b))); return res;
+    }
+    static int SpreadAdd(WC c, int units)
+    {
+        int put = 0;
+        foreach (var s in SurfaceAround(c))
+        {
+            if (units <= 0) break;
+            int l = Wl(s), m = Math.Min(units, 8 - l); if (m <= 0) continue;
+            Wput(s, l + m); units -= m; put += m;
+        }
+        return put;
     }
     /// <summary>Units in the water column above (and including) c.</summary>
     public static int Column(WC c)
@@ -208,6 +265,26 @@ public sealed class BatteryBehavior : BlockBehavior, IEnergyMachine
         WaterMachines.Show(e, "power", (got - made) / dt);
     }
     public override string Describe(BlockEntity e) => $"{e.Num("energy"):0} / {Capacity:0} E  {(e.Num("power") >= 0 ? "+" : "")}{e.Num("power"):0.0} E/S";
+}
+
+/// <summary>
+/// Drain: takes water from the cell in front of it (up to 32 units a second) back into the water cycle's reservoir, the opposite of a
+/// spring: where a turbine's water goes when there is no river or sea to take it.
+/// </summary>
+public sealed class DrainBehavior : BlockBehavior
+{
+    public const double Rate = 32;
+    public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
+    public override void OnTick(BlockEntity e, double dt)
+    {
+        var src = WaterMachines.Outlet(e); if (!src.ok || src.id != Water) { WaterMachines.Show(e, "flow", 0); return; }
+        double want = Rate * dt + e.Num("carry"); int n = (int)want; e.SetNum("carry", Math.Min(1, want - n));
+        int took = TakeWater(src, n); WaterSim.Reservoir += took;
+        var (dx, dy, dz) = WaterMachines.Dir(e);
+        WaterFlow.AddCell(src.k, src.b, src.F, src.X, src.Y, src.Z, -dx, -dy, -dz, took);
+        WaterMachines.Show(e, "flow", took / dt);
+    }
+    public override string Describe(BlockEntity e) => $"DRAINS {e.Num("flow"):0.0} U/S";
 }
 
 /// <summary>

@@ -11468,6 +11468,58 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "drain",
+      "id": 138,
+      "name": "Drain",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 151,
+        "side": 145,
+        "top": 145,
+        "bottom": 145
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "drain",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            110,
+            116,
+            122
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "drain",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "flow": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }

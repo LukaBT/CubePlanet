@@ -172,6 +172,15 @@ Performance: the simulation runs on the main thread (it changes the same block d
 * **Water Pump**: lifts water from its back to its front (or to the top end of a pipe column) for units x lift x 0.1 / 0.75 E.
 * **Battery**: 2000 E, 50 E/s in or out, 95 % each way.
 * **Spring**: water comes out of its front (right click: 1, 2, 4, 8, 16 units/s) for rivers, waterfalls and fountains.
+* **Drain**: takes up to 32 units/s from the cell in front of it back into the water cycle (where a turbine's water goes without a river
+  or sea nearby).
+* Pipe and machine outlets push water into the body they open into (filling its column, then its lowest surface cells nearby) but never
+  over a basin's walls: a pump stops when its tank is full.
+
+`--demoworld NAME [--demosecs S]` (no window) builds a saved world with two plants next to spawn and runs them for S seconds (default 200):
+plant A (a reservoir on pillars fed by 3 springs, 3 penstocks to 3 turbines on "on", a tailwater basin with drains, 4 batteries and an
+oxygen generator) and plant B, joined by a cable (a pool, a pump on auto lifting water 19 blocks into a tank, a turbine on auto letting it
+back down). It refuses to touch an existing world folder.
 * The **oxygen generator** also takes energy from a network now (besides burning fuel).
 
 Right click a turbine or pump to switch **auto / on / off**. Auto is the useful one:

@@ -151,3 +151,4 @@ texture_rows: 16
 148 battery_top 64 144
 149 battery_side 80 144
 150 spring_front 96 144
+151 drain_front 112 144

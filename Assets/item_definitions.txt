@@ -2567,6 +2567,24 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "drain",
+      "id": 143,
+      "name": "Drain",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "drain"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

@@ -34,6 +34,7 @@ public abstract class BlockBehavior
         ["pump"] = () => new PumpBehavior(),
         ["battery"] = () => new BatteryBehavior(),
         ["spring"] = () => new SpringBehavior(),
+        ["drain"] = () => new DrainBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>
         Known.TryGetValue(name, out var f) ? f() : throw new InvalidDataException($"{owner}: unknown behavior '{name}' (known: {string.Join(", ", Known.Keys)})");
