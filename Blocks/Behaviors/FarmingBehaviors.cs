@@ -21,13 +21,15 @@ public static class Farming
 {
     public const double FarmlandMin = 8, FarmlandMax = 14, CropMin = 25, CropMax = 45; public const int WiltAfter = 3, DryToDirt = 6, Reach = 4;
     internal static readonly Random rng = new();
+    /// <summary>How much faster than normal farm blocks tick (settings: Tick speed): soil soaking up water, crops growing and wilting.</summary>
+    public static double Speed => Math.Clamp(Settings.SET.tick, .1, 100);
     internal static double Next(double a, double b) => a + rng.NextDouble() * (b - a);
     static int farmland = -2;
     public static int FarmlandId => farmland != -2 ? farmland : farmland = GameAssets.BlockReg.Has("farmland") ? GameAssets.BlockReg.Id("farmland") : -1;
     public static bool IsFarmland(int id) => id > 0 && BEH[id] is FarmlandBehavior;
     public static StateSchema.Field Moisture(int id) => DEFS[id].State.Find("moisture");
     public static int MoistureAt(BlockPos p) { var f = Moisture(p.Id); return f == null ? 0 : f.Value((uint)p.State); }
-    public static void SetMoisture(BlockPos p, int m) { var f = Moisture(p.Id); if (f != null) BlockStates.Set(p, (int)f.With((uint)p.State, Math.Clamp(m, f.Min, f.Min + f.Count - 1) - f.Min)); }
+    public static void SetMoisture(BlockPos p, int m) { var f = Moisture(p.Id); if (f != null) BlockStates.Set(p, (int)f.With((uint)p.State, Math.Clamp(m, f.Min, f.Min + f.Count - 1) - f.Min), true); }
 
     /// <summary>Hoe: dirt or grass with air (or a plant) above becomes dry farmland.</summary>
     public static bool Till(BlockPos p)
@@ -64,7 +66,7 @@ public sealed class FarmlandBehavior : BlockBehavior
     public override void OnTick(BlockEntity e, double dt)
     {
         var p = e.Pos; if (!p.Loaded) return;
-        double t = e.Num("timer") - dt; if (t > 0) { e.SetNum("timer", t); return; }
+        double t = e.Num("timer") - dt * Farming.Speed; if (t > 0) { e.SetNum("timer", t); return; }
         e.SetNum("timer", Farming.Next(Farming.FarmlandMin, Farming.FarmlandMax));
         if (!Farming.IsFarmland(p.Id)) return;
         int m = Farming.MoistureAt(p);
@@ -121,7 +123,7 @@ public sealed class CropBehavior : BlockBehavior
     public override void OnTick(BlockEntity e, double dt)
     {
         var p = e.Pos; if (!p.Loaded) return;
-        double t = e.Num("timer") - dt; if (t > 0) { e.SetNum("timer", t); return; }
+        double t = e.Num("timer") - dt * Farming.Speed; if (t > 0) { e.SetNum("timer", t); return; }
         e.SetNum("timer", Farming.Next(Farming.CropMin, Farming.CropMax));
         int id = p.Id; if (BEH[id] is not CropBehavior) return;
         int age = AgeOf(id, p.State), max = MaxAge(id); if (age >= max) return; // ripe: no more water
@@ -130,13 +132,13 @@ public sealed class CropBehavior : BlockBehavior
         if (m >= 1)
         {   // drink 1 unit, grow a stage; the water leaves through the plant into the water cycle
             Farming.SetMoisture(soil, m - 1); WaterSim.Reservoir += 1;
-            BlockStates.Set(p, (int)Age(id).With((uint)p.State, age + 1 - Age(id).Min)); e.SetNum("dry", 0);
+            BlockStates.Set(p, (int)Age(id).With((uint)p.State, age + 1 - Age(id).Min), true); e.SetNum("dry", 0);
             return;
         }
         double dry = e.Num("dry") + 1; e.SetNum("dry", dry);
         if (dry < (age == 0 ? Farming.WiltAfter * 3 : Farming.WiltAfter)) return; // a seed lies dormant much longer before it dries up
         e.SetNum("dry", 0);
-        if (age > 0) BlockStates.Set(p, (int)Age(id).With((uint)p.State, age - 1 - Age(id).Min)); // wilts back a stage
+        if (age > 0) BlockStates.Set(p, (int)Age(id).With((uint)p.State, age - 1 - Age(id).Min), true); // wilts back a stage
         else { BlockStates.entities.Remove(p.Key); p.Set(DeadBush); BlockActions.NotifyNeighbors(p); } // dried up
     }
     public override IEnumerable<ItemStack> Harvest(BlockPos p, int id, int state)

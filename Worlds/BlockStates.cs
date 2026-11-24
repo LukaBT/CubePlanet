@@ -28,13 +28,14 @@ public static class BlockStates
     public static bool TryGet(long key, out ushort s) { lock (EditLock) return states.TryGetValue(key, out s); }
 
     /// <summary>Changes only the state word of a cell (the block stays) and re-meshes it.</summary>
-    public static void Set(BlockPos p, int state)
+    /// <param name="background">re-mesh on the worker threads (automatic changes such as crops growing), not on the main thread this frame</param>
+    public static void Set(BlockPos p, int state, bool background = false)
     {
         lock (EditLock) { if (state != 0) states[p.Key] = (ushort)state; else states.Remove(p.Key); }
         Chunk ch = null;
         if (p.Core) chunks.TryGetValue(cKey(p.X >> 5, p.Y >> 5, p.Z >> 5), out ch);
         else chunks.TryGetValue(ck(p.B, p.F, p.X >> 5, p.Y >> 5, p.Z >> 5), out ch);
-        if (ch != null && ch.d != null) { Store(ch, (p.X & 31) + 32 * ((p.Z & 31) + 32 * (p.Y & 31)), state); ch.dirty = true; }
+        if (ch != null && ch.d != null) { Store(ch, (p.X & 31) + 32 * ((p.Z & 31) + 32 * (p.Y & 31)), state); ch.ver++; if (background) ch.relight = true; else ch.dirty = true; }
     }
     /// <summary>Writes a state word into a loaded chunk (allocating its state array on the first non-zero word).</summary>
     public static void Store(Chunk ch, int idx, int state)

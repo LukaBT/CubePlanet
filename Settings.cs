@@ -11,6 +11,7 @@ public class Settings
     public double ao = 1, aniso = 1, bloom = 1, godrays = 1, fxaa = 1, ssr = 1, msaa = 4;
     public double ver; // settings file version (old files: 0)
     public double rscale = 1; // render resolution (fraction of the window); the UI always stays at full resolution
+    public double tick = 1; // tick speed: how much faster farm blocks (soil, crops) tick than normal
 
     public static readonly string[] PresetNames = { "LOW", "MEDIUM", "HIGH", "ULTRA" };
     //                                   shadows  ao  aniso bloom rays  ssr  fxaa msaa clouds

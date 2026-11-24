@@ -58,7 +58,7 @@ public static partial class UI
         Slider("Field of view", ref SET.fov, 50, 110, 1); Slider("Mouse sensitivity", ref SET.sens, .2, 3, .1); Slider("Fly speed", ref SET.fly, 5, 300, 5);
         Slider("Clouds", ref SET.clouds, 0, 3, 1, v => new[] { "off", "low", "high", "ultra" }[(int)v]); Slider("Fog", ref SET.fog, 0, 2, .1);
         double hour = Sky.LocalHour(); if (Slider("Time of day", ref hour, 0, 23.99, .25, v => $"{(int)v:00}:{(int)((v % 1) * 60):00}")) Sky.SetHour(hour);
-        Slider("Day length (s)", ref SET.day, 60, 1800, 30); Check("Freeze time", ref SET.pause); Slider("Axial tilt (Earth=23.5)", ref SET.tilt, 0, 90, .5);
+        Slider("Day length (s)", ref SET.day, 60, 1800, 30); Slider("Tick speed (farming)", ref SET.tick, 1, 50, 1, v => $"x{v:0}"); Check("Freeze time", ref SET.pause); Slider("Axial tilt (Earth=23.5)", ref SET.tilt, 0, 90, .5);
         Head("GRAPHICS");
         Slider("Render resolution", ref SET.rscale, .3, 1, .05, v => $"{v * 100:0}% {(int)Math.Round(W * v)}x{(int)Math.Round(H * v)}");
         { int pr = SET.Preset(); if (Btn("Preset (click to change)", pr < 0 ? "CUSTOM" : Settings.PresetNames[pr])) SET.ApplyPreset(pr < 0 ? 2 : (pr + 1) % Settings.PresetNames.Length); }

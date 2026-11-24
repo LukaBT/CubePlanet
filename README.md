@@ -215,6 +215,8 @@ Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/Fa
   one gives its seed back. Wheat needs 7 units (about one water block) per plant per harvest, so a farm needs a real supply: a lake or
   river nearby, a spring feeding an irrigation channel, or a pump. An overflowing channel washes crops away.
 * Farm blocks tick only in loaded chunks (like machines).
+* **Tick speed** (settings, Esc: "Tick speed (farming)", x1 .. x50): how much faster farm blocks tick: soil soaking up water, crops growing
+  and wilting. The water per stage stays the same, only time runs faster. Farm changes re-mesh in the background (no main-thread stalls).
 * `--demofarm NAME [--demosecs S]` (no window) builds a saved world with three farms: A irrigated (a spring feeding a glass-covered channel),
   B the same crops with no water (half grown, wilting), C wheat around a pond with no supply (the pond sinks as they drink).
 

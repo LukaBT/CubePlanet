@@ -276,6 +276,8 @@ public static class Mesher
         void Special(int id, int x, int y, int z)
         {
             double sky = LightAt(x, y, z); V3 up = M.Nrm(Pt(x + .5, y + .5, z + .5));
+            // plants with state (crop stages): the texture of their current state, not the base one
+            float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[2]) : Lay(id);
             if (ATT[id] == 1) // vine
             {
                 bool any = false;
@@ -287,20 +289,20 @@ public static class Mesher
                     {
                         any = true; var c = CN[fc]; var p = new V3[4];
                         for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3] - DX[fc] * .06, y + c[i * 3 + 1], z + c[i * 3 + 2] - DZ[fc] * .06);
-                        Two(p, Lay(id), sky, up);
+                        Two(p, lay, sky, up);
                     }
                 }
                 if (Sup(Gb(x, y + 1, z)))
                 {
                     any = true; var c = CN[2]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3], y + c[i * 3 + 1] - .06, z + c[i * 3 + 2]);
-                    Two(p, Lay(id), sky, up);
+                    Two(p, lay, sky, up);
                 }
                 if (!any)
                 {
                     var c = CN[0]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + c[i * 3] - .06, y + c[i * 3 + 1], z + c[i * 3 + 2]);
-                    Two(p, Lay(id), sky, up);
+                    Two(p, lay, sky, up);
                 }
             }
             else if (ATT[id] == 2) // pod (cocoa)
@@ -313,14 +315,14 @@ public static class Mesher
                     var c = CN[fc]; var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + (c[i * 3] != 0 ? x1 : x0), y + (c[i * 3 + 1] != 0 ? y1 : y0), z + (c[i * 3 + 2] != 0 ? z1 : z0));
                     double ax = p[2].X - p[0].X, ay = p[2].Y - p[0].Y, az = p[2].Z - p[0].Z, bx = p[3].X - p[1].X, by = p[3].Y - p[1].Y, bz = p[3].Z - p[1].Z;
-                    PQ(p, false, Lay(id), sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)));
+                    PQ(p, false, lay, sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)));
                 }
             }
             else
             {
                 double jit = JIT[id] ? .3 : 0, X = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 77) - .5) * jit, Z = (HH(f, ch.cx * CS + x, ch.cz * CS + z, 78) - .5) * jit, lo = .1, hi = .9;
-                Two(new[] { Pw(x + lo + X, y, z + lo + Z), Pw(x + hi + X, y, z + hi + Z), Pw(x + hi + X, y + 1, z + hi + Z), Pw(x + lo + X, y + 1, z + lo + Z) }, Lay(id), sky, up);
-                Two(new[] { Pw(x + lo + X, y, z + hi + Z), Pw(x + hi + X, y, z + lo + Z), Pw(x + hi + X, y + 1, z + lo + Z), Pw(x + lo + X, y + 1, z + hi + Z) }, Lay(id), sky, up);
+                Two(new[] { Pw(x + lo + X, y, z + lo + Z), Pw(x + hi + X, y, z + hi + Z), Pw(x + hi + X, y + 1, z + hi + Z), Pw(x + lo + X, y + 1, z + lo + Z) }, lay, sky, up);
+                Two(new[] { Pw(x + lo + X, y, z + hi + Z), Pw(x + hi + X, y, z + lo + Z), Pw(x + hi + X, y + 1, z + lo + Z), Pw(x + lo + X, y + 1, z + hi + Z) }, lay, sky, up);
             }
         }
         // water surface openness (used to fade waves in small ponds): ocean-like if most of the surrounding surface is water

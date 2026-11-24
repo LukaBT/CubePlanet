@@ -153,6 +153,18 @@ public static class SelfTest
         int wheatItem = GameAssets.ItemReg.Id("wheat"), w0 = Count(wheatItem);
         for (int x = 0; x <= 8; x++) { var p = At(x, 1, 1); if (p.Id == wheat && CropBehavior.AgeOf(wheat, p.State) == CropBehavior.MaxAge(wheat)) { BlockActions.Break(p); break; } }
         Check(Count(wheatItem) > w0, "breaking ripe wheat gives wheat");
+        // the mesh shows each crop's stage (its state's texture, not the first stage's)
+        int ripeTex = Variant(wheat, (int)DEFS[wheat].State.Find("age").With(0, CropBehavior.MaxAge(wheat))).Faces[2], seedTex = Variant(wheat, 0).Faces[2];
+        var fch = chunks[ck(bi, f, (x0 + 4) >> 5, (y0 + 1) >> 5, (z0 + 3) >> 5)]; var fm = Mesher.Build(fch, out _); bool hasRipe = false;
+        if (fm?.o != null) for (int k = 0; k < fm.o.vb.Length / 16 && !hasRipe; k++) hasRipe = BitConverter.ToInt16(fm.o.vb, k * 16 + 6) == ripeTex;
+        Check(ripeTex != seedTex && hasRipe, "ripe crops are drawn with their ripe texture");
+        // tick speed: x20 grows wheat on wet farmland in a twentieth of the time
+        { double keep = Settings.SET.tick; Settings.SET.tick = 20;
+          var fl = At(25, 0, 6); SetCell(bi, f, x0 + 25, y0, z0 + 6, dirt); Farming.Till(fl); Farming.SetMoisture(fl, 8);
+          BlockActions.Place(At(25, 1, 6), wheat, new V3(1, 0, 0), out _);
+          for (int i = 0; i < 250; i++) BlockActions.Tick(.1); // 25 s
+          int age = CropBehavior.AgeOf(wheat, At(25, 1, 6).State); Settings.SET.tick = keep;
+          Check(age >= 5, $"tick speed x20: wheat grows {age} stages in 25 s (normally ~1)"); }
         for (int y = -2; y <= 4; y++) for (int z = -3; z <= 8; z++) for (int x = -3; x <= 26; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); }
         for (int i = 0; i < PlayerInventory.Main.Length; i++) PlayerInventory.Main[i] = null;
         WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
