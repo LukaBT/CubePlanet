@@ -20,7 +20,7 @@ public sealed class ItemDefinition
     public StateSchema State = new();
     public JsonElement Json;
     /// <summary>
-    /// How the inventory icon is made (properties.definition.icon): "model" = the placed block's 3D model, drawn in-game at <see cref="ItemIcons.Size"/> px
+    /// How the inventory icon is made (properties.definition.icon): "model" = the placed block's 3D model, drawn live in the slot (no picture stored)
     /// (like Minecraft's block items); "sprite" = the block's texture drawn flat (plants, vines); "texture" = this item's own picture in the item atlas.
     /// Default: "model" for cube / boxes blocks, "sprite" for cross / attached / liquid blocks, "texture" for items that place no block.
     /// </summary>

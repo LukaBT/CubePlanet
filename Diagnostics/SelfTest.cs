@@ -221,15 +221,16 @@ public static class SelfTest
         Check(ItemIcons.KindOf(It("oak_door")) == "texture" && ItemIcons.KindOf(It("coal")) == "texture", "door and plain items keep their atlas picture");
         Check(ItemIcons.BoxesOf(It("red_bed")).Count == 6, $"bed icon shows both parts ({ItemIcons.BoxesOf(It("red_bed")).Count} boxes)");
         Check(ItemIcons.BoxesOf(It("oak_fence")).Count == 5, "fence icon shows the post with east / west bars (icon_state)");
-        var top = GameAssets.IconMips[0]; int S = ItemIcons.Size;
-        double Cover(int id) { int n = 0; for (int i = 0; i < S * S; i++) if (top[(id * S * S + i) * 4 + 3] > 127) n++; return n / (double)(S * S); }
-        double cs = Cover(It("stone").Id), cl = Cover(It("oak_slab").Id);
+        // block items are drawn live from faces (no icon pictures stored): what the UI draws, rasterized here
+        int S = 128;
+        double Cover(string n) { var img = ItemIcons.Rasterize(It(n), S); int c = 0; for (int i = 0; i < S * S; i++) if (img[i * 4 + 3] > 127) c++; return c / (double)(S * S); }
+        double cs = Cover("stone"), cl = Cover("oak_slab");
         Check(cs > .6 && cs < .85, $"stone icon covers a cube's share of the icon ({cs:0.00})");
         Check(cl > .3 && cl < cs, $"slab icon is smaller than a full block ({cl:0.00})");
-        Check(ItemIcons.Smooth[It("stone").Id] == 1 && ItemIcons.Smooth[It("poppy").Id] == 0, "3D icons sampled smoothly, flat ones sharply");
-        // the poppy sprite is the block texture scaled up by whole pixels: the texel at (8, 8) of 16 covers an 8x8 square of the icon
-        int pid = It("poppy").Id, o0 = (pid * S * S + 64 * S + 64) * 4, o1 = (pid * S * S + 71 * S + 71) * 4;
-        Check(top[o0] == top[o1] && top[o0 + 1] == top[o1 + 1] && top[o0 + 3] == top[o1 + 3], "sprite icons keep square pixels");
+        Check(ItemIcons.Quads(It("stone")).Length == 3 && ItemIcons.Quads(It("glass")).Length == 6, $"a cube icon is 3 faces, a glass icon also shows its 3 far faces ({ItemIcons.Quads(It("stone")).Length}, {ItemIcons.Quads(It("glass")).Length})");
+        var qs = ItemIcons.Quads(It("stone"));
+        Check(qs.All(q => q.Tex > 0) && qs.Max(q => q.Shade) == 1 && qs.Min(q => q.Shade) < .7, "icon faces carry block textures and top / side shading");
+        Check(ItemIcons.Quads(It("oak_stairs")).Zip(ItemIcons.Quads(It("oak_stairs")).Skip(1)).All(p => p.First.Depth <= p.Second.Depth), "icon faces are drawn back to front");
         try { Gpu.CheckCompiles(Glsl.UI_FS, true, "ui.frag"); Check(true, ""); } catch (Exception e) { Check(false, "ui.frag compiles: " + e.Message); }
         // terrain / water shaders, put together as Renderer does (flowing water look)
         try { Gpu.CheckCompiles(Glsl.WAVE + Glsl.PV_VS, false, "terrain.vert"); Gpu.CheckCompiles(Glsl.WAVE + Glsl.COMMON_BODY + Glsl.PV_FS, true, "terrain.frag"); Check(true, ""); }

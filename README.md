@@ -257,7 +257,7 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 `--benchfly` / `--benchgen` (no window): the main thread's non-drawing work while flying, block lookups in ungenerated chunks.
 Smooth flight: concurrent garbage collection with sustained low latency while playing, chunk block arrays on the pinned object heap (no
 copying by short collections), the game thread above normal priority and all background work (generation, meshing, LOD, scan) below it.
-`--iconsheet file.png` (no window): every inventory icon in one picture. Block items get their icon at load time from the block's 3D model (128 px, Items/ItemIcons.cs) or, for plants, its texture; only items with `icon` "texture" (door, ingots...) use the item atlas.
+`--iconsheet file.png` (no window): every inventory icon in one picture, rasterized from the same faces the UI draws. Like Minecraft, no icon pictures are stored: a block item is drawn live in its slot from its 3D model (Items/ItemIcons.cs: a cached list of faces, drawn back to front with the block textures), plants as their block texture, and only items with `icon` "texture" (door, ingots...) use the item atlas (32 px).
 `--fingerprint [--radius N] [--seed N] [--fprd CHUNKS]` (no window): generates every chunk around the bench spawn point (default 12 chunks) plus the core and prints a hash of the block data. `checks/check.ps1` builds, compares the hashes with `checks/fingerprint.txt`, runs the self-test and takes the screenshots in `checks/out` (references in `checks/ref`); refactors must keep the hashes identical.
 
 ## World generation (v2)

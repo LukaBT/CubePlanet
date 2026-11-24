@@ -85,7 +85,7 @@ with `"storage": "entity"` live in the block's **entity** (saved with the chunk)
 `{namespace, id_name}`, `fuel_time` (seconds in a furnace), `behavior` (`bucket`), `capacity`; `properties.instance_state`: packed fields only
 (32 bits per stack, e.g. the bucket's `fill`).
 
-Item icons (`properties.definition.icon`), like Minecraft: `"model"` = the game draws the placed block's 3D model at 128 px (default for `cube` / `boxes` blocks; multiblocks such as beds show all parts), `"sprite"` = the block's texture drawn flat (default for `cross` / `attached` / `liquid` blocks: flowers, saplings, vines), `"texture"` = the item's own picture in the item atlas (default for items that place no block; the door uses it for its flat door picture). `icon_state` sets block state values for the icon, e.g. `{"east": true, "west": true}` shows a fence with bars; rotating blocks show their front unless `facing` is given.
+Item icons (`properties.definition.icon`), like Minecraft: `"model"` = the game draws the placed block's 3D model live in the slot, like Minecraft (default for `cube` / `boxes` blocks; multiblocks such as beds show all parts), `"sprite"` = the block's texture drawn flat (default for `cross` / `attached` / `liquid` blocks: flowers, saplings, vines), `"texture"` = the item's own picture in the item atlas (default for items that place no block; the door uses it for its flat door picture). `icon_state` sets block state values for the icon, e.g. `{"east": true, "west": true}` shows a fence with bars; rotating blocks show their front unless `facing` is given.
 
 ## UI keys
 `window {width, height}` in UI units, `widgets`: `label` (`text`), `slot` (`storage {scope: block | player, key}`, `mode: output_only`),

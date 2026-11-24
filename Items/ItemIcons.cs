@@ -1,23 +1,19 @@
 namespace CubePlanet;
 
 /// <summary>
-/// Inventory icons (one texture-array layer per item ID, <see cref="Size"/> px, with mipmaps), built when the assets load:
+/// Inventory icons, drawn live like Minecraft's (no icon pictures are stored):
 /// <list type="bullet">
-/// <item>"model" icons: the placed block's 3D model seen from above at the front-right corner, like Minecraft's block items (its GUI view is
-/// rotation 30 / 225, an orthographic 2:1 look). Every pixel is the average of 4x4 rays through the model, so edges are smooth at 128 px; rays
-/// pass through transparent texels (leaves, glass) and show the faces behind. Shading: top 1, south / north .78, east / west .6, bottom .5.
-/// Multiblocks (beds) show all their parts, scaled to fit.</item>
-/// <item>"sprite" icons: the block's texture drawn flat (flowers, saplings, vines), like Minecraft's item/generated models.</item>
-/// <item>"texture" icons: the item's own picture from the item atlas (ingots, the door).</item>
+/// <item>"model": the placed block's 3D model, seen from above at the front-right corner (Minecraft's GUI view, rotation 30 / 225: an
+/// orthographic 2:1 look). Each icon is a cached list of flat faces (<see cref="Quads"/>): screen corners in a 32 x 32 unit box, texture
+/// coordinates into the block texture array, shading (top 1, south / north .78, east / west .6, bottom .5) and depth. The UI draws them back
+/// to front with the block textures every frame (only the visible slots), so icons are sharp at any size and cost no memory. See-through cubes
+/// (glass, leaves) also draw the inside of their far faces; multiblocks (beds) show all parts, scaled to fit.</item>
+/// <item>"sprite": the block's texture drawn flat (flowers, saplings, vines), like Minecraft's item/generated models.</item>
+/// <item>"texture": the item's own picture from the item atlas (ingots, the door).</item>
 /// </list>
-/// Flat pictures are scaled up by whole pixels, so their pixels stay square; the UI samples them sharply (see ui.frag).
 /// </summary>
 public static class ItemIcons
 {
-    public const int Size = 128, SS = 4;
-    /// <summary>Icon kind per item ID: 0 = flat picture (sharp sampling), 1 = 3D model (smooth sampling).</summary>
-    public static byte[] Smooth = Array.Empty<byte>();
-
     public static string KindOf(ItemDefinition it)
     {
         if (it.Icon.Length > 0) return it.PlacesBlockId == 0 && it.Icon != "texture" ? "texture" : it.Icon;
@@ -25,63 +21,8 @@ public static class ItemIcons
         string m = DEFS[it.PlacesBlockId]?.Model ?? "cube";
         return m == "cube" || m == "boxes" ? "model" : "sprite";
     }
-
-    /// <summary>Mip chain of all icon layers (mips[0] = Size x Size per layer; rows bottom-up like every texture array here).</summary>
-    public static byte[][] Build(byte[] itemLayers, int itemW, int itemH, int itemLayerCount, out int layers)
-    {
-        var items = GameAssets.ItemReg.All;
-        layers = Math.Max(itemLayerCount, items.Count == 0 ? 1 : items.Max(i => i.Id) + 1);
-        int L = layers, S = Size; var top = new byte[S * S * 4 * L];
-        Smooth = new byte[L];
-        // atlas pictures first (also the checkerboard of missing ones), scaled up by whole pixels
-        for (int l = 0; l < Math.Min(L, itemLayerCount); l++) Blit(itemLayers, l, itemW, itemH, top, l);
-        Parallel.ForEach(items, it =>
-        {
-            string kind = KindOf(it);
-            if (kind != "texture") Array.Clear(top, it.Id * S * S * 4, S * S * 4); // drawn here, not from the atlas (whose missing-picture checkerboard is there)
-            switch (kind)
-            {
-                case "model": Model(it, top, it.Id); Smooth[it.Id] = 1; break;
-                case "sprite":
-                    var d = DEFS[it.PlacesBlockId]; int t = d.Faces[4] > 0 ? d.Faces[4] : d.Faces[2];
-                    if (t > 0 && t < GameAssets.BlockLayerCount) Blit(GameAssets.BlockLayers, t, GameAssets.BlockTexW, GameAssets.BlockTexH, top, it.Id);
-                    break;
-            }
-        });
-        var mips = new List<byte[]> { top };
-        for (int s = S; s > 1; s /= 2) mips.Add(Half(mips[^1], s, L));
-        return mips.ToArray();
-    }
-
-    // nearest-neighbour scale of one w x h layer to Size x Size (both bottom-up)
-    static void Blit(byte[] src, int sl, int w, int h, byte[] dst, int dl)
-    {
-        int S = Size;
-        for (int y = 0; y < S; y++)
-            for (int x = 0; x < S; x++)
-                Buffer.BlockCopy(src, ((sl * h + y * h / S) * w + x * w / S) * 4, dst, ((dl * S + y) * S + x) * 4, 4);
-    }
-
-    // 2x2 box filter weighted by alpha (transparent texels don't darken the edges)
-    static byte[] Half(byte[] a, int s, int layers)
-    {
-        int h = s / 2; var o = new byte[h * h * 4 * layers];
-        for (int l = 0; l < layers; l++)
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < h; x++)
-                {
-                    double r = 0, g = 0, b = 0, al = 0;
-                    for (int k = 0; k < 4; k++)
-                    {
-                        int i = ((l * s + y * 2 + (k >> 1)) * s + x * 2 + (k & 1)) * 4; double w = a[i + 3];
-                        r += a[i] * w; g += a[i + 1] * w; b += a[i + 2] * w; al += w;
-                    }
-                    int j = ((l * h + y) * h + x) * 4;
-                    if (al > 0) { o[j] = (byte)Math.Round(r / al); o[j + 1] = (byte)Math.Round(g / al); o[j + 2] = (byte)Math.Round(b / al); }
-                    o[j + 3] = (byte)Math.Round(al / 4);
-                }
-        return o;
-    }
+    /// <summary>Block texture of a "sprite" icon.</summary>
+    public static int SpriteTexture(ItemDefinition it) { var d = DEFS[it.PlacesBlockId]; return d.Faces[4] > 0 ? d.Faces[4] : d.Faces[2]; }
 
     internal readonly record struct Box(double X0, double Y0, double Z0, double X1, double Y1, double Z1, int[] Faces);
 
@@ -109,15 +50,31 @@ public static class ItemIcons
         return list;
     }
 
-    // Projection in "32 units" (an icon is 32 x 32 units): screen x = 16 + 14 (x - z), y = 2 + 15 (1 - y) + 7 (x + z) (y down). A full block
-    // spans 2..30 x 2..31, like the AssetEditor's pictures. The view ray is (1, 14/15, 1) (towards the viewer); depth along it = x + 14/15 y + z.
-    static readonly double[] Shade = { .6, .6, 1, .5, .78, .78 };
-    static void Model(ItemDefinition it, byte[] dst, int layer)
+    /// <summary>One face of an icon: corners in a 32 x 32 unit box (y down), texture coordinates (v up, like the texture arrays), block
+    /// texture, shading, and depth (larger = nearer the viewer).</summary>
+    public sealed class Quad { public readonly double[] X = new double[4], Y = new double[4], U = new double[4], V = new double[4]; public int Tex; public float Shade; public double Depth; }
+
+    static readonly Dictionary<int, Quad[]> cache = new();
+    public static void ClearCache() { lock (cache) cache.Clear(); }
+    static readonly float[] Shade = { .6f, .6f, 1f, .5f, .78f, .78f };
+
+    /// <summary>The faces of a "model" icon, in drawing order (back to front). Cached per item.</summary>
+    public static Quad[] Quads(ItemDefinition it)
     {
-        var boxes = BoxesOf(it); if (boxes.Count == 0) return;
-        // multiblocks: scale and centre the picture to fit a block's room; single blocks keep their place (a slab sits at the bottom)
-        double sc = 1, cx = 0, cy = 0;
-        if (DEFS[it.PlacesBlockId].Parts.Length > 0)
+        lock (cache) if (cache.TryGetValue(it.Id, out var q)) return q;
+        var res = BuildQuads(it);
+        lock (cache) cache[it.Id] = res;
+        return res;
+    }
+
+    // Projection (32 units = the icon): screen x = 16 + 14 (x - z), y = 2 + 15 (1 - y) + 7 (x + z); a full block spans 2..30 x 2..31.
+    static Quad[] BuildQuads(ItemDefinition it)
+    {
+        var boxes = BoxesOf(it); var d = DEFS[it.PlacesBlockId];
+        bool backs = d.Model == "cube" && d.RenderLayer != "opaque"; // see-through cubes show the inside of their far faces
+        // multiblocks: scale and centre to fit a block's room; single blocks keep their place (a slab sits at the bottom)
+        double sc = 1, cx = 16, cy = 16.5;
+        if (d.Parts.Length > 0)
         {
             double x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
             foreach (var b in boxes)
@@ -129,92 +86,120 @@ public static class ItemIcons
                 }
             sc = Math.Min(1, Math.Min(28 / (x1 - x0), 29 / (y1 - y0))); cx = (x0 + x1) / 2; cy = (y0 + y1) / 2;
         }
-        // see-through cubes (glass, leaves) show the inside of their far faces through the holes, like Minecraft's glass item; box models
-        // (beds, fences) only their outside, as in the world
-        var bd = DEFS[it.PlacesBlockId]; bool backs = bd.Model == "cube" && bd.RenderLayer != "opaque";
-        int S = Size; double k = S / 32.0, inv = 1.0 / (SS * SS);
-        var tex = GameAssets.BlockLayers; int tw = GameAssets.BlockTexW, th = GameAssets.BlockTexH, tl = GameAssets.BlockLayerCount;
-        for (int py = 0; py < S; py++)
-            for (int px = 0; px < S; px++)
+        var front = new List<Quad>(); var back = new List<Quad>();
+        foreach (var B in boxes)
+        {
+            double fx = Math.Floor(B.X0), fy = Math.Floor(B.Y0), fz = Math.Floor(B.Z0); // texture coordinates are block-local
+            foreach (int face in backs ? new[] { 0, 1, 2, 3, 4, 5 } : new[] { 0, 2, 4 })
             {
-                double r = 0, g = 0, bl = 0, al = 0;
-                for (int s = 0; s < SS * SS; s++)
+                var corners = Corners(B, face); if (corners == null) continue;
+                var q = new Quad { Tex = B.Faces[face], Shade = Shade[face] }; double depth = 0;
+                for (int k = 0; k < 4; k++)
                 {
-                    double sx = (px + (s % SS + .5) / SS) / k, sy = (py + (s / SS + .5) / SS) / k;
-                    if (sc != 1) { sx = cx + (sx - 16) / sc; sy = cy + (sy - 16.5) / sc; }
-                    if (!Sample(boxes, sx, sy, tex, tw, th, tl, backs, out var c)) continue;
-                    double a = c.a / 255.0; r += c.r * a; g += c.g * a; bl += c.b * a; al += a;
+                    var (x, y, z) = corners[k];
+                    double sx = 16 + 14 * (x - z), sy = 2 + 15 * (1 - y) + 7 * (x + z);
+                    q.X[k] = 16 + (sx - cx) * sc; q.Y[k] = 16.5 + (sy - cy) * sc;
+                    // texture coordinates as the world's box faces map them (u, v down from the top of the face), v flipped for the arrays
+                    double lx = x - fx, ly = y - fy, lz = z - fz, u, vd;
+                    switch (face)
+                    {
+                        case 2: u = lx; vd = lz; break;
+                        case 3: u = lx; vd = 1 - lz; break;
+                        case 0: u = 1 - lz; vd = 1 - ly; break;
+                        case 1: u = lz; vd = 1 - ly; break;
+                        case 4: u = lx; vd = 1 - ly; break;
+                        default: u = 1 - lx; vd = 1 - ly; break;
+                    }
+                    q.U[k] = u; q.V[k] = 1 - vd; depth += x + y * 14 / 15 + z;
                 }
-                if (al <= 0) continue;
-                int o = ((layer * S + (S - 1 - py)) * S + px) * 4; // rows bottom-up
-                dst[o] = (byte)Math.Round(r / al); dst[o + 1] = (byte)Math.Round(g / al); dst[o + 2] = (byte)Math.Round(bl / al); dst[o + 3] = (byte)Math.Round(255 * al * inv);
+                q.Depth = depth / 4;
+                (face == 0 || face == 2 || face == 4 ? front : back).Add(q);
             }
+        }
+        back.Sort((a, b) => a.Depth.CompareTo(b.Depth)); front.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+        return back.Concat(front).ToArray();
     }
 
-    // nearest non-transparent texel along the view ray through screen point (sx, sy), front faces and (through holes) the inside of back faces
-    static bool Sample(List<Box> boxes, double sx, double sy, byte[] tex, int tw, int th, int tl, bool backs, out (double r, double g, double b, double a) col)
+    // corners of a box face, in an order that winds around it (null for an empty face)
+    static (double, double, double)[] Corners(Box b, int face)
     {
-        col = default;
-        // point on the ray with y = 0, then the ray p + t * (1, 14/15, 1)
-        double a = (sx - 16) / 14, s = (sy - 17) / 7, bx = (a + s) / 2, bz = (s - a) / 2; const double dy = 14.0 / 15;
-        Span<(double t, int face, int box)> hits = stackalloc (double, int, int)[2 * Math.Min(boxes.Count, 64)];
-        int n = 0;
-        for (int i = 0; i < boxes.Count && i < 64; i++)
+        if (b.X1 <= b.X0 || b.Y1 <= b.Y0 || b.Z1 <= b.Z0) return null;
+        return face switch
         {
-            var B = boxes[i];
-            // slab intersection; the ray direction is positive on every axis
-            double tx0 = B.X0 - bx, tx1 = B.X1 - bx, ty0 = B.Y0 / dy, ty1 = B.Y1 / dy, tz0 = B.Z0 - bz, tz1 = B.Z1 - bz;
-            double tin = Math.Max(tx0, Math.Max(ty0, tz0)), tout = Math.Min(tx1, Math.Min(ty1, tz1));
-            if (tin >= tout) continue;
-            // front: the face where the ray enters coming from the viewer (largest t) = the min of the far planes
-            int ff = tout == tx1 ? 0 : tout == ty1 ? 2 : 4;
-            int bf = tin == tx0 ? 1 : tin == ty0 ? 3 : 5;
-            hits[n++] = (tout, ff, i); if (backs) hits[n++] = (tin, bf, i);
-        }
-        if (n == 0) return false;
-        var hs = hits[..n]; hs.Sort((p, q) => q.t.CompareTo(p.t));
-        foreach (var (t, face, bi) in hs)
-        {
-            var B = boxes[bi]; double x = bx + t, y = t * dy, z = bz + t;
-            double u, v; // texture coordinates (v down from the top of the face), as the AssetEditor maps them
-            switch (face)
-            {
-                case 2: u = x - Math.Floor(B.X0); v = z - Math.Floor(B.Z0); break;
-                case 3: u = x - Math.Floor(B.X0); v = 1 - (z - Math.Floor(B.Z0)); break;
-                case 0: u = 1 - (z - Math.Floor(B.Z0)); v = 1 - (y - Math.Floor(B.Y0)); break;
-                case 1: u = z - Math.Floor(B.Z0); v = 1 - (y - Math.Floor(B.Y0)); break;
-                case 4: u = x - Math.Floor(B.X0); v = 1 - (y - Math.Floor(B.Y0)); break;
-                default: u = 1 - (x - Math.Floor(B.X0)); v = 1 - (y - Math.Floor(B.Y0)); break;
-            }
-            int tid = B.Faces[face]; double sh = Shade[face];
-            double r, g, b, al;
-            if (tid <= 0 || tid >= tl) { bool m = ((int)(u * 2) + (int)(v * 2)) % 2 == 0; r = m ? 255 : 0; g = 0; b = r; al = 255; }
-            else
-            {
-                int ix = Math.Clamp((int)(u * tw), 0, tw - 1), iy = Math.Clamp((int)(v * th), 0, th - 1);
-                int o = ((tid * th + (th - 1 - iy)) * tw + ix) * 4; // layers are stored bottom-up
-                r = tex[o]; g = tex[o + 1]; b = tex[o + 2]; al = tex[o + 3];
-            }
-            if (al < 8) continue;
-            col = (r * sh, g * sh, b * sh, al); return true;
-        }
-        return false;
+            2 => new[] { (b.X0, b.Y1, b.Z0), (b.X1, b.Y1, b.Z0), (b.X1, b.Y1, b.Z1), (b.X0, b.Y1, b.Z1) },
+            3 => new[] { (b.X0, b.Y0, b.Z0), (b.X1, b.Y0, b.Z0), (b.X1, b.Y0, b.Z1), (b.X0, b.Y0, b.Z1) },
+            0 => new[] { (b.X1, b.Y1, b.Z0), (b.X1, b.Y1, b.Z1), (b.X1, b.Y0, b.Z1), (b.X1, b.Y0, b.Z0) },
+            1 => new[] { (b.X0, b.Y1, b.Z0), (b.X0, b.Y1, b.Z1), (b.X0, b.Y0, b.Z1), (b.X0, b.Y0, b.Z0) },
+            4 => new[] { (b.X0, b.Y1, b.Z1), (b.X1, b.Y1, b.Z1), (b.X1, b.Y0, b.Z1), (b.X0, b.Y0, b.Z1) },
+            _ => new[] { (b.X0, b.Y1, b.Z0), (b.X1, b.Y1, b.Z0), (b.X1, b.Y0, b.Z0), (b.X0, b.Y0, b.Z0) },
+        };
     }
 
-    /// <summary>--iconsheet file.png: every item icon (16 per row, at full size over a grey background), for checking them without a window.</summary>
+    // ---------- CPU rasterizer of the same faces (no window): --iconsheet and the self-test check what the UI draws ----------
+
+    /// <summary>An item's icon as RGBA (rows top-down), drawn from the same faces / textures the UI uses.</summary>
+    public static byte[] Rasterize(ItemDefinition it, int size)
+    {
+        var img = new byte[size * size * 4]; var tex = GameAssets.BlockLayers; int tw = GameAssets.BlockTexW, th = GameAssets.BlockTexH, tl = GameAssets.BlockLayerCount;
+        void Px(int x, int y, byte r, byte g, byte b, byte a)
+        {
+            if (a == 0) return; int o = (y * size + x) * 4; double al = a / 255.0;
+            img[o] = (byte)(r * al + img[o] * (1 - al)); img[o + 1] = (byte)(g * al + img[o + 1] * (1 - al)); img[o + 2] = (byte)(b * al + img[o + 2] * (1 - al)); img[o + 3] = (byte)Math.Max(img[o + 3], a);
+        }
+        (byte, byte, byte, byte) Tx(byte[] data, int w, int h, int layer, double u, double v)
+        {
+            int ix = Math.Clamp((int)(u * w), 0, w - 1), iy = Math.Clamp((int)(v * h), 0, h - 1), o = ((layer * h + iy) * w + ix) * 4;
+            return (data[o], data[o + 1], data[o + 2], data[o + 3]);
+        }
+        switch (KindOf(it))
+        {
+            case "model":
+                foreach (var q in Quads(it))
+                {
+                    if (q.Tex <= 0 || q.Tex >= tl) continue;
+                    for (int t = 0; t < 2; t++)
+                    {
+                        int a = 0, b = t + 1, c = t + 2; // triangles (0,1,2) and (0,2,3)
+                        double k = size / 32.0, ax = q.X[a] * k, ay = q.Y[a] * k, bx = q.X[b] * k, by = q.Y[b] * k, cxp = q.X[c] * k, cyp = q.Y[c] * k;
+                        double den = (by - cyp) * (ax - cxp) + (cxp - bx) * (ay - cyp); if (Math.Abs(den) < 1e-9) continue;
+                        int minx = Math.Max(0, (int)Math.Floor(Math.Min(ax, Math.Min(bx, cxp)))), maxx = Math.Min(size - 1, (int)Math.Ceiling(Math.Max(ax, Math.Max(bx, cxp))));
+                        int miny = Math.Max(0, (int)Math.Floor(Math.Min(ay, Math.Min(by, cyp)))), maxy = Math.Min(size - 1, (int)Math.Ceiling(Math.Max(ay, Math.Max(by, cyp))));
+                        for (int y = miny; y <= maxy; y++) for (int x = minx; x <= maxx; x++)
+                            {
+                                double px = x + .5, py = y + .5;
+                                double w0 = ((by - cyp) * (px - cxp) + (cxp - bx) * (py - cyp)) / den, w1 = ((cyp - ay) * (px - cxp) + (ax - cxp) * (py - cyp)) / den, w2 = 1 - w0 - w1;
+                                if (w0 < 0 || w1 < 0 || w2 < 0) continue;
+                                double u = w0 * q.U[a] + w1 * q.U[b] + w2 * q.U[c], v = w0 * q.V[a] + w1 * q.V[b] + w2 * q.V[c];
+                                var (r, g, bb, al) = Tx(tex, tw, th, q.Tex, u, v);
+                                Px(x, y, (byte)(r * q.Shade), (byte)(g * q.Shade), (byte)(bb * q.Shade), al);
+                            }
+                    }
+                }
+                break;
+            case "sprite":
+                { int t = SpriteTexture(it); if (t <= 0 || t >= tl) break; for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) { var (r, g, b, a) = Tx(tex, tw, th, t, (x + .5) / size, 1 - (y + .5) / size); Px(x, y, r, g, b, a); } }
+                break;
+            default:
+                { int l = it.Id; if (l >= GameAssets.ItemLayerCount) break; for (int y = 0; y < size; y++) for (int x = 0; x < size; x++) { var (r, g, b, a) = Tx(GameAssets.ItemLayers, GameAssets.ItemTexW, GameAssets.ItemTexH, l, (x + .5) / size, 1 - (y + .5) / size); Px(x, y, r, g, b, a); } }
+                break;
+        }
+        return img;
+    }
+
+    /// <summary>--iconsheet file.png: every item icon (16 per row, 128 px over a grey background), as the UI draws them.</summary>
     public static void WriteSheet(string path)
     {
-        var items = GameAssets.ItemReg.All.OrderBy(i => i.Id).ToList(); int S = Size, cols = 16, rows = (items.Count + cols - 1) / cols;
-        var img = new byte[cols * S * rows * S * 4]; var top = GameAssets.IconMips[0];
+        var items = GameAssets.ItemReg.All.OrderBy(i => i.Id).ToList(); int S = 128, cols = 16, rows = (items.Count + cols - 1) / cols;
+        var img = new byte[cols * S * rows * S * 4];
         for (int i = 0; i < img.Length; i += 4) { img[i] = 60; img[i + 1] = 60; img[i + 2] = 70; img[i + 3] = 255; }
         for (int n = 0; n < items.Count; n++)
         {
-            int l = items[n].Id, ox = n % cols * S, oy = n / cols * S;
+            var ic = Rasterize(items[n], S); int ox = n % cols * S, oy = n / cols * S;
             for (int y = 0; y < S; y++)
                 for (int x = 0; x < S; x++)
                 {
-                    int s = ((l * S + (S - 1 - y)) * S + x) * 4, d = ((oy + y) * cols * S + ox + x) * 4; double a = top[s + 3] / 255.0;
-                    for (int c = 0; c < 3; c++) img[d + c] = (byte)Math.Round(top[s + c] * a + img[d + c] * (1 - a));
+                    int s = (y * S + x) * 4, d = ((oy + y) * cols * S + ox + x) * 4; double a = ic[s + 3] / 255.0;
+                    for (int c = 0; c < 3; c++) img[d + c] = (byte)Math.Round(ic[s + c] * a + img[d + c] * (1 - a));
                 }
         }
         Png.WriteRgba(path, img, cols * S, rows * S);

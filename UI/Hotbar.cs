@@ -27,13 +27,31 @@ public static partial class UI
         if (screen == null && held != null && !held.IsEmpty) Text(StackName(held), W / 2.0, y0 - 12 * s, s, 1, 1, 1, .85f, true);
     }
 
-    /// <summary>Item icon (see ItemIcons; texture row 0 is the bottom, so v is flipped), bucket fill bar, stack count.</summary>
+    /// <summary>Item icon, drawn live (see ItemIcons; texture row 0 is the bottom, so v is flipped), bucket fill bar, stack count.</summary>
+    static readonly int[] QuadTris = { 0, 1, 2, 0, 2, 3 };
     public static void ItemIcon(ItemStack st, double x, double y, double s, bool count = true)
     {
-        int t = st.Item, m = t < ItemIcons.Smooth.Length && ItemIcons.Smooth[t] != 0 ? 4 : 3; // 4: 3D block icon (smooth), 3: flat picture (sharp)
-        V(x, y, 0, 1, 1, 1, 1, 1, m, t); V(x + s, y, 1, 1, 1, 1, 1, 1, m, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, m, t);
-        V(x, y, 0, 1, 1, 1, 1, 1, m, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, m, t); V(x, y + s, 0, 0, 1, 1, 1, 1, m, t);
         var d = st.Def;
+        switch (d == null ? "texture" : ItemIcons.KindOf(d))
+        {
+            case "model": // the block's 3D model, face by face with the block textures (back to front)
+                foreach (var q in ItemIcons.Quads(d))
+                {
+                    if (q.Tex <= 0) continue; double k = s / 32; float sh = q.Shade;
+                    foreach (int c in QuadTris) V(x + q.X[c] * k, y + q.Y[c] * k, q.U[c], q.V[c], sh, sh, sh, 1, 2, q.Tex);
+                }
+                break;
+            case "sprite": // the block's texture, flat
+                { int bt = ItemIcons.SpriteTexture(d);
+                  V(x, y, 0, 1, 1, 1, 1, 1, 2, bt); V(x + s, y, 1, 1, 1, 1, 1, 1, 2, bt); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, bt);
+                  V(x, y, 0, 1, 1, 1, 1, 1, 2, bt); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 2, bt); V(x, y + s, 0, 0, 1, 1, 1, 1, 2, bt); }
+                break;
+            default: // the item's own picture from the item atlas
+                { int t = st.Item;
+                  V(x, y, 0, 1, 1, 1, 1, 1, 3, t); V(x + s, y, 1, 1, 1, 1, 1, 1, 3, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 3, t);
+                  V(x, y, 0, 1, 1, 1, 1, 1, 3, t); V(x + s, y + s, 1, 0, 1, 1, 1, 1, 3, t); V(x, y + s, 0, 0, 1, 1, 1, 1, 3, t); }
+                break;
+        }
         if (d?.Behavior == "bucket" && d.State.Find("fill") is { } f)
         {
             double fill = f.Value(st.State) / (double)Math.Max(1, d.Capacity), k = s / 16;
