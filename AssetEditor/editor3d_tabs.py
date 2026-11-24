@@ -106,6 +106,8 @@ class BlockDesigner(ttk.Frame):
 
         right = ttk.Frame(self); right.pack(side="left", fill="y", padx=4, pady=4)
         self.preview = ttk.Label(right); self.preview.pack()
+        self.animate = tk.BooleanVar(value=False); self.angle = 0.0
+        ttk.Checkbutton(right, text="Animate moving parts (blades, shafts)", variable=self.animate, command=self.animate_tick).pack(anchor="w")
         self.state_frame = ttk.LabelFrame(right, text="Preview state"); self.state_frame.pack(fill="x", pady=4)
         ttk.Button(right, text="Refresh item icon preview", command=self.make_icon).pack(fill="x")
         mp = ttk.LabelFrame(right, text="Multiblock parts (offset relative to the facing; north = -z)"); mp.pack(fill="x", pady=6)
@@ -300,11 +302,18 @@ class BlockDesigner(ttk.Frame):
         if self.d is None or self.loading: return
         try:
             tex = lambda tid: self.p.tex["block"].get(tid, {}).get("img")
-            im = b3.block_picture(self.d, tex, 192, self.preview_state() if getattr(self, "sv", None) else None)
+            im = b3.block_picture(self.d, tex, 192, self.preview_state() if getattr(self, "sv", None) else None, self.angle)
         except Exception as e:  # half-written definitions must not break the tab
             im = Image.new("RGBA", (192, 192)); self.status.configure(text=f"preview: {e}")
         bg = Image.new("RGBA", im.size, (60, 60, 70, 255)); bg.alpha_composite(im)
         self._ph = ImageTk.PhotoImage(bg); self.preview.configure(image=self._ph)
+
+    def animate_tick(self):
+        """Turn the moving parts (properties.definition.moving_parts) about 1 turn per 2.5 s, like a free-spinning turbine."""
+        if getattr(self, "_anim", None): self.after_cancel(self._anim); self._anim = None
+        if not self.animate.get(): self.angle = 0.0; self.update_preview(); return
+        self.angle = (self.angle + 2 * 3.14159265 / 50) % (2 * 3.14159265); self.update_preview()
+        self._anim = self.after(50, self.animate_tick)
 
     def make_icon(self):
         """Block items get their icon from the game (the 3D model at 128 px, or the texture for plants), so nothing is painted into the

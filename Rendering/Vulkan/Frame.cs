@@ -164,6 +164,13 @@ public static unsafe partial class Gpu
         var (r, o) = RingAlloc((ulong)data.Length * 4); data.CopyTo(new Span<float>(r.ptr + o, data.Length));
         BindVB(r.buf, o); vk.CmdDraw(cb, vcount, 1, 0, 0);
     }
+    /// <summary>Per-frame packed vertices (bytes) drawn with a shared 16-bit index buffer.</summary>
+    public static void DrawDynamicIndexedBytes(byte[] data, int bytes, GAlloc ix, uint count)
+    {
+        if (count == 0) return;
+        var (r, o) = RingAlloc((ulong)bytes); fixed (byte* p = data) System.Buffer.MemoryCopy(p, r.ptr + o, bytes, bytes);
+        BindVB(r.buf, o); BindIB(ix.blk.buf, ix.off, IndexType.Uint16); vk.CmdDrawIndexed(cb, count, 1, 0, 0, 0);
+    }
     public static void DrawDynamicIndexed(float[] data, int floats, GAlloc ix, uint count, uint first)
     {
         var (r, o) = RingAlloc((ulong)floats * 4); fixed (float* p = data) System.Buffer.MemoryCopy(p, r.ptr + o, floats * 4, floats * 4);

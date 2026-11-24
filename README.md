@@ -60,7 +60,8 @@ Rendering/Vulkan/      Gpu as partial files: Gpu (device), Swapchain, RenderPass
 Rendering/Shaders/     .glsl / .vert / .frag sources, embedded into the exe as "shaders/<file>"
 UI/                    UI as partial files (Font, Draw2D, Hotbar, Screens (windows from ui_definitions), SettingsPanel, Compass, StartScreen) + Hud, UiRegistry
 Util/                  V3, M (math)
-Energy/                EnergyNet (cable networks, balancing), WaterMachines (turbine, pump, battery, spring, pipe water paths)
+Energy/                EnergyNet (cable networks, balancing), WaterMachines (turbine, pump, battery, spring, pipe water paths),
+                       Kinetics (rotation networks: wind turbine, shaft, generator; coal generator)
 Diagnostics/           Fingerprint (--fingerprint), SelfTest (--selftest, --showcase), EditBench (--benchedit), Png, item icon sheet (--iconsheet) (screenshots)
 checks/                check.ps1, fingerprint references, reference screenshots
 AssetEditor/           the Python / Tkinter asset editor (block3d.py = 3D rules + icon renderer, editor3d_tabs.py = Block 3D / Sounds / Recipes / Entities)
@@ -201,6 +202,21 @@ The mesher puts each moving cell's flow into the free vertex bits of its water f
 falling strength on side faces) and the water shader draws it: ripples and foam streaks drifting with the flow, faster and whiter the
 stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
 when the drawn flow of a cell changes. Not yet: machines working in unloaded chunks.
+
+## Wind, shafts, generators, coal
+Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:
+* **Wind Turbine**: a hub block; its blades (5 blocks across) turn in front of it and need a free 5 x 5 area there (air or plants), else
+  it stops (HUD: BLOCKED). Power = 10 E/s x wind (gusting 20..120 %) x height (x0.5 at sea level up to x2 at 60 blocks above it).
+  Rotation comes out of its back. Place it looking along the end of a shaft (its blades face away from you).
+* **Shaft**: a rod carrying rotation along its axis (placed along your look), drawn turning. Ends join the next shaft, a turbine's back
+  or a generator's back.
+* **Generator**: takes rotation in at its back, gives 90 % of it to the cable network (up to 30 E/s). Several turbines on one shaft line
+  add up; several generators share. Load slows the rotor (it turns fastest with nothing to drive).
+* **Coal Generator**: right click opens a window with a fuel slot (coal 40 s, planks 15 s...). 20 E/s while burning, and it burns only
+  when its network needs energy or a battery has room, so no fuel is wasted: one coal = 800 E. Its front glows while it burns.
+* All parts of a rotation network share one angle and speed (block entity numbers `angle`, `speed`, updated 10 times a second); the
+  renderer turns the moving parts every frame from them (Rendering/MovingParts.cs: blocks with `moving_parts` within 96 blocks, built on
+  the CPU, drawn with the terrain pipeline). Any block can have moving parts (see the AssetEditor README, `moving_parts`).
 
 ## Farming (water really used)
 Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/FarmingBehaviors.cs).

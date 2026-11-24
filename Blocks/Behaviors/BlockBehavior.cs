@@ -40,6 +40,10 @@ public abstract class BlockBehavior
         ["spring"] = () => new SpringBehavior(),
         ["drain"] = () => new DrainBehavior(),
         ["farmland"] = () => new FarmlandBehavior(),
+        ["wind_turbine"] = () => new WindTurbineBehavior(),
+        ["shaft"] = () => new ShaftBehavior(),
+        ["generator"] = () => new GeneratorBehavior(),
+        ["coal_generator"] = () => new CoalGeneratorBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

@@ -116,6 +116,7 @@ public static class BlockActions
     {
         tickAcc += dt; if (tickAcc < .1) return; double step = tickAcc; tickAcc = 0;
         if (BlockStates.entities.Count == 0) return;
+        Kinetics.Tick(step); // rotation first: generators know their input before the energy networks balance
         EnergyNet.Tick(step);
         foreach (var e in BlockStates.entities.Values.ToArray()) BEH[e.BlockId]?.OnTick(e, step);
     }

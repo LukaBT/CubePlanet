@@ -4,7 +4,7 @@ namespace CubePlanet;
 /// Automated checks of game rules that need no window (--selftest; exit code 1 on failure), and the --showcase bench helper that places
 /// example blocks in front of the bench camera so screenshots show them. Later phases add their tests here (multiblocks, containers, saving).
 /// </summary>
-public static class SelfTest
+public static partial class SelfTest
 {
     static int fails, checks;
     static void Check(bool ok, string what) { checks++; if (!ok) { fails++; Console.WriteLine("FAIL " + what); } }
@@ -69,6 +69,7 @@ public static class SelfTest
         Hydro();
         LakeTest();
         Farm();
+        Kinetic();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");

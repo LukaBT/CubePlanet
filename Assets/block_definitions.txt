@@ -12142,6 +12142,400 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "wind_turbine",
+      "id": 144,
+      "name": "Wind Turbine",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 175,
+        "south": 176,
+        "side": 174,
+        "top": 174,
+        "bottom": 174
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "wind_turbine",
+          "lod_color": [
+            220,
+            222,
+            226
+          ],
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                -0.3
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.3,
+                  "y": 0.3,
+                  "z": -0.45,
+                  "w": 0.4,
+                  "h": 0.4,
+                  "d": 0.45,
+                  "textures": {
+                    "all": 174,
+                    "north": 175
+                  }
+                },
+                {
+                  "x": 0.32,
+                  "y": 0.62,
+                  "z": -0.34,
+                  "w": 0.36,
+                  "h": 2.38,
+                  "d": 0.08,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.32,
+                  "y": -2.0,
+                  "z": -0.34,
+                  "w": 0.36,
+                  "h": 2.38,
+                  "d": 0.08,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.62,
+                  "y": 0.32,
+                  "z": -0.34,
+                  "w": 2.38,
+                  "h": 0.36,
+                  "d": 0.08,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": -2.0,
+                  "y": 0.32,
+                  "z": -0.34,
+                  "w": 2.38,
+                  "h": 0.36,
+                  "d": 0.08,
+                  "textures": {
+                    "all": 177
+                  }
+                }
+              ]
+            }
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "wind_turbine",
+              "count": 1
+            }
+          ],
+          "placement_facing": "away"
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "blocked": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "shaft",
+      "id": 145,
+      "name": "Shaft",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 178
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "rotation": "all",
+          "behavior": "shaft",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            150,
+            156,
+            164
+          ],
+          "boxes": [],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.375,
+                "y": 0.375,
+                "z": 0,
+                "w": 0.25,
+                "h": 0.25,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.375,
+                "y": 0.375,
+                "z": 0,
+                "w": 0.25,
+                "h": 0.25,
+                "d": 1
+              }
+            ]
+          },
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.375,
+                  "y": 0.375,
+                  "z": 0,
+                  "w": 0.25,
+                  "h": 0.25,
+                  "d": 1
+                }
+              ]
+            }
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "shaft",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "generator",
+      "id": 146,
+      "name": "Generator",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 181,
+        "south": 180,
+        "side": 179,
+        "top": 182,
+        "bottom": 182
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "generator",
+          "lod_color": [
+            60,
+            110,
+            70
+          ],
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.375,
+                  "y": 0.375,
+                  "z": 1.0,
+                  "w": 0.25,
+                  "h": 0.25,
+                  "d": 0.06,
+                  "textures": {
+                    "all": 178
+                  }
+                }
+              ]
+            }
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "generator",
+              "count": 1
+            }
+          ],
+          "placement_facing": "away"
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "input": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "coal_generator",
+      "id": 147,
+      "name": "Coal Generator",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 183,
+        "side": 185,
+        "top": 186,
+        "bottom": 186
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "coal_generator"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "coal_generator",
+          "lod_color": [
+            90,
+            90,
+            96
+          ],
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "lit": true
+                },
+                "textures": {
+                  "north": 184
+                }
+              }
+            ]
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "coal_generator",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "lit": {
+            "type": "boolean",
+            "default": false
+          },
+          "fuel": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "burn": {
+            "type": "number",
+            "default": 0
+          },
+          "burn_max": {
+            "type": "number",
+            "default": 1
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }

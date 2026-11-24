@@ -46,6 +46,9 @@ public static class ItemIcons
             if (d.Model == "boxes")
                 foreach (var mb in v?.Boxes ?? d.Boxes) { var b = mb.Box; list.Add(new Box(b.X0 + ox, b.Y0 + oy, b.Z0 + oz, b.X1 + ox, b.Y1 + oy, b.Z1 + oz, mb.Faces)); }
             else list.Add(new Box(ox, oy, oz, ox + 1, oy + 1, oz + 1, v?.Faces ?? d.Faces));
+            // moving parts (blades, shafts) at rest
+            foreach (var m in v?.Moving ?? d.MovingParts)
+                foreach (var mb in m.Boxes) { var b = mb.Box; list.Add(new Box(b.X0 + ox, b.Y0 + oy, b.Z0 + oz, b.X1 + ox, b.Y1 + oy, b.Z1 + oz, mb.Faces)); }
         }
         return list;
     }
@@ -74,7 +77,7 @@ public static class ItemIcons
         bool backs = d.Model == "cube" && d.RenderLayer != "opaque"; // see-through cubes show the inside of their far faces
         // multiblocks: scale and centre to fit a block's room; single blocks keep their place (a slab sits at the bottom)
         double sc = 1, cx = 16, cy = 16.5;
-        if (d.Parts.Length > 0)
+        if (d.Parts.Length > 0 || d.MovingParts.Length > 0) // (moving parts may reach out of the block)
         {
             double x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
             foreach (var b in boxes)

@@ -113,6 +113,7 @@ public static class Renderer
             Gpu.Push((float)(ch.mesh.org.X - C.x), (float)(ch.mesh.org.Y - C.y), (float)(ch.mesh.org.Z - C.z), 0);
             DrawM(ch.mesh, (uint)ch.mesh.n);
         }
+        MovingParts.Draw(); // blades, shafts: turned to their current angle every frame
         // 2) distant terrain
         DrawLod(pLod);
         // 3) sky last, depth-tested at the far plane: pixels already covered by terrain skip the expensive sky shader entirely

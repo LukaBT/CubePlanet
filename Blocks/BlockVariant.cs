@@ -9,6 +9,8 @@ public sealed class BlockVariant
     public BlockDefinition.ModelBox[] Boxes;
     public BlockBox[] Collision, Selection; // null = full block
     public int[] Faces;
+    /// <summary>Moving parts turned with the block's facing (boxes, axis and pivot).</summary>
+    public BlockDefinition.MovingPart[] Moving = Array.Empty<BlockDefinition.MovingPart>();
 
     public static BlockVariant Compute(BlockDefinition d, uint word)
     {
@@ -26,6 +28,8 @@ public sealed class BlockVariant
         if (d.SelectBoxes) sel = boxes.Select(m => m.Box).ToArray();
         var v = new BlockVariant { Collision = coll, Selection = sel, Faces = BlockDefinition.FacesOf(tex) };
         v.Boxes = boxes.Select(mb => new BlockDefinition.ModelBox { Box = mb.Box, Tex = mb.Tex, Faces = BlockDefinition.FacesOf(mb.Tex == null ? tex : BlockDefinition.Merge(tex, mb.Tex)) }).ToArray();
+        v.Moving = d.MovingParts.Select(m => new BlockDefinition.MovingPart { Axis = m.Axis, Pivot = m.Pivot, Speed = m.Speed,
+            Boxes = m.Boxes.Select(mb => new BlockDefinition.ModelBox { Box = mb.Box, Tex = mb.Tex, Faces = (int[])mb.Faces.Clone() }).ToArray() }).ToArray();
         var facing = d.Rotation != "none" ? d.State.Find("facing") : null;
         if (facing != null)
         {
@@ -49,6 +53,13 @@ public sealed class BlockVariant
         int[] Map(int[] f) { var n = new int[6]; for (int i = 0; i < 6; i++) n[i] = f[from[i]]; return n; }
         Faces = Map(Faces);
         foreach (var mb in Boxes) { mb.Box = box(mb.Box); mb.Faces = Map(mb.Faces); }
+        foreach (var m in Moving)
+        {   // a box turn, applied to the moving part's boxes, pivot and axis (a direction: the same turn without the shift)
+            foreach (var mb in m.Boxes) { mb.Box = box(mb.Box); mb.Faces = Map(mb.Faces); }
+            var pb = box(new BlockBox(m.Pivot.X, m.Pivot.Y, m.Pivot.Z, m.Pivot.X, m.Pivot.Y, m.Pivot.Z)); m.Pivot = new V3(pb.X0, pb.Y0, pb.Z0);
+            var o = box(new BlockBox(.5, .5, .5, .5, .5, .5)); var ab = box(new BlockBox(.5 + m.Axis.X, .5 + m.Axis.Y, .5 + m.Axis.Z, .5 + m.Axis.X, .5 + m.Axis.Y, .5 + m.Axis.Z));
+            m.Axis = new V3(ab.X0 - o.X0, ab.Y0 - o.Y0, ab.Z0 - o.Z0);
+        }
         if (Collision != null) Collision = Collision.Select(box).ToArray();
         if (Selection != null) Selection = Selection.Select(box).ToArray();
     }

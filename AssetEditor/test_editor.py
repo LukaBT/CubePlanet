@@ -38,6 +38,11 @@ st = b3.variant(blocks["oak_stairs"], {"facing": "east"})
 hi = [b for b, _ in st["boxes"] if b[1] >= .5][0]
 check(hi[0] >= .5 and hi[3] == 1, f"stairs facing east: high box on the east side {hi}")
 fu = blocks["furnace"]
+sh = b3.variant(blocks["shaft"], {"facing": "up"}); wt = b3.variant(blocks["wind_turbine"], {"facing": "east"})
+check(abs(sh["moving"][0]["axis"][1]) == 1 and wt["moving"][0]["pivot"][0] > 1 and len(wt["moving"][0]["boxes"]) == 5, "moving parts turn with the facing (shaft up, turbine east)")
+tx = lambda t: None
+a0, a1 = b3.block_picture(blocks["wind_turbine"], tx, 64, None, 0.0), b3.block_picture(blocks["wind_turbine"], tx, 64, None, 0.6)
+check(a0.getbbox() is not None and a0.tobytes() != a1.tobytes(), "turbine preview draws its blades and they turn with the angle")
 check(b3.variant(fu, {"lit": False, "facing": "south"})["faces"][4] == fu["textures"]["north"], "furnace facing south shows its front on the south face")
 check(b3.variant(fu, {"lit": True, "facing": "north"})["faces"][5] != fu["textures"]["north"], "lit furnace front texture (state override)")
 check(b3.schema(blocks["water"])[1] == 3, "water level 1..8 needs 3 bits")

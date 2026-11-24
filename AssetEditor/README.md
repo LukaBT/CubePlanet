@@ -36,7 +36,7 @@ is wrong (unknown model, texture, sound, UI, too many state bits, two parts with
   **geometry presets** (full, slabs, bottom / top slab, vertical slab, joining / upside-down stairs, connecting fence, fence post, door, bed,
   plant, no hitbox); sound slots; the **instance-state field editor** with
   a live packed-bit counter (red above 16); the **multiblock part editor**; a **3D preview** with a picker per state field (facing, open,
-  half...); **Refresh item icon preview** (block items are not painted into the item atlas: the game draws their icon itself, see `icon`).
+  half...); **Animate moving parts** (turns `moving_parts` in the preview); **Refresh item icon preview** (block items are not painted into the item atlas: the game draws their icon itself, see `icon`).
 * **Sounds**, **Recipes** (smelting), **Entities** (raw JSON list; the format is reserved by the game).
 * **Project Settings** - default namespace, texture sizes, atlas grid.
 
@@ -58,8 +58,9 @@ Top level: `type` "block", `namespace`, `id_name`, `id`, `name`, `stateless`, `g
 | `geometry.state_overrides` | `[{"when": {field: value}, "boxes", "add_boxes", "collision", "selection", "textures"}]` in order, matching ones win; `add_boxes` adds boxes instead of replacing them (cable / pipe arms: one override per side) |
 | `rotation` | `none` / `horizontal` / `all`; adds a `facing` state field (north, east, south, west [, up, down]) |
 | `placement_facing` | `toward_player` (front faces you) / `away` (stairs, doors, beds) |
+| `moving_parts` | `[{"axis": "x"/"y"/"z" (default z), "pivot": [x, y, z] (default the centre), "speed": 1, "boxes": [boxes as in "boxes", may reach out of the block]}]`: boxes turning around the axis through the pivot (block units, before the facing turn; north = -z is the front) at the block's rotation network speed x `speed` (block entity numbers `angle`, `speed`: add them to `instance_state`). Drawn turning in the game and in the Block 3D preview (Animate). A `boxes` model may have no fixed boxes if it has moving parts (shaft). |
 | `multiblock.parts` | `[{"offset": [x, y, z], "state": {...}}]` relative to the facing; every part needs a different state |
-| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences, cables, pipes: fields `north` `east` `south` `west`, optional `up` `down`), `turbine`, `pump`, `battery`, `spring`, `drain` (hydro power), `farmland` (state `moisture` 0..8), `crop` (state `age`; key `crop`: `{"seed": item, "harvest": [{"item", "min", "max"}]}`; see the game README) |
+| `behavior` | `door`, `bed`, `container`, `smelting`, `oxygen_generator`, `stairs` (shape from neighbours, `half` from the click), `connecting` (fences, cables, pipes: fields `north` `east` `south` `west`, optional `up` `down`), `turbine`, `pump`, `battery`, `spring`, `drain` (hydro power), `wind_turbine`, `shaft`, `generator` (rotation; see `moving_parts`), `coal_generator` (inventory `fuel`, numbers `burn` `burn_max`), `farmland` (state `moisture` 0..8), `crop` (state `age`; key `crop`: `{"seed": item, "harvest": [{"item", "min", "max"}]}`; see the game README) |
 | `connects_to` | connecting blocks: group tags of the neighbours they join (full solid cubes count unless `connect_solid` is false) |
 | `connect_solid` | `true` (default, fences) / `false` (cables, pipes): whether connecting blocks join any full solid cube |
 | `geometry.collision`, `geometry.selection` = `"boxes"` | collide / select with the visible boxes of the current state (cables, pipes) |

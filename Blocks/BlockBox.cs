@@ -14,14 +14,16 @@ public readonly struct BlockBox
     public static readonly BlockBox Full = new(0, 0, 0, 1, 1, 1);
     public bool Contains(double x, double y, double z) => x >= X0 && x < X1 && y >= Y0 && y < Y1 && z >= Z0 && z < Z1;
 
-    public static BlockBox Parse(JsonElement e)
+    /// <param name="free">moving parts: not clamped to the block (blades reach out of it)</param>
+    public static BlockBox Parse(JsonElement e, bool free = false)
     {
         double N(string a, string b, double def) => DefinitionFile.Get(e, a) is { ValueKind: JsonValueKind.Number } v ? v.GetDouble() : DefinitionFile.Get(e, b) is { ValueKind: JsonValueKind.Number } v2 ? v2.GetDouble() : def;
         double x = N("x", "x", 0), y = N("y", "y", 0), z = N("z", "z", 0), w = N("w", "width", 1), h = N("h", "height", 1), d = N("d", "depth", 1);
+        if (free) return new BlockBox(x, y, z, x + w, y + h, z + d);
         return new BlockBox(Math.Clamp(x, 0, 1), Math.Clamp(y, 0, 1), Math.Clamp(z, 0, 1), Math.Clamp(x + w, 0, 1), Math.Clamp(y + h, 0, 1.5), Math.Clamp(z + d, 0, 1));
     }
     /// <summary>A JSON list of boxes, or null when the key is missing.</summary>
-    public static BlockBox[] ParseList(JsonElement? e) => e is { ValueKind: JsonValueKind.Array } a ? a.EnumerateArray().Select(Parse).ToArray() : null;
+    public static BlockBox[] ParseList(JsonElement? e) => e is { ValueKind: JsonValueKind.Array } a ? a.EnumerateArray().Select(x => Parse(x)).ToArray() : null;
 
     /// <summary>Bounding box of a list (Full for null / empty).</summary>
     public static BlockBox Bounds(BlockBox[] l)

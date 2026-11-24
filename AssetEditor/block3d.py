@@ -8,14 +8,15 @@ Block-local axes: x = east, y = up, z = south (north = -z). Boxes are {"x","y","
 import copy
 import math
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageDraw
 
 FACE_NAMES = ["east", "west", "top", "bottom", "south", "north"]  # the game's face order: +x, -x, +y, -y, +z, -z
 MODELS = ["cube", "cross", "liquid", "attached", "boxes"]
 RENDER_LAYERS = ["opaque", "cutout", "translucent", "liquid"]
 SWAYS = ["none", "leaves", "plant", "underwater"]
 ROTATIONS = ["none", "horizontal", "all"]
-BEHAVIORS = ["", "door", "bed", "container", "smelting", "oxygen_generator", "stairs", "connecting"]
+BEHAVIORS = ["", "door", "bed", "container", "smelting", "oxygen_generator", "stairs", "connecting", "turbine", "pump", "battery", "spring", "drain",
+             "farmland", "crop", "wind_turbine", "shaft", "generator", "coal_generator"]
 FIELD_TYPES = ["boolean", "string", "integer", "number", "inventory"]
 SOUND_SLOTS = ["break", "place", "step", "use"]
 
@@ -133,6 +134,12 @@ def faces_of(tex):
 def defn(d): return d.get("properties", {}).get("definition", {})
 
 
+def free_box(b):
+    """A box that may reach out of the block (moving parts: blades), not clamped."""
+    x, y, z = b.get("x", 0), b.get("y", 0), b.get("z", 0)
+    return (x, y, z, x + b.get("w", 1), y + b.get("h", 1), z + b.get("d", 1))
+
+
 def norm_box(b):
     """A box in 3D form (accepts the editor's 2D {x, y, width, height} too)."""
     w = b.get("w", b.get("width", 1)); h = b.get("h", b.get("height", 1)); dd = b.get("d", b.get("depth", 1))
@@ -209,14 +216,22 @@ def variant(d, state):
     if sel == "boxes": sel = boxes
     v = {"faces": faces_of(tex), "boxes": [(norm_box(b), faces_of({**tex, **flatten(b.get("textures"))})) for b in boxes],
          "collision": None if coll is None else [norm_box(b) for b in coll], "selection": None if sel is None else [norm_box(b) for b in sel]}
+    # moving parts (blades, shafts): boxes turning around an axis through a pivot, at the rotation network's speed x speed
+    v["moving"] = [{"axis": {"x": (1, 0, 0), "y": (0, 1, 0)}.get(m.get("axis", "z"), (0, 0, 1)), "pivot": tuple(m.get("pivot") or (.5, .5, .5)),
+                    "speed": m.get("speed", 1), "boxes": [(free_box(b), faces_of({**tex, **flatten(b.get("textures"))})) for b in m.get("boxes") or []]}
+                   for m in pd.get("moving_parts") or []]
     f = state.get("facing", "north") if pd.get("rotation", "none") != "none" else "north"
     ups = {"up": 1, "down": 3}.get(f, 0); turns = {"east": 1, "south": 2, "west": 3}.get(f, 0)
     for fn, fm, n in ((_up, UP_FACE, ups), (_cw, CW_FACE, turns)):
         for _ in range(n):
             mp = lambda fs: [fs[fm[i]] for i in range(6)]
+            pt = lambda p: fn((p[0], p[1], p[2], p[0], p[1], p[2]))[:3]
             v["faces"] = mp(v["faces"]); v["boxes"] = [(fn(b), mp(fs)) for b, fs in v["boxes"]]
             for k in ("collision", "selection"):
                 if v[k] is not None: v[k] = [fn(b) for b in v[k]]
+            for m in v["moving"]:
+                a, o = pt(tuple(.5 + c for c in m["axis"])), pt((.5, .5, .5))
+                m["axis"] = tuple(round(a[i] - o[i]) for i in range(3)); m["pivot"] = pt(m["pivot"]); m["boxes"] = [(fn(b), mp(fs)) for b, fs in m["boxes"]]
     return v
 
 
@@ -250,7 +265,72 @@ def render_iso(boxes, texture, size=32, shade=(1.0, .78, .6)):
     return out
 
 
-def block_picture(d, texture, size=32, state=None):
+def _rot(q, k, a):
+    """q turned by angle a around the unit axis k (Rodrigues)."""
+    c, s = math.cos(a), math.sin(a); d = q[0] * k[0] + q[1] * k[1] + q[2] * k[2]
+    cr = (k[1] * q[2] - k[2] * q[1], k[2] * q[0] - k[0] * q[2], k[0] * q[1] - k[1] * q[0])
+    return tuple(q[i] * c + cr[i] * s + k[i] * d * (1 - c) for i in range(3))
+
+
+_FACES = ((1, 3, 7, 5), (4, 6, 2, 0), (2, 6, 7, 3), (4, 0, 1, 5), (5, 7, 6, 4), (0, 2, 3, 1))  # +x -x +y -y +z -z, wound outward
+_VIEW = (1, 14 / 15, 1)  # towards the viewer (same projection as the icons)
+
+
+def _proj(p): return (16 + 14 * (p[0] - p[2]), 2 + 15 * (1 - p[1]) + 7 * (p[0] + p[2]))
+
+
+def render_parts(boxes, moving, angle, texture, size=32, fit_steps=8):
+    """Isometric picture of fixed boxes plus moving parts turned to angle (radians x each part's speed): textured faces drawn far to near.
+    Scaled down to fit when parts reach out of the block (the same scale at every angle, so an animation does not pulse)."""
+    def corners(b, m, a):
+        pts = [((b[3] if i & 1 else b[0]), (b[4] if i & 2 else b[1]), (b[5] if i & 4 else b[2])) for i in range(8)]
+        if m is None: return pts
+        k = m["axis"]; n = math.sqrt(sum(c * c for c in k)) or 1; k = tuple(c / n for c in k); pv = m["pivot"]
+        return [tuple(r + pv[i] for i, r in enumerate(_rot(tuple(p[i] - pv[i] for i in range(3)), k, a * m.get("speed", 1)))) for p in pts]
+    allb = [(b, fs, None) for b, fs in boxes] + [(b, fs, m) for m in moving for b, fs in m["boxes"]]
+    xs, ys = [0, 32], [0, 32]
+    for st in range(fit_steps if moving else 1):
+        for b, _, m in allb:
+            for p in corners(b, m, st * 2 * math.pi / fit_steps):
+                x, y = _proj(p); xs.append(x); ys.append(y)
+    sc = min(1, 31 / (max(xs) - min(xs)), 31 / (max(ys) - min(ys)))
+    cx, cy = ((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2) if sc < 1 else (16, 16)
+    k = size / 32.0
+    to_px = lambda p: ((16 + (_proj(p)[0] - cx) * sc) * k, (16 + (_proj(p)[1] - cy) * sc) * k)
+    quads = []
+    for b, fs, m in allb:
+        pts = corners(b, m, angle)
+        for fc, f in enumerate(_FACES):
+            a, bb, c, dd = (pts[i] for i in f)
+            u = tuple(c[i] - a[i] for i in range(3)); w = tuple(dd[i] - bb[i] for i in range(3))
+            n = (u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]); ln = math.sqrt(sum(x * x for x in n))
+            if ln < 1e-9: continue
+            n = tuple(x / ln for x in n)
+            if sum(n[i] * _VIEW[i] for i in range(3)) <= 1e-6: continue  # facing away
+            depth = sum(p[0] + p[1] * 14 / 15 + p[2] for p in (a, bb, c, dd)) / 4
+            quads.append((depth, [to_px(p) for p in (a, bb, c, dd)], fs[fc], max(.45, min(1, .62 + .38 * n[1] + .16 * n[2]))))
+    out = Image.new("RGBA", (size, size)); cache = {}
+    for _, q, tid, sh in sorted(quads, key=lambda t: t[0]):
+        if tid not in cache:
+            im = texture(tid); cache[tid] = im.convert("RGBA").resize((16, 16), Image.NEAREST) if im is not None else None
+        t = cache[tid]
+        if t is None:
+            t = Image.new("RGBA", (16, 16), (255, 0, 255, 255))
+        # corners a (u 0, v 0), b (0, 1), d (1, 0): screen = a + u (d - a) + v (b - a); invert for PIL's output -> input mapping
+        (ax, ay), (bx, by), _, (dx, dy) = q
+        ux, uy, vx, vy = dx - ax, dy - ay, bx - ax, by - ay; det = ux * vy - uy * vx
+        if abs(det) < 1e-6: continue
+        ia, ib, ic, id_ = vy / det, -vx / det, -uy / det, ux / det
+        coef = (16 * ia, 16 * ib, -16 * (ia * ax + ib * ay), 16 * ic, 16 * id_, -16 * (ic * ax + id_ * ay))
+        face = t.transform((size, size), Image.AFFINE, coef, Image.NEAREST)
+        r, g, bl, al = face.split(); r, g, bl = (ch.point(lambda x: int(x * sh)) for ch in (r, g, bl))
+        mask = Image.new("L", (size, size)); ImageDraw.Draw(mask).polygon(q, fill=255)
+        al = ImageChops.multiply(al, mask)
+        out.alpha_composite(Image.merge("RGBA", (r, g, bl, al)))
+    return out
+
+
+def block_picture(d, texture, size=32, state=None, angle=0.0):
     """Picture of a block in a state: cubes and boxes isometric, sprites (cross / attached) flat; the front (north) turned to the viewer."""
     turn_front = state is None
     state = dict(default_values(d) if state is None else state)
@@ -261,6 +341,7 @@ def block_picture(d, texture, size=32, state=None):
         return (im or Image.new("RGBA", (16, 16), (255, 0, 255, 255))).convert("RGBA").resize((size, size), Image.NEAREST)
     v = variant(d, state)
     boxes = v["boxes"] if model == "boxes" else [((0, 0, 0, 1, 1, 1), v["faces"])]
+    if v["moving"]: return render_parts(boxes, v["moving"], angle, texture, size)
     return render_iso(boxes, texture, size)
 
 

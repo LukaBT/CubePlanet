@@ -358,6 +358,74 @@
           }
         }
       ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "coal_generator",
+      "id": 5,
+      "name": "Coal Generator",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Coal Generator",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "burn",
+          "position": {
+            "x": 82,
+            "y": 15
+          },
+          "size": {
+            "width": 14,
+            "height": 14
+          },
+          "current_from": "block.burn",
+          "orientation": "vertical",
+          "max_from": "block.burn_max",
+          "color": [
+            255,
+            140,
+            40
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "fuel",
+          "name": "Fuel",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "storage": {
+            "scope": "block",
+            "key": "fuel"
+          }
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
     }
   ]
 }

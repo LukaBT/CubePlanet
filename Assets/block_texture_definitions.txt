@@ -174,3 +174,16 @@ texture_rows: 16
 171 carrots_stage_3 176 160
 172 potatoes_stage_3 192 160
 173 beetroots_stage_3 208 160
+174 wind_hub_side 224 160
+175 wind_hub_front 240 160
+176 wind_hub_back 0 176
+177 wind_blade 16 176
+178 shaft 32 176
+179 generator_side 48 176
+180 generator_back 64 176
+181 generator_front 80 176
+182 generator_top 96 176
+183 coal_generator_front 112 176
+184 coal_generator_front_lit 128 176
+185 coal_generator_side 144 176
+186 coal_generator_top 160 176

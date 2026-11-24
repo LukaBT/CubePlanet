@@ -52,6 +52,10 @@ public sealed class BlockDefinition
     public sealed class Override { public JsonElement When; public ModelBox[] Boxes, AddBoxes; public BlockBox[] Collision, Selection; public bool HasCollision, HasSelection; public Dictionary<string, int> Textures; }
     public Override[] Overrides = Array.Empty<Override>();
     public sealed class Part { public int X, Y, Z; public JsonElement State; }
+    /// <summary>A moving part (properties.definition.moving_parts): boxes (they may reach out of the block, e.g. blades) turning around Axis
+    /// through Pivot (block-local) at the speed of the block's rotation network (block entity numbers "angle" / "speed") times Speed.</summary>
+    public sealed class MovingPart { public ModelBox[] Boxes; public V3 Axis = new(0, 0, 1), Pivot = new(.5, .5, .5); public double Speed = 1; }
+    public MovingPart[] MovingParts = Array.Empty<MovingPart>();
     public Part[] Parts = Array.Empty<Part>();
     public StateSchema State = new();
     public Dictionary<string, string> Sounds = new();
@@ -127,6 +131,15 @@ public sealed class BlockDefinition
                 if (off.Length == 2) off = new[] { off[0], off[1], 0 }; // the editor's 2D offsets
                 return new Part { X = off[0], Y = off[1], Z = off.Length > 2 ? off[2] : 0, State = Get(p, "state") ?? default };
             }).ToArray();
+        if (Get(e, D + "moving_parts") is { ValueKind: JsonValueKind.Array } mps)
+            b.MovingParts = mps.EnumerateArray().Select(mp =>
+            {
+                var m = new MovingPart { Boxes = Get(mp, "boxes") is { ValueKind: JsonValueKind.Array } mb ? ParseBoxes(mb, true) : Array.Empty<ModelBox>(), Speed = Num(mp, "speed", 1) };
+                m.Axis = Str(mp, "axis", "z") switch { "x" => new V3(1, 0, 0), "y" => new V3(0, 1, 0), _ => new V3(0, 0, 1) };
+                if (Get(mp, "pivot") is { ValueKind: JsonValueKind.Array } pv && pv.GetArrayLength() == 3) { var a = pv.EnumerateArray().Select(v => v.GetDouble()).ToArray(); m.Pivot = new V3(a[0], a[1], a[2]); }
+                foreach (var x in m.Boxes) x.Faces = FacesOf(x.Tex == null ? b.Textures : Merge(b.Textures, x.Tex));
+                return m;
+            }).ToArray();
         if (Get(e, D + "sounds") is { ValueKind: JsonValueKind.Object } snd) foreach (var p in snd.EnumerateObject()) b.Sounds[p.Name] = p.Value.GetString();
         b.RandomOffset = Bool(e, D + "random_offset", true); b.Waterlogged = Bool(e, D + "waterlogged");
         b.RenderLayer = Str(e, D + "render.layer", b.Model == "cube" ? "opaque" : b.Model == "liquid" ? "liquid" : "cutout");
@@ -138,7 +151,7 @@ public sealed class BlockDefinition
         if (Array.IndexOf(layers, b.RenderLayer) < 0) throw new InvalidDataException($"{who}: unknown render.layer '{b.RenderLayer}' (use {string.Join(", ", layers)})");
         if (Array.IndexOf(sways, b.Sway) < 0) throw new InvalidDataException($"{who}: unknown render.sway '{b.Sway}' (use {string.Join(", ", sways)})");
         if (b.Model == "attached" && b.Attach != "vine" && b.Attach != "pod") throw new InvalidDataException($"{who}: model 'attached' needs attach = vine or pod");
-        if (b.Model == "boxes" && b.Boxes.Length == 0) throw new InvalidDataException($"{who}: model 'boxes' needs a non-empty boxes list");
+        if (b.Model == "boxes" && b.Boxes.Length == 0 && b.MovingParts.Length == 0) throw new InvalidDataException($"{who}: model 'boxes' needs a non-empty boxes list (or moving_parts)");
         if (b.Rotation != "none" && b.Rotation != "horizontal" && b.Rotation != "all") throw new InvalidDataException($"{who}: unknown rotation '{b.Rotation}' (use none, horizontal, all)");
 
         // instance state (packed fields: 16 bits); rotating blocks get a "facing" field if they don't declare one
@@ -165,9 +178,9 @@ public sealed class BlockDefinition
         return -1;
     }
 
-    static ModelBox[] ParseBoxes(JsonElement arr) => arr.EnumerateArray().Select(be =>
+    static ModelBox[] ParseBoxes(JsonElement arr, bool free = false) => arr.EnumerateArray().Select(be =>
     {
-        var mb = new ModelBox { Box = BlockBox.Parse(be) };
+        var mb = new ModelBox { Box = BlockBox.Parse(be, free) };
         if (Get(be, "textures") is { ValueKind: JsonValueKind.Object } bt) { mb.Tex = new(); Flatten(mb.Tex, bt, ""); }
         return mb;
     }).ToArray();
