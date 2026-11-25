@@ -187,3 +187,6 @@ texture_rows: 16
 184 coal_generator_front_lit 128 176
 185 coal_generator_side 144 176
 186 coal_generator_top 160 176
+187 gold_cable 176 176
+188 diamond_cable 192 176
+189 superconductor_cable 208 176

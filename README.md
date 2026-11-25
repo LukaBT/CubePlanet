@@ -164,8 +164,11 @@ Performance: the simulation runs on the main thread (it changes the same block d
 
 ## Hydro power and energy
 **Blocks** (all in the creative palette, search "water" / "cable"):
-* **Copper Cable** joins machines into an energy network (it connects to blocks with the group tag `energy`, in all 6 directions);
-  machines touching each other are connected too.
+* **Cables** join machines into an energy network (they connect to blocks with the group tag `energy`, in all 6 directions, and to
+  each other); machines touching each other are connected too. Each cable block carries a limited amount: **Copper** 64 E/s, **Gold**
+  256, **Diamond** 1024, **Superconductor** 8192. Energy is routed through the network as a maximum flow, so a thin cable limits only
+  its own branch and parallel lines add up; a machine makes / takes only what gets through. Looking at a cable shows its flow, e.g.
+  "64.0 / 64 E/S AT ITS LIMIT". (Energy/CableFlow.cs)
 * **Water Pipe** carries water for turbines and pumps. A pipe opens at its ends only (the side opposite its single connection).
 * **Water Turbine**: water flows from its back (intake) to its front (outlet; it faces you when placed, up or down when you look up or
   down). Energy = units x head x 0.1 x 0.8 E, head = the intake's water surface over the outlet's (a pipe from a lake's bottom down to the

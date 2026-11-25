@@ -2812,6 +2812,60 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "gold_cable",
+      "id": 157,
+      "name": "Gold Cable",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "gold_cable"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "diamond_cable",
+      "id": 158,
+      "name": "Diamond Cable",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "diamond_cable"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "superconductor_cable",
+      "id": 159,
+      "name": "Superconductor Cable",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "superconductor_cable"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

@@ -107,6 +107,28 @@ public static partial class SelfTest
         Clear();
 
 
+        // cable limits: 4 coal generators (80 E/s) -> a line of cable -> 2 batteries; copper carries 64 E/s, gold 256, two copper lines 128
+        {
+            Clear(); int coalId = GameAssets.ItemReg.Id("coal");
+            for (int x = 0; x <= 3; x++) { Put(x, 8, 6, coal, "north"); BlockStates.entities[At(x, 8, 6).Key].Inv("fuel")[0] = new ItemStack(coalId, 8); }
+            Put(8, 8, 6, bat); Put(9, 8, 6, bat);
+            double Rate(string cableName, bool second)
+            {
+                int c = Id(cableName); for (int x = 4; x <= 7; x++) Put(x, 8, 6, c);
+                for (int x = 3; x <= 8; x++) { var p = At(x, 9, 6); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + 9, z0 + 6, 0); if (second) Put(x, 9, 6, Id("copper_cable")); }
+                for (int x = 8; x <= 9; x++) BlockStates.entities[At(x, 8, 6).Key].SetNum("energy", 0);
+                for (int i = 0; i < 10; i++) BlockActions.Tick(.1);
+                double e0 = BlockStates.entities[At(8, 8, 6).Key].Num("energy") + BlockStates.entities[At(9, 8, 6).Key].Num("energy");
+                for (int i = 0; i < 50; i++) BlockActions.Tick(.1);
+                return (BlockStates.entities[At(8, 8, 6).Key].Num("energy") + BlockStates.entities[At(9, 8, 6).Key].Num("energy") - e0) / 5 / BatteryBehavior.Efficiency;
+            }
+            double rCopper = Rate("copper_cable", false); string hudC = EnergyNet.DescribeCable(At(5, 8, 6));
+            double rGold = Rate("gold_cable", false); string hudG = EnergyNet.DescribeCable(At(5, 8, 6));
+            double rTwo = Rate("copper_cable", true);
+            Check(Math.Abs(rCopper - 64) < 1 && hudC.Contains("LIMIT") && Math.Abs(rGold - 80) < 1 && !hudG.Contains("LIMIT") && Math.Abs(rTwo - 80) < 1 && EnergyNet.Capacity(Id("superconductor_cable")) == 8192,
+                  $"cable limits: 80 E/s of coal through copper {rCopper:0.0} E/s ({hudC}), gold {rGold:0.0} ({hudG}), two copper lines {rTwo:0.0}");
+            Clear();
+        }
         // coal generator -> cable -> battery: it burns only while the battery has room or something needs energy; one coal = 800 E
         Put(6, 8, 0, coal, "north"); Put(7, 8, 0, cable); Put(8, 8, 0, bat);
         var ce = BlockStates.entities[At(6, 8, 0).Key]; var cb = BlockStates.entities[At(8, 8, 0).Key];

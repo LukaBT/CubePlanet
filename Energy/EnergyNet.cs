@@ -34,7 +34,9 @@ public interface IEnergyMachine
 /// <item>deficit: dispatchable production (turbines "auto": a dam opens its turbine) covers it, then batteries; if still short, every consumer
 /// gets the same share of what it asked for.</item>
 /// </list>
-/// Only loaded chunks take part (a cable into an unloaded chunk ends there).
+/// Then the energy is routed through the network (<see cref="CableFlow"/>): each cable block carries at most its capacity (definition key
+/// "cable": {"capacity": E/s}); a machine makes / takes only what actually gets through, the rest is not made (fixed production) or not
+/// delivered. Only loaded chunks take part (a cable into an unloaded chunk ends there).
 /// </summary>
 public static class EnergyNet
 {
@@ -42,6 +44,25 @@ public static class EnergyNet
     /// <summary>The networks of the last step (for the HUD).</summary>
     public static readonly Dictionary<long, Net> NetOf = new();
     public static int LastNetworks;
+    /// <summary>Energy through each cable block in the last step (E/s) and its capacity (for the HUD).</summary>
+    public static readonly Dictionary<long, (double flow, double cap)> CableLoad = new();
+    static readonly Dictionary<int, double> capOf = new();
+    /// <summary>A cable block's capacity in E/s (definition key "cable": {"capacity"}; 64 if missing).</summary>
+    public static double Capacity(int id)
+    {
+        lock (capOf)
+        {
+            if (capOf.TryGetValue(id, out var c)) return c;
+            c = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.cable") is { ValueKind: System.Text.Json.JsonValueKind.Object } j ? DefinitionFile.Num(j, "capacity", 64) : 64;
+            return capOf[id] = c;
+        }
+    }
+    public static string DescribeCable(BlockPos p)
+    {
+        double cap = Capacity(p.Id);
+        if (!CableLoad.TryGetValue(p.Key, out var l)) return $"CARRIES UP TO {cap:0} E/S  (NOTHING FLOWING)";
+        return $"{l.flow:0.0} / {cap:0} E/S" + (l.flow >= cap * .995 ? "  AT ITS LIMIT (USE A BETTER CABLE OR A SECOND LINE)" : "");
+    }
 
     static readonly int[][] N6 = { new[] { 1, 0, 0 }, new[] { -1, 0, 0 }, new[] { 0, 1, 0 }, new[] { 0, -1, 0 }, new[] { 0, 0, 1 }, new[] { 0, 0, -1 } };
     public static bool IsCable(int id) => DEFS[id]?.HasTag("energy_cable") ?? false;
@@ -49,32 +70,37 @@ public static class EnergyNet
 
     public static void Tick(double dt)
     {
-        NetOf.Clear(); LastNetworks = 0;
-        var seen = new HashSet<long>(); var q = new Queue<BlockPos>();
+        NetOf.Clear(); CableLoad.Clear(); LastNetworks = 0;
+        var done = new HashSet<long>(); var q = new Queue<BlockPos>();
         foreach (var e in BlockStates.entities.Values.ToArray())
         {
             if (MachineOf(e) == null || NetOf.ContainsKey(e.Pos.Key) || !e.Pos.Loaded) continue;
-            // the network this machine belongs to: flood through cables and machines
-            var net = new Net(); seen.Clear(); q.Clear(); q.Enqueue(e.Pos); seen.Add(e.Pos.Key);
-            while (q.Count > 0 && seen.Count < 4096)
+            // the network this machine belongs to: flood through cables and machines, recording the blocks and the joins between them
+            var net = new Net(); var g = new CableFlow.Graph(); var node = new List<int>();
+            done.Clear(); q.Clear(); q.Enqueue(e.Pos); g.Add(e.Pos.Key, CableFlow.Inf);
+            while (q.Count > 0)
             {
-                var p = q.Dequeue();
-                if (BlockStates.entities.TryGetValue(p.Key, out var me) && MachineOf(me) != null) { net.Machines.Add(me); NetOf[p.Key] = net; }
+                var p = q.Dequeue(); done.Add(p.Key); int pi = g.Index[p.Key];
+                if (BlockStates.entities.TryGetValue(p.Key, out var me) && MachineOf(me) != null) { net.Machines.Add(me); node.Add(pi); NetOf[p.Key] = net; }
                 foreach (var o in N6)
                 {
-                    if (!p.TryOffset(o[0], o[1], o[2], out var n) || seen.Contains(n.Key) || !n.Loaded) continue;
-                    int id = n.Id;
-                    bool node = IsCable(id) || (BlockStates.entities.TryGetValue(n.Key, out var ne) && MachineOf(ne) != null);
-                    if (!node) continue;
-                    seen.Add(n.Key); q.Enqueue(n);
+                    if (!p.TryOffset(o[0], o[1], o[2], out var n) || done.Contains(n.Key) || !n.Loaded) continue;
+                    if (!g.Index.TryGetValue(n.Key, out int ni))
+                    {
+                        int id = n.Id; bool cable = IsCable(id);
+                        if (!cable && !(BlockStates.entities.TryGetValue(n.Key, out var ne) && MachineOf(ne) != null)) continue;
+                        if (g.Keys.Count >= 4096) continue; // a network ends after 4096 blocks
+                        ni = g.Add(n.Key, cable ? Capacity(id) * dt : CableFlow.Inf); q.Enqueue(n);
+                    }
+                    g.Edges.Add((pi, ni));
                 }
             }
             LastNetworks++;
-            Balance(net, dt);
+            Balance(net, dt, g, node.ToArray());
         }
     }
 
-    static void Balance(Net net, double dt)
+    static void Balance(Net net, double dt, CableFlow.Graph g, int[] node)
     {
         int n = net.Machines.Count; var plans = new EnergyPlan[n];
         double fix = 0, dis = 0, dem = 0, flex = 0, sin = 0, sout = 0, dst = 0;
@@ -104,11 +130,18 @@ public static class EnergyNet
             fDem = dem > 0 ? (dem - deficit) / dem : 1;
         }
         net.Supply = (fix + dis * fDis + dst * fDst + sout * fOut) / dt; net.Demand = dem / dt;
+        var made = new double[n]; var got = new double[n];
         for (int i = 0; i < n; i++)
         {
             var p = plans[i];
-            double made = p.Fixed + p.Dispatch * fDis + p.DispatchStore * fDst + p.StoreOut * fOut, got = p.Demand * fDem + p.Flexible * fFlex + p.StoreIn * fIn;
-            MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, made, got);
+            made[i] = p.Fixed + p.Dispatch * fDis + p.DispatchStore * fDst + p.StoreOut * fOut; got[i] = p.Demand * fDem + p.Flexible * fFlex + p.StoreIn * fIn;
+        }
+        // what actually gets through the cables (and is used: surplus nobody takes is not made)
+        var (mo, go, th) = CableFlow.Route(g, node, made, got);
+        for (int v = 0; v < g.Keys.Count; v++) if (g.Cap[v] < CableFlow.Inf) CableLoad[g.Keys[v]] = (th[v] / dt, g.Cap[v] / dt);
+        for (int i = 0; i < n; i++)
+        {
+            MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);
             if (net.Machines[i].Numbers.TryGetValue("energy", out double st) && BEH[net.Machines[i].BlockId] is BatteryBehavior) { net.Stored += st; net.Capacity += BatteryBehavior.Capacity; }
         }
     }

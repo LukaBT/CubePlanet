@@ -11022,7 +11022,10 @@
               "id_name": "copper_cable",
               "count": 1
             }
-          ]
+          ],
+          "cable": {
+            "capacity": 64
+          }
         },
         "instance_state": {
           "north": {
@@ -12814,6 +12817,550 @@
           "blocked": {
             "type": "number",
             "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "gold_cable",
+      "id": 150,
+      "name": "Gold Cable",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 187
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "energy"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0.375,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 0.25,
+              "d": 0.25
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0.625,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.625,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.625,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            230,
+            186,
+            50
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "gold_cable",
+              "count": 1
+            }
+          ],
+          "cable": {
+            "capacity": 256
+          }
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "diamond_cable",
+      "id": 151,
+      "name": "Diamond Cable",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 188
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "energy"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0.375,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 0.25,
+              "d": 0.25
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0.625,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.625,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.625,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            90,
+            225,
+            215
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "diamond_cable",
+              "count": 1
+            }
+          ],
+          "cable": {
+            "capacity": 1024
+          }
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "superconductor_cable",
+      "id": 152,
+      "name": "Superconductor Cable",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 189
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "energy"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0.375,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 0.25,
+              "d": 0.25
+            }
+          ],
+          "render": {
+            "layer": "cutout",
+            "emissive": 0.35
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.375,
+                    "z": 0.625,
+                    "w": 0.25,
+                    "h": 0.25,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.625,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.375,
+                    "z": 0.375,
+                    "w": 0.375,
+                    "h": 0.25,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0.625,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.375,
+                    "y": 0,
+                    "z": 0.375,
+                    "w": 0.25,
+                    "h": 0.375,
+                    "d": 0.25
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            120,
+            70,
+            200
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "superconductor_cable",
+              "count": 1
+            }
+          ],
+          "cable": {
+            "capacity": 8192
+          }
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
           }
         }
       }
