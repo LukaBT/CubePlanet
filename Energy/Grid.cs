@@ -100,11 +100,13 @@ public static class Wires
             return anchors[id] = a;
         }
     }
-    /// <summary>Is this cell a wire anchor (in its current state)? local = the attach point in the block.</summary>
-    public static bool IsAnchor(BlockPos p, out V3 local)
+    public static bool HasAnchor(int id) => AnchorDef(id) != null;
+    /// <summary>Is this cell a wire anchor (in its current state)? local = the attach point in the block. Works in unloaded land (GridCache).</summary>
+    public static bool IsAnchor(BlockPos p, out V3 local) { var (id, st) = GridCache.At(p); return IsAnchor(id, st, out local); }
+    public static bool IsAnchor(int id, int state, out V3 local)
     {
-        local = default; int id = p.Id; var a = AnchorDef(id); if (a == null) return false;
-        uint st = (uint)p.State; var d = DEFS[id];
+        local = default; var a = AnchorDef(id); if (a == null) return false;
+        uint st = (uint)state; var d = DEFS[id];
         foreach (var (name, v) in a.When)
         {
             var f = d.State.Find(name); if (f == null) return false;
@@ -177,4 +179,87 @@ public static class Wires
         foreach (var x in a) Links.Add(new Link { A = P(x["a"]), B = P(x["b"]), Length = (double)x["length"] });
     }
     public static void Reset() { Links.Clear(); Pending = null; }
+}
+
+/// <summary>
+/// The grid beyond loaded land: block data of unloaded chunks is not in memory, but power lines, plants and towns far away must keep
+/// working. So every grid block (cables, machines, transformers, rotation parts, wire anchors) is remembered here, from the energy network
+/// flood while its chunk is loaded and from a scan when its chunk unloads; the networks read unloaded cells from it. Saved with the world.
+/// Machines themselves (block entities) always stay in memory; ones that need the live world (water turbines, pumps) idle when unloaded.
+/// </summary>
+public static class GridCache
+{
+    public readonly record struct Cell(BlockPos Pos, int Id, int State);
+    static readonly Dictionary<long, Cell> cells = new();
+    static readonly Dictionary<long, HashSet<long>> byChunk = new();
+    static readonly object gate = new();
+    static bool[] grid;
+    static long ChunkOf(BlockPos p) => ck(p.B, p.F, p.X >> 5, p.Y >> 5, p.Z >> 5);
+    public static int Count { get { lock (gate) return cells.Count; } }
+    /// <summary>Is this block part of the grid (worth remembering)?</summary>
+    public static bool IsGridId(int id)
+    {
+        if (grid == null || grid.Length != DEFS.Length)
+        {
+            var g = new bool[DEFS.Length];
+            for (int i = 1; i < g.Length; i++)
+                g[i] = DEFS[i] != null && (EnergyNet.IsCable(i) || BEH[i] is IEnergyMachine || BEH[i] is TransformerBehavior || BEH[i] is IKinetic || Wires.HasAnchor(i));
+            grid = g;
+        }
+        return id > 0 && id < grid.Length && grid[id];
+    }
+    public static void Note(BlockPos p, int id, int state)
+    {
+        if (p.Core) return;
+        lock (gate)
+        {
+            cells[p.Key] = new Cell(p, id, state); long c = ChunkOf(p);
+            if (!byChunk.TryGetValue(c, out var s)) byChunk[c] = s = new(); s.Add(p.Key);
+        }
+    }
+    public static void Forget(BlockPos p)
+    {
+        lock (gate) if (cells.Remove(p.Key) && byChunk.TryGetValue(ChunkOf(p), out var s)) s.Remove(p.Key);
+    }
+    /// <summary>Block and state of a cell: live where loaded, remembered elsewhere (0 = nothing known).</summary>
+    public static (int id, int state) At(BlockPos p)
+    {
+        if (p.Loaded) return (p.Id, p.State);
+        lock (gate) return cells.TryGetValue(p.Key, out var c) ? (c.Id, c.State) : (0, 0);
+    }
+    /// <summary>A chunk is about to leave memory: remember its grid blocks (replacing what was known about it).</summary>
+    public static void OnUnload(Chunk ch)
+    {
+        if (ch?.d == null || ch.core) return; // the core is always in memory
+        var d = ch.d; int bx = ch.cx * 32, by = ch.cy * 32, bz = ch.cz * 32; List<Cell> found = null;
+        for (int i = 0; i < d.Length; i++)
+        {
+            int id = d[i]; if (id == 0 || !IsGridId(id)) continue;
+            int x = i & 31, z = (i >> 5) & 31, y = i >> 10; var p = new BlockPos(false, ch.band, ch.face, bx + x, by + y, bz + z);
+            (found ??= new()).Add(new Cell(p, id, ch.st?[i] ?? 0));
+        }
+        lock (gate)
+        {
+            if (byChunk.Remove(ch.key, out var old)) foreach (var k in old) cells.Remove(k);
+            if (found == null) return;
+            var s = byChunk[ch.key] = new();
+            foreach (var c in found) { cells[c.Pos.Key] = c; s.Add(c.Pos.Key); }
+        }
+    }
+    public static JsonArray Save()
+    {
+        var r = new JsonArray();
+        lock (gate) foreach (var c in cells.Values) r.Add(new JsonArray { c.Pos.B, c.Pos.F, c.Pos.X, c.Pos.Y, c.Pos.Z, DEFS[c.Id]?.IdName ?? "", c.State });
+        return r;
+    }
+    public static void Load(JsonNode n)
+    {
+        Reset(); if (n is not JsonArray a) return;
+        foreach (var x in a)
+        {
+            string name = (string)x[5]; if (!GameAssets.BlockReg.Has(name)) continue;
+            Note(new BlockPos(false, (int)x[0], (int)x[1], (int)x[2], (int)x[3], (int)x[4]), GameAssets.BlockReg.Id(name), (int)x[6]);
+        }
+    }
+    public static void Reset() { lock (gate) { cells.Clear(); byChunk.Clear(); } }
 }

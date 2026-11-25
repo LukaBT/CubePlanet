@@ -42,6 +42,31 @@ public static partial class SelfTest
         double mv = Delivered(64); string hudMv = EnergyNet.DescribeCable(At(30, 8, 0)); var tr = BlockStates.entities[At(4, 8, 0).Key];
         Check(lv < 57 && lv > 45 && mv > 75 && hudLv.StartsWith("LV") && hudMv.StartsWith("MV") && tr.Num("ok") > 0 && Math.Abs(tr.Num("flow") - 80) < 1,
               $"60 blocks of copper: at LV {lv:0.0} of 80 E/s arrive ({hudLv}); stepped up to MV {mv:0.0} E/s ({hudMv}; transformer {tr.Num("flow"):0.0} E/s)");
+        // unload the middle of the line (and a wind turbine standing there): power and rotation keep going through unloaded land
+        {
+            var mid = new List<Chunk>();
+            // chunks holding only line cable: not the generators / first transformer (x <= 5) nor the far end (x >= 62)
+            for (int cx = x0 >> 5; cx <= (x0 + 70) >> 5; cx++)
+                if ((cx << 5) > x0 + 5 && (cx << 5) + 31 < x0 + 62 && chunks.TryGetValue(ck(bi, f, cx, (y0 + 8) >> 5, z0 >> 5), out var mc)) mid.Add(mc);
+            if (mid.Count == 0) // no whole chunk fits between: take the chunk at x 30 if it holds neither end
+                for (int cx = (x0 + 30) >> 5, ok = 1; ok == 1; ok = 0)
+                    if ((cx << 5) > x0 + 5 && (cx << 5) + 31 < x0 + 62 && chunks.TryGetValue(ck(bi, f, cx, (y0 + 8) >> 5, z0 >> 5), out var mc2)) mid.Add(mc2);
+            int mx = mid.Count > 0 ? Math.Clamp((mid[0].cx << 5) - x0 + 16, 8, 58) : 30;
+            Kinetics.FixedSpeed = 10; Kinetics.FixedHeading = Kinetics.HeadingFrom("north");
+            int yc = Math.Min(14, (((y0 + 8) >> 5) << 5) + 31 - y0 - 3); // stay inside the line's chunk
+            Put(mx, yc, 3, "wind_turbine", "north"); Put(mx, yc, 4, "generator", "north");
+            for (int i = 0; i < 5; i++) BlockActions.Tick(.1);
+            foreach (var c in mid) FreeChunk(c);
+            var wt = BlockStates.entities[At(mx, yc, 3).Key]; var gn = BlockStates.entities[At(mx, yc, 4).Key];
+            double unl = Delivered(64); bool gone = mid.Count > 0 && !At(mx, 8, 0).Loaded;
+            Check(gone && Math.Abs(unl - mv) < .5 && wt.Num("speed") > 0 && gn.Num("input") > 0 && GridCache.Count > 0,
+                  $"with the middle of the line unloaded ({mid.Count} chunk(s), {GridCache.Count} grid blocks remembered) {unl:0.0} E/s still arrive; a wind turbine there turns ({Kinetics.Rpm(wt):0} rpm, {gn.Num("input"):0.0} E/s in)");
+            var json = GridCache.Save(); GridCache.Load(System.Text.Json.Nodes.JsonNode.Parse(json.ToJsonString()));
+            Check(GridCache.Count == json.Count && Math.Abs(Delivered(64) - mv) < .5, "remembered grid blocks save and load (the line still delivers)");
+            foreach (var c in mid) AddChunk(c);
+            BlockStates.entities.Remove(At(mx, yc, 3).Key); BlockStates.entities.Remove(At(mx, yc, 4).Key); SetCell(bi, f, x0 + mx, y0 + yc, z0 + 3, 0); SetCell(bi, f, x0 + mx, y0 + yc, z0 + 4, 0);
+            Kinetics.FixedSpeed = null; Kinetics.FixedHeading = null;
+        }
         // a machine on the MV line does nothing (machines run on LV)
         Put(30, 9, 0, "battery"); var wrong = BlockStates.entities[At(30, 9, 0).Key];
         for (int i = 0; i < 20; i++) BlockActions.Tick(.1);

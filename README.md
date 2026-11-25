@@ -204,7 +204,7 @@ visibly changes.
 The mesher puts each moving cell's flow into the free vertex bits of its water faces (direction in 8 steps + strength 0..7 on top faces,
 falling strength on side faces) and the water shader draws it: ripples and foam streaks drifting with the flow, faster and whiter the
 stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
-when the drawn flow of a cell changes. Not yet: machines working in unloaded chunks.
+when the drawn flow of a cell changes. Water turbines and pumps idle while their chunk is unloaded (water only moves in loaded land).
 
 ## The grid: voltage, transformers, power lines
 The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machines), **MV** (x8), **HV** (x64).
@@ -221,6 +221,9 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   the same pair removes it. A wire is like a cable as long as its span: 256 E/s of current x the level, 0.1 % loss per block at full
   current. Wires are drawn sagging, saved with the world, and fall when an end is broken.
 * Looking at a cable shows its level, flow, capacity and loss; at a pylon / connector its wires; at a transformer its sides and flow.
+* **The grid works in unloaded land.** Cables, machines, transformers, pylon tops and rotation parts are remembered when their chunk
+  unloads (Energy/Grid.cs GridCache, saved in world.json as `grid_cache`), so a long power line, a far wind farm or a coal plant keeps
+  delivering wherever you are. Machines (block entities) always stay in memory; only water turbines and pumps need their chunk loaded.
 * `--demogrid NAME [--demosecs S]` (no window) builds a world with a wind farm stepping up to MV, wires over 3 pylons to a town 80 blocks
   away (transformer back to LV, batteries, an oxygen generator), and beside it 4 coal generators feeding 110 blocks of plain LV copper:
   the MV line loses 0.01 E/s, the LV line a third of what it carries.

@@ -37,8 +37,8 @@ public interface IEnergyMachine
 /// Then the energy is routed through the network (<see cref="CableFlow"/>): each cable block carries at most its capacity (definition key
 /// "cable": {"capacity": E/s at LV, "loss"}) times the voltage level of its part of the grid (<see cref="Voltage"/>); transformers join
 /// levels, wires (<see cref="Wires"/>) join pylons. A machine makes / takes only what actually gets through, the rest is not made (fixed
-/// production) or not delivered; line and transformer losses come off what the consumers get. Only loaded chunks take part (a cable into
-/// an unloaded chunk ends there).
+/// production) or not delivered; line and transformer losses come off what the consumers get. Unloaded land takes part too: its grid
+/// blocks come from <see cref="GridCache"/>.
 /// </summary>
 public static class EnergyNet
 {
@@ -91,10 +91,10 @@ public static class EnergyNet
     {
         public readonly CableFlow.Graph G = new();
         public readonly List<Kind> K = new(); public readonly List<double> CapLv = new(), LossF = new(), Len = new();
-        public readonly List<BlockPos> Pos = new(); public readonly List<Wires.Link> Wire = new();
-        public int Add(long key, Kind k, BlockPos p, double cap = 0, double loss = 0, double len = 1, Wires.Link w = null)
+        public readonly List<BlockPos> Pos = new(); public readonly List<Wires.Link> Wire = new(); public readonly List<int> Id = new();
+        public int Add(long key, Kind k, BlockPos p, int id, double cap = 0, double loss = 0, double len = 1, Wires.Link w = null)
         {
-            K.Add(k); CapLv.Add(cap); LossF.Add(loss); Len.Add(len); Pos.Add(p); Wire.Add(w); return G.Add(key, CableFlow.Inf);
+            K.Add(k); Id.Add(id); CapLv.Add(cap); LossF.Add(loss); Len.Add(len); Pos.Add(p); Wire.Add(w); return G.Add(key, CableFlow.Inf);
         }
     }
 
@@ -108,10 +108,10 @@ public static class EnergyNet
         var q = new Queue<int>();
         foreach (var e in BlockStates.entities.Values.ToArray())
         {
-            if (MachineOf(e) == null || NetOf.ContainsKey(e.Pos.Key) || !e.Pos.Loaded) continue;
+            if (MachineOf(e) == null || NetOf.ContainsKey(e.Pos.Key)) continue; // machines in unloaded land take part too (GridCache)
             // the network this machine belongs to: flood through cables, machines, transformers (front / back only), anchors and their wires
             var net = new Net(); var b = new Build(); var node = new List<int>(); var done = new HashSet<int>();
-            q.Clear(); q.Enqueue(b.Add(e.Pos.Key, Kind.Machine, e.Pos));
+            q.Clear(); q.Enqueue(b.Add(e.Pos.Key, Kind.Machine, e.Pos, e.BlockId));
             while (q.Count > 0)
             {
                 int pi = q.Dequeue(); if (!done.Add(pi)) continue;
@@ -121,8 +121,8 @@ public static class EnergyNet
                     var l = b.Wire[pi];
                     foreach (var end in new[] { l.A, l.B })
                     {
-                        if (!end.Loaded || !Wires.IsAnchor(end)) continue;
-                        if (!b.G.Index.TryGetValue(end.Key, out int ei)) { if (b.G.Keys.Count >= 4096) continue; ei = b.Add(end.Key, KindOf(end), end); q.Enqueue(ei); MaybeCable(b, ei); }
+                        if (!Wires.IsAnchor(end)) continue;
+                        if (!b.G.Index.TryGetValue(end.Key, out int ei)) { if (b.G.Keys.Count >= 4096) continue; var (eid, _) = GridCache.At(end); ei = b.Add(end.Key, KindOf(end, eid), end, eid); q.Enqueue(ei); MaybeCable(b, ei); }
                         b.G.Edges.Add((pi, ei));
                     }
                     continue;
@@ -135,17 +135,19 @@ public static class EnergyNet
                 }
                 foreach (var n in Around())
                 {
-                    if (!n.Loaded) continue;
                     if (!b.G.Index.TryGetValue(n.Key, out int ni))
                     {
-                        int id = n.Id; Kind nk;
+                        // the live block where loaded (and remembered for when it unloads), the remembered block elsewhere
+                        bool live = n.Loaded; var (id, st) = GridCache.At(n);
+                        if (live) { if (GridCache.IsGridId(id)) GridCache.Note(n, id, st); else { GridCache.Forget(n); continue; } }
+                        Kind nk;
                         if (IsTransformer(id)) { var (bk, fr, ok) = Sides(n); if (!ok || (bk.Key != p.Key && fr.Key != p.Key)) continue; nk = Kind.Transformer; }
                         else if (IsCable(id)) nk = Kind.Cable;
                         else if (IsMachine(n)) nk = Kind.Machine;
-                        else if (Wires.IsAnchor(n)) nk = Kind.Anchor;
+                        else if (Wires.IsAnchor(id, st, out _)) nk = Kind.Anchor;
                         else continue;
                         if (b.G.Keys.Count >= 4096) continue; // a network ends after 4096 blocks
-                        ni = b.Add(n.Key, nk, n); MaybeCable(b, ni); q.Enqueue(ni);
+                        ni = b.Add(n.Key, nk, n, id); MaybeCable(b, ni); q.Enqueue(ni);
                     }
                     else if (b.K[ni] == Kind.Transformer && kind != Kind.Transformer) { var (bk, fr, ok) = Sides(b.Pos[ni]); if (!ok || (bk.Key != p.Key && fr.Key != p.Key)) continue; }
                     if (!done.Contains(ni)) b.G.Edges.Add((pi, ni));
@@ -158,7 +160,7 @@ public static class EnergyNet
                         if (!b.G.Index.TryGetValue(wk, out int wi))
                         {
                             if (b.G.Keys.Count >= 4096) continue;
-                            wi = b.Add(wk, Kind.Wire, p, Wires.WireSpec.Capacity, Wires.WireSpec.Loss, Math.Max(1, l.Length), l); q.Enqueue(wi);
+                            wi = b.Add(wk, Kind.Wire, p, 0, Wires.WireSpec.Capacity, Wires.WireSpec.Loss, Math.Max(1, l.Length), l); q.Enqueue(wi);
                         }
                         if (!done.Contains(wi)) b.G.Edges.Add((pi, wi));
                     }
@@ -167,11 +169,11 @@ public static class EnergyNet
             Balance(net, dt, b, node.ToArray());
         }
     }
-    static Kind KindOf(BlockPos p) { int id = p.Id; return IsCable(id) ? Kind.Cable : IsMachine(p) ? Kind.Machine : Kind.Anchor; }
+    static Kind KindOf(BlockPos p, int id) => IsCable(id) ? Kind.Cable : IsMachine(p) ? Kind.Machine : Kind.Anchor;
     static void MaybeCable(Build b, int i)
     {
-        if (b.K[i] == Kind.Cable) { var (c, l) = CableSpec(b.Pos[i].Id); b.CapLv[i] = c; b.LossF[i] = l; }
-        else if (b.K[i] == Kind.Transformer) b.CapLv[i] = TransformerBehavior.SpecOf(b.Pos[i].Id).Rating;
+        if (b.K[i] == Kind.Cable) { var (c, l) = CableSpec(b.Id[i]); b.CapLv[i] = c; b.LossF[i] = l; }
+        else if (b.K[i] == Kind.Transformer) b.CapLv[i] = TransformerBehavior.SpecOf(b.Id[i]).Rating;
     }
 
     /// <summary>Voltage level of every node: parts of the grid between transformers get the level of the transformer sides touching them.
@@ -188,7 +190,7 @@ public static class EnergyNet
             if (b.K[t] != Kind.Transformer) continue;
             var (bk, fr, ok) = Sides(b.Pos[t]); int bi = -1, fi = -1;
             if (ok) { b.G.Index.TryGetValue(bk.Key, out bi); b.G.Index.TryGetValue(fr.Key, out fi); if (!b.G.Index.ContainsKey(bk.Key)) bi = -1; if (!b.G.Index.ContainsKey(fr.Key)) fi = -1; }
-            sides[t] = (bi, fi); var s = TransformerBehavior.SpecOf(b.Pos[t].Id);
+            sides[t] = (bi, fi); var s = TransformerBehavior.SpecOf(b.Id[t]);
             void Set(int node, double v) { if (node < 0 || b.K[node] == Kind.Transformer) return; int r = Find(node); if (lv.TryGetValue(r, out var o) && o != v) conflict.Add(r); lv[r] = Math.Max(o, v); }
             Set(bi, s.Low); Set(fi, s.High);
         }
@@ -196,7 +198,7 @@ public static class EnergyNet
         for (int i = 0; i < n; i++) level[i] = b.K[i] == Kind.Transformer ? 0 : lv.TryGetValue(Find(i), out var v) ? v : 1;
         foreach (var (t, (bi, fi)) in sides)
         {
-            var s = TransformerBehavior.SpecOf(b.Pos[t].Id);
+            var s = TransformerBehavior.SpecOf(b.Id[t]);
             bool ok = (bi < 0 || (level[bi] == s.Low && !conflict.Contains(Find(bi)))) && (fi < 0 || (level[fi] == s.High && !conflict.Contains(Find(fi))));
             tOk[t] = ok; level[t] = s.High;
             if (BlockStates.entities.TryGetValue(b.Pos[t].Key, out var te)) te.SetNum("ok", ok ? 1 : -1);

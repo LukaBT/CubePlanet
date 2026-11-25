@@ -56,14 +56,14 @@ public static class Kinetics
         var done = new HashSet<long>(); var q = new Queue<BlockEntity>(); var net = new List<BlockEntity>();
         foreach (var e in BlockStates.entities.Values.ToArray())
         {
-            if (Of(e) == null || done.Contains(e.Pos.Key) || !e.Pos.Loaded) continue;
+            if (Of(e) == null || done.Contains(e.Pos.Key)) continue; // rotation parts are block entities: they run in unloaded land too
             net.Clear(); q.Clear(); q.Enqueue(e); done.Add(e.Pos.Key);
             while (q.Count > 0 && net.Count < 2048)
             {
                 var a = q.Dequeue(); net.Add(a);
                 foreach (var (dx, dy, dz) in Of(a).Ports(a))
                 {
-                    if (!a.Pos.TryOffset(dx, dy, dz, out var np) || done.Contains(np.Key) || !np.Loaded) continue;
+                    if (!a.Pos.TryOffset(dx, dy, dz, out var np) || done.Contains(np.Key)) continue;
                     if (!BlockStates.entities.TryGetValue(np.Key, out var b) || Of(b) == null) continue;
                     if (!Of(b).Ports(b).Contains((-dx, -dy, -dz))) continue; // its port must face back
                     done.Add(np.Key); q.Enqueue(b);
@@ -216,7 +216,7 @@ public sealed class CoalGeneratorBehavior : BlockBehavior, IEnergyMachine
         }
         e.SetNum("burn", Math.Max(0, burn)); WaterMachines.Show(e, "power", made / dt);
         var lf = DEFS[e.BlockId].State.Find("lit"); // glowing front while it burns
-        if (lf != null && lf.Packed)
+        if (lf != null && lf.Packed && e.Pos.Loaded)
         {
             int st = e.Pos.State, want = (int)lf.With((uint)st, made > 0 ? 1 : 0);
             if (want != st && e.Pos.Id == e.BlockId) BlockStates.Set(e.Pos, want, true);

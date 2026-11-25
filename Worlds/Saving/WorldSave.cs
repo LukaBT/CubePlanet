@@ -145,6 +145,7 @@ public static class WorldSave
             ["sun_angle"] = SUNA,
             ["water_reservoir"] = WaterSim.Reservoir, // water cycle: units in the sea / air (springs draw from it)
             ["wires"] = Wires.Save(), // power lines between pylons / connectors
+            ["grid_cache"] = GridCache.Save(), // grid blocks of unloaded land
             ["wind_clock"] = Kinetics.Clock, // the wind: where it is in its slow changes
             ["wind_set"] = Kinetics.IsNatural ? null : new JsonObject { ["speed"] = Kinetics.WindSpeed, ["from"] = Kinetics.FromBearing }, // wind set in the settings (null = natural)
             ["inventory"] = new JsonObject { ["hotbar"] = Stacks(PlayerInventory.Hotbar), ["main"] = Stacks(PlayerInventory.Main) },
@@ -236,7 +237,7 @@ public static class WorldSave
         // world state (not the player): the water cycle reservoir and the wind
         WaterSim.Reservoir = j["water_reservoir"] is JsonNode wr ? (double)wr : WaterSim.DefaultReservoir; Kinetics.Clock = j["wind_clock"] is JsonNode wc ? (double)wc : 0;
         if (j["wind_set"] is JsonObject ws) Kinetics.SetWind((double)ws["speed"], (double)ws["from"]); else Kinetics.Natural();
-        Wires.Load(j["wires"]);
+        Wires.Load(j["wires"]); GridCache.Load(j["grid_cache"]);
         if (!restorePlayer) return;
         // player, camera, time, inventory
         itemMap = BuildMap(j["item_ids"] as JsonObject, n => GameAssets.ItemReg.Has(n) ? GameAssets.ItemReg.Id(n) : 0);
@@ -264,7 +265,7 @@ public static class WorldSave
     {
         WaitPending();
         lock (EditLock) { edits.Clear(); ecount.Clear(); BlockStates.states.Clear(); saved.Clear(); }
-        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Kinetics.Clock = 0; Kinetics.Natural(); Wires.Reset();
+        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Kinetics.Clock = 0; Kinetics.Natural(); Wires.Reset(); GridCache.Reset();
         foreach (var ch in chunks.Values) { ch.d = null; ch.st = null; ch.gst = 0; }
     }
 

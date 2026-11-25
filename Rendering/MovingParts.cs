@@ -88,7 +88,7 @@ public static class MovingParts
         V3 cam = new(C.x, C.y, C.z); float lay = LayTex(0, Wires.WireSpec.Texture);
         foreach (var l in Wires.Links)
         {
-            if (!l.A.Loaded || !l.B.Loaded || !Wires.IsAnchor(l.A, out var la) || !Wires.IsAnchor(l.B, out var lb)) continue;
+            if ((!l.A.Loaded && !l.B.Loaded) || !Wires.IsAnchor(l.A, out var la) || !Wires.IsAnchor(l.B, out var lb)) continue; // one end may be in unloaded land
             V3 a = Wires.AttachPoint(l.A, la), b = Wires.AttachPoint(l.B, lb);
             if (((a + b) * .5 - cam).Len > Range * 2) continue;
             V3 up = M.Nrm((a + b) * .5); double len = (b - a).Len, sag = .03 * len + .1; const int N = 16;

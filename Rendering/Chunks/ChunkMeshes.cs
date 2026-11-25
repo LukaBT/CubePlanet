@@ -26,6 +26,7 @@ public static class ChunkMeshes
     public static void RemeshAll() { foreach (var ch in chunks.Values) if (ch.built) { if (ch.core) ch.dirty = true; else ch.relight = true; } }
     public static void FreeChunk(Chunk ch)
     {
+        GridCache.OnUnload(ch); // power lines and plants keep working while unloaded
         if (ch.mesh != null) ShadowTouches(ch);
         DropMesh(ch.mesh); DropMesh(ch.wmesh); ch.mesh = ch.wmesh = null; chunks.Remove(ch.key); chunkMap.TryRemove(ch.key, out _); if (blkCh == ch) blkCh = null; chunksVer++; meshVer++;
     }

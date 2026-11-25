@@ -184,6 +184,7 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         pending.Remove(e.Pos.Key);
+        if (!e.Pos.Loaded) return; // water only moves in loaded land
         int mode = (int)e.Num("mode"); if (mode == 2) { e.SetNum("head", 0); return; }
         var src = WaterMachines.Intake(e); var dst = WaterMachines.Outlet(e);
         if (!src.ok || !dst.ok) { e.SetNum("head", 0); return; }
@@ -224,6 +225,7 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         pending.Remove(e.Pos.Key);
+        if (!e.Pos.Loaded) return; // water only moves in loaded land
         int mode = (int)e.Num("mode"); if (mode == 2) return;
         var src = WaterMachines.Intake(e); var dst = WaterMachines.Outlet(e);
         if (!src.ok || !dst.ok) return;
