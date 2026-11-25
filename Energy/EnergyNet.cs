@@ -283,7 +283,7 @@ public static class EnergyNet
             }
             else if (b.K[v] == Kind.Transformer)
             {
-                l = flow * TransformerBehavior.Loss;
+                l = flow * TransformerBehavior.SpecOf(b.Id[v]).Loss;
                 if (BlockStates.entities.TryGetValue(G.Keys[v], out var te)) te.SetNum("flow", flow);
             }
             loss += l * dt;

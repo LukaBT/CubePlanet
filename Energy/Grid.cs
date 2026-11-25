@@ -20,13 +20,13 @@ public static class Voltage
 
 /// <summary>
 /// Transformer: joins two voltage levels; its back is the low side, its front the high side (definition key "transformer":
-/// {"low": "LV", "high": "MV", "rating": E/s}). Passes at most its rating, losing 2 %. If a side touches a part of the grid at another
-/// level (two transformers fighting), it passes nothing (HUD).
+/// {"low": "LV", "high": "MV", "rating": E/s, "loss": share}). Passes at most its rating, losing its loss (LV-MV 2 %, the big MV-HV
+/// 0.5 %, like real large transformers). If a side touches a part of the grid at another level (two transformers fighting), it passes
+/// nothing (HUD).
 /// </summary>
 public sealed class TransformerBehavior : BlockBehavior
 {
-    public const double Loss = .02;
-    public sealed class Spec { public double Low = 1, High = 8, Rating = 1024; }
+    public sealed class Spec { public double Low = 1, High = 8, Rating = 1024, Loss = .02; }
     static readonly Dictionary<int, Spec> specs = new();
     public static Spec SpecOf(int id)
     {
@@ -35,7 +35,7 @@ public sealed class TransformerBehavior : BlockBehavior
             if (specs.TryGetValue(id, out var s)) return s;
             s = new Spec();
             if (DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.transformer") is { ValueKind: JsonValueKind.Object } j)
-            { s.Low = Voltage.Of(DefinitionFile.Str(j, "low", "LV")); s.High = Voltage.Of(DefinitionFile.Str(j, "high", "MV")); s.Rating = DefinitionFile.Num(j, "rating", 1024); }
+            { s.Low = Voltage.Of(DefinitionFile.Str(j, "low", "LV")); s.High = Voltage.Of(DefinitionFile.Str(j, "high", "MV")); s.Rating = DefinitionFile.Num(j, "rating", 1024); s.Loss = DefinitionFile.Num(j, "loss", .02); }
             return specs[id] = s;
         }
     }
@@ -44,7 +44,7 @@ public sealed class TransformerBehavior : BlockBehavior
     {
         var s = SpecOf(e.BlockId); string sides = $"BACK {Voltage.Name(s.Low)} -> FRONT {Voltage.Name(s.High)}";
         if (e.Num("ok") < 0) return sides + ": A SIDE TOUCHES ANOTHER VOLTAGE, NOT PASSING ANYTHING";
-        return $"{sides}  {e.Num("flow"):0.0} / {s.Rating:0} E/S";
+        return $"{sides}  {e.Num("flow"):0.0} / {s.Rating:0} E/S  LOSS {s.Loss * 100:0.#}%";
     }
 }
 

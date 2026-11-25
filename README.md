@@ -219,7 +219,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * **Superconductor** has no loss but needs cooling: 0.05 E/s per block while its network has a source (100 blocks: 5 E/s), so it pays
   off for big power over short distances; over 2000 blocks the cooling alone is 100 E/s.
 * **Transformer LV-MV** (up to 1024 E/s) and **Transformer MV-HV** (8192 E/s): the back is the low side (green / yellow face), the front
-  the high side (yellow / red). They lose 2 %. A side touching a part at another level (two transformers fighting) passes nothing.
+  the high side (yellow / red). LV-MV loses 2 %, the big MV-HV 0.5 % (like real large transformers). A side touching a part at another level (two transformers fighting) passes nothing.
 * **Machines run on LV only**: on an MV / HV part they do nothing (HUD: WRONG VOLTAGE). Step down with a transformer first.
 * **Power lines**: a **Pylon** (5 blocks tall) holds a wire at its top; a **Wire Connector** (an insulator, joins cables like a cable)
   holds one anywhere. Right click two of them with the **Wire Spool** to string a wire (at most 48 blocks, counted in blocks); again on

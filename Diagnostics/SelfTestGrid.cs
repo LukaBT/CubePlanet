@@ -96,10 +96,19 @@ public static partial class SelfTest
         Check(Wires.Links.Count == 1 && Wires.Same(Wires.Links[0].A, At(5, 8, 0)) && Math.Abs(Wires.Links[0].Length - link.Length) < 1e-9, "wires save and load");
         SetCell(bi, f, x0 + 45, y0 + 8, z0, 0); BlockActions.Tick(.1);
         Check(Wires.Links.Count == 0, "breaking a connector takes its wire down");
+        // an HV line: LV-MV, diamond (MV), MV-HV, connector ==40 blocks of wire at HV== connector, MV-HV and LV-MV back down
+        Clear(); Source();
+        Put(4, 8, 0, "transformer_lv_mv", "east"); Put(5, 8, 0, "diamond_cable"); Put(6, 8, 0, "transformer_mv_hv", "east"); Put(7, 8, 0, "wire_connector");
+        Put(47, 8, 0, "wire_connector"); Put(48, 8, 0, "transformer_mv_hv", "west"); Put(49, 8, 0, "diamond_cable"); Put(50, 8, 0, "transformer_lv_mv", "west");
+        Put(51, 8, 0, "battery"); Put(52, 8, 0, "battery");
+        Wires.Connect(At(7, 8, 0), At(47, 8, 0)); double hv = Delivered(51); var hl = Wires.Links.FirstOrDefault();
+        double hvExpect = 80 * (1 - 2 * .02 - 2 * .005);
+        Check(hl != null && hl.Level == 64 && Math.Abs(hv - hvExpect) < .3, $"an HV line (4 transformers: 2 x 2 % + 2 x 0.5 %) delivers {hv:0.0} of 80 E/s (expected ~{hvExpect:0.0}), wire at {Voltage.Name(hl?.Level ?? 0)}");
+        Clear();
         // a pylon: 5 blocks tall, its top holds the wire
         BlockActions.Place(At(10, 6, 4), Id("pylon"), new V3(0, 0, 1), out _);
         Check(At(10, 10, 4).Id == Id("pylon") && Wires.IsAnchor(At(10, 10, 4)) && !Wires.IsAnchor(At(10, 6, 4)), "a pylon stands 5 blocks tall and holds wires at its top");
-        Console.WriteLine($"GRID 80 E/s over 60 blocks: copper LV {lv:0.0} E/s arrive, diamond MV {mv:0.0} E/s; 50 superconductor {sc:0.0}; 40-block wire {wired:0.0} E/s");
+        Console.WriteLine($"GRID 80 E/s over 60 blocks: copper LV {lv:0.0} E/s arrive, diamond MV {mv:0.0} E/s; 50 superconductor {sc:0.0}; 40-block wire {wired:0.0} E/s; HV line {hv:0.0} E/s");
         Clear();
         foreach (var c in made) FreeChunk(c);
     }

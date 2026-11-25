@@ -13404,7 +13404,8 @@
           "transformer": {
             "low": "LV",
             "high": "MV",
-            "rating": 1024
+            "rating": 1024,
+            "loss": 0.02
           },
           "render": {
             "layer": "opaque"
@@ -13464,7 +13465,8 @@
           "transformer": {
             "low": "MV",
             "high": "HV",
-            "rating": 8192
+            "rating": 8192,
+            "loss": 0.005
           },
           "render": {
             "layer": "opaque"
