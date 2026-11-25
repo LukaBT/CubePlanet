@@ -32,13 +32,18 @@ public static class Kinetics
     public static (double x, double z) WindDir => (Math.Cos(WindHeading), Math.Sin(WindHeading));
     /// <summary>Heading (radians, for <see cref="FixedHeading"/>) of a wind coming from a compass side (north = -z).</summary>
     public static double HeadingFrom(string side) => side switch { "north" => Math.PI / 2, "south" => -Math.PI / 2, "east" => Math.PI, _ => 0 };
+    /// <summary>Bearing (degrees, 0 = north, 90 = east) the wind comes from.</summary>
+    public static double FromBearing { get { var (x, z) = WindDir; return (Math.Atan2(-x, z) * 180 / Math.PI + 360) % 360; } }
+    /// <summary>Set the wind (settings panel, saved with the world): speed m/s, the bearing it comes from in degrees. Natural() lets it change by itself again.</summary>
+    public static void SetWind(double speed, double fromDeg) { double b = fromDeg * Math.PI / 180; FixedSpeed = Math.Max(0, speed); FixedHeading = Math.Atan2(Math.Cos(b), -Math.Sin(b)); }
+    public static void Natural() { FixedSpeed = null; FixedHeading = null; }
+    public static bool IsNatural => FixedSpeed == null;
     /// <summary>Compass name of where the wind comes from (N, NE, ... in the block grid: north = -z, east = +x).</summary>
     public static string WindFrom
     {
         get
         {
-            var (x, z) = WindDir; double b = Math.Atan2(-x, z) * 180 / Math.PI; // bearing of the source: 0 = north, 90 = east
-            return new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }[(int)Math.Round((b + 360) % 360 / 45) % 8];
+            return new[] { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }[(int)Math.Round(FromBearing / 45) % 8];
         }
     }
     public static (int, int, int) Dir(BlockEntity e) => WaterMachines.Dir(e);

@@ -344,11 +344,15 @@ public static partial class SelfTest
         string Ents() => string.Join("|", BlockStates.entities.Values.OrderBy(e => e.Pos.Key).Select(e =>
             $"{e.BlockId}:{string.Join(",", e.Numbers.OrderBy(n => n.Key).Select(n => $"{n.Key}={n.Value:0.###}"))}:{string.Join(",", e.Inventories.OrderBy(i => i.Key).SelectMany(i => i.Value.Select(s => s == null ? "-" : $"{s.Item}x{s.Count}/{s.State}")))}"));
         string entsBefore = Ents(); int nEnts = BlockStates.entities.Count;
+        Kinetics.SetWind(12.5, 135); double windClock = Kinetics.Clock = 4321; // a wind set in the settings is saved with the world
         WorldSave.SaveTo(dir, "selftest");
         Check(File.Exists(Path.Combine(dir, "world.json")) && Directory.GetFiles(Path.Combine(dir, "regions")).Length > 0, $"world saved ({keys.Count} touched chunks, {nEnts} block entities)");
         WorldSave.ResetWorldState();
         Check(BlockStates.entities.Count == 0 && keys.Any(k => !Gen(k).d.SequenceEqual(before[k].d)), "after clearing, the touched chunks generate differently (test is meaningful)");
+        Kinetics.Natural(); Kinetics.Clock = 0; // so the reload has to bring the wind back
         WorldSave.LoadInto(dir, restorePlayer: false);
+        Check(!Kinetics.IsNatural && Math.Abs(Kinetics.WindSpeed - 12.5) < 1e-9 && Math.Abs(Kinetics.FromBearing - 135) < 1e-6 && Kinetics.WindFrom == "SE" && Kinetics.Clock == windClock, $"a set wind (12.5 m/s from SE) and the wind clock reload with the world ({Kinetics.WindSpeed:0.0} m/s from {Kinetics.FromBearing:0} deg)");
+        Kinetics.Natural();
         int same = 0, sameSt = 0;
         foreach (var k in keys)
         {

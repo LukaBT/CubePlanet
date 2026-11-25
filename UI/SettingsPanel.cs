@@ -59,6 +59,12 @@ public static partial class UI
         Slider("Clouds", ref SET.clouds, 0, 3, 1, v => new[] { "off", "low", "high", "ultra" }[(int)v]); Slider("Fog", ref SET.fog, 0, 2, .1);
         double hour = Sky.LocalHour(); if (Slider("Time of day", ref hour, 0, 23.99, .25, v => $"{(int)v:00}:{(int)((v % 1) * 60):00}")) Sky.SetHour(hour);
         Slider("Day length (s)", ref SET.day, 60, 1800, 30); Slider("Tick speed (farming)", ref SET.tick, 1, 50, 1, v => $"x{v:0}"); Check("Freeze time", ref SET.pause); Slider("Axial tilt (Earth=23.5)", ref SET.tilt, 0, 90, .5);
+        Head("WIND");
+        { double nat = Kinetics.IsNatural ? 1 : 0, spd = Kinetics.WindSpeed, from = Kinetics.FromBearing;
+          if (Check("Natural wind (changes by itself)", ref nat)) { if (nat > .5) Kinetics.Natural(); else Kinetics.SetWind(Math.Round(spd), Math.Round(from / 5) * 5 % 360); }
+          // moving a slider sets the wind (natural off)
+          if (Slider("Wind speed", ref spd, 0, 20, .5, v => $"{v:0.0} m/s")) Kinetics.SetWind(spd, from);
+          if (Slider("Wind from", ref from, 0, 355, 5, v => $"{v:0} deg ({Kinetics.WindFrom})")) Kinetics.SetWind(spd, from); }
         Head("GRAPHICS");
         Slider("Render resolution", ref SET.rscale, .3, 1, .05, v => $"{v * 100:0}% {(int)Math.Round(W * v)}x{(int)Math.Round(H * v)}");
         { int pr = SET.Preset(); if (Btn("Preset (click to change)", pr < 0 ? "CUSTOM" : Settings.PresetNames[pr])) SET.ApplyPreset(pr < 0 ? 2 : (pr + 1) % Settings.PresetNames.Length); }
