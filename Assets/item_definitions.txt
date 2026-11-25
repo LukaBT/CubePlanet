@@ -2776,6 +2776,42 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "wind_turbine_medium",
+      "id": 155,
+      "name": "Medium Wind Turbine",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "wind_turbine_medium"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wind_turbine_large",
+      "id": 156,
+      "name": "Large Wind Turbine",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "wind_turbine_large"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

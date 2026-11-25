@@ -144,6 +144,7 @@ public static class WorldSave
             ["player"] = new JsonObject { ["on"] = P.on, ["fly"] = P.fly, ["pos"] = V(P.p), ["selected"] = PlayerInventory.Selected },
             ["sun_angle"] = SUNA,
             ["water_reservoir"] = WaterSim.Reservoir, // water cycle: units in the sea / air (springs draw from it)
+            ["wind_clock"] = Kinetics.Clock, // the wind: where it is in its slow changes
             ["inventory"] = new JsonObject { ["hotbar"] = Stacks(PlayerInventory.Hotbar), ["main"] = Stacks(PlayerInventory.Main) },
             ["block_ids"] = blocks, ["item_ids"] = items,
         };
@@ -238,7 +239,7 @@ public static class WorldSave
         var pl = j["player"]; P.on = (bool)pl["on"]; P.fly = (bool)pl["fly"]; P.p = Vec(pl["pos"]); PlayerInventory.Selected = Math.Clamp((int)pl["selected"], 0, 9);
         P.vh = new V3(); P.vu = 0; if (P.on) SyncCam();
         SUNA = (double)j["sun_angle"]; SunVec();
-        WaterSim.Reservoir = j["water_reservoir"] is JsonNode wr ? (double)wr : WaterSim.DefaultReservoir;
+        WaterSim.Reservoir = j["water_reservoir"] is JsonNode wr ? (double)wr : WaterSim.DefaultReservoir; Kinetics.Clock = j["wind_clock"] is JsonNode wc ? (double)wc : 0;
         void Stacks(JsonNode a, ItemStack[] into)
         {
             if (a is not JsonArray arr) return;
@@ -258,7 +259,7 @@ public static class WorldSave
     {
         WaitPending();
         lock (EditLock) { edits.Clear(); ecount.Clear(); BlockStates.states.Clear(); saved.Clear(); }
-        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir;
+        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Kinetics.Clock = 0;
         foreach (var ch in chunks.Values) { ch.d = null; ch.st = null; ch.gst = 0; }
     }
 

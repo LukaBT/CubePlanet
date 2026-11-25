@@ -12252,7 +12252,10 @@
               "count": 1
             }
           ],
-          "placement_facing": "away"
+          "wind_turbine": {
+            "diameter": 5,
+            "power": 10
+          }
         },
         "instance_state": {
           "angle": {
@@ -12414,6 +12417,17 @@
                   "textures": {
                     "all": 178
                   }
+                },
+                {
+                  "x": 0.375,
+                  "y": 0.375,
+                  "z": -0.06,
+                  "w": 0.25,
+                  "h": 0.25,
+                  "d": 0.06,
+                  "textures": {
+                    "all": 178
+                  }
                 }
               ]
             }
@@ -12432,8 +12446,7 @@
               "id_name": "generator",
               "count": 1
             }
-          ],
-          "placement_facing": "away"
+          ]
         },
         "instance_state": {
           "angle": {
@@ -12531,6 +12544,274 @@
             "default": 1
           },
           "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "wind_turbine_medium",
+      "id": 148,
+      "name": "Medium Wind Turbine",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 175,
+        "south": 176,
+        "side": 174,
+        "top": 174,
+        "bottom": 174
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "wind_turbine",
+          "lod_color": [
+            220,
+            222,
+            226
+          ],
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                -0.3315
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.25,
+                  "y": 0.25,
+                  "z": -0.5,
+                  "w": 0.5,
+                  "h": 0.5,
+                  "d": 0.5,
+                  "textures": {
+                    "all": 174,
+                    "north": 175
+                  }
+                },
+                {
+                  "x": 0.25,
+                  "y": 0.77,
+                  "z": -0.382,
+                  "w": 0.5,
+                  "h": 3.23,
+                  "d": 0.101,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.25,
+                  "y": -3.0,
+                  "z": -0.382,
+                  "w": 0.5,
+                  "h": 3.23,
+                  "d": 0.101,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.77,
+                  "y": 0.25,
+                  "z": -0.382,
+                  "w": 3.23,
+                  "h": 0.5,
+                  "d": 0.101,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": -3.0,
+                  "y": 0.25,
+                  "z": -0.382,
+                  "w": 3.23,
+                  "h": 0.5,
+                  "d": 0.101,
+                  "textures": {
+                    "all": 177
+                  }
+                }
+              ]
+            }
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "wind_turbine_medium",
+              "count": 1
+            }
+          ],
+          "wind_turbine": {
+            "diameter": 7,
+            "power": 20
+          }
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "blocked": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "wind_turbine_large",
+      "id": 149,
+      "name": "Large Wind Turbine",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "north": 175,
+        "south": 176,
+        "side": 174,
+        "top": 174,
+        "bottom": 174
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "wind_turbine",
+          "lod_color": [
+            220,
+            222,
+            226
+          ],
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                -0.3765
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.15,
+                  "y": 0.15,
+                  "z": -0.6,
+                  "w": 0.7,
+                  "h": 0.7,
+                  "d": 0.6,
+                  "textures": {
+                    "all": 174,
+                    "north": 175
+                  }
+                },
+                {
+                  "x": 0.15,
+                  "y": 0.87,
+                  "z": -0.442,
+                  "w": 0.7,
+                  "h": 5.13,
+                  "d": 0.131,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.15,
+                  "y": -5.0,
+                  "z": -0.442,
+                  "w": 0.7,
+                  "h": 5.13,
+                  "d": 0.131,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": 0.87,
+                  "y": 0.15,
+                  "z": -0.442,
+                  "w": 5.13,
+                  "h": 0.7,
+                  "d": 0.131,
+                  "textures": {
+                    "all": 177
+                  }
+                },
+                {
+                  "x": -5.0,
+                  "y": 0.15,
+                  "z": -0.442,
+                  "w": 5.13,
+                  "h": 0.7,
+                  "d": 0.131,
+                  "textures": {
+                    "all": 177
+                  }
+                }
+              ]
+            }
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "wind_turbine_large",
+              "count": 1
+            }
+          ],
+          "wind_turbine": {
+            "diameter": 11,
+            "power": 48
+          }
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "blocked": {
             "type": "number",
             "default": 0
           }

@@ -205,20 +205,30 @@ when the drawn flow of a cell changes. Not yet: machines working in unloaded chu
 
 ## Wind, shafts, generators, coal
 Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:
-* **Wind Turbine**: a hub block; its blades (5 blocks across) turn in front of it and need a free 5 x 5 area there (air or plants), else
-  it stops (HUD: BLOCKED). Power = 10 E/s x wind (gusting 20..120 %) x height (x0.5 at sea level up to x2 at 60 blocks above it).
-  Rotation comes out of its back. Place it looking along the end of a shaft (its blades face away from you).
+* **Wind** is one for the whole world: a speed (0..16 m/s, about 8 on average, gusting) and a direction it comes from, in compass terms of
+  the block grid (north = -z), turning slowly (a full turn in about 2.3 hours). It is saved with the world (`wind_clock` in world.json).
+  Looking at a turbine shows it: "WIND 9.5 M/S FROM NW, 71% INTO THE BLADES".
+* **Wind Turbines** (small 5, medium 7, large 11 blocks across): a hub block; its blades turn in front of it and need a free
+  diameter x diameter area there (air or plants), else it stops (HUD: BLOCKED). What it makes depends on:
+  * the wind straight into the blades: v = wind speed x cos(angle between the wind and the way the blades face); wind from the side or
+    from behind gives nothing, so a turbine facing the wrong way does not turn at all;
+  * height: the wind is x0.8 at sea level up to x1.26 at 60 blocks above it;
+  * size: at 10 m/s straight in, small 10, medium 20, large 48 E/s (the swept area); power grows with v^3 (half the wind = an eighth
+    of the power), at most 1.5 x that, nothing below 2.5 m/s. Bigger blades turn slower.
+  Rotation comes out of its back only (shafts on its sides or top do nothing). Place it on the end of a shaft (blades toward you).
 * **Shaft**: a rod carrying rotation along its axis (placed along your look), drawn turning. Ends join the next shaft, a turbine's back
-  or a generator's back.
-* **Generator**: takes rotation in at its back, gives 90 % of it to the cable network (up to 30 E/s). Several turbines on one shaft line
-  add up; several generators share. Load slows the rotor (it turns fastest with nothing to drive).
+  or a generator. Looking at one that no turbine drives says NOT DRIVEN.
+* **Generator**: the shaft runs through it (either end); it takes up to 30 E/s of rotation and gives 90 % of it to the cable network.
+  Several turbines on one shaft line add up; several generators on it share (a large turbine needs two). Load slows the rotor (it turns
+  fastest with nothing to drive).
 * **Coal Generator**: right click opens a window with a fuel slot (coal 40 s, planks 15 s...). 20 E/s while burning, and it burns only
   when its network needs energy or a battery has room, so no fuel is wasted: one coal = 800 E. Its front glows while it burns.
 * All parts of a rotation network share one angle and speed (block entity numbers `angle`, `speed`, updated 10 times a second); the
   renderer turns the moving parts every frame from them (Rendering/MovingParts.cs: blocks with `moving_parts` within 96 blocks, built on
   the CPU, drawn with the terrain pipeline). Any block can have moving parts (see the AssetEditor README, `moving_parts`).
-* `--demowind NAME [--demosecs S]` (no window) builds a saved world with a wind farm (3 turbines on 14-block towers, shafts, generators,
-  cables down to 3 batteries and an oxygen generator) and a coal plant (coal generator with 16 coal charging a battery), run for S s (60).
+* `--demowind NAME [--demosecs S]` (no window) builds a saved world with a wind farm (turbines on 14-block towers: large, medium and small
+  facing north, small ones facing east, south and west, each with a shaft and generator, cables down to 3 batteries and an oxygen
+  generator) and a coal plant (coal generator with 16 coal charging a battery), run for S s (60). The wind starts from about WNW.
 
 ## Farming (water really used)
 Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/FarmingBehaviors.cs).
