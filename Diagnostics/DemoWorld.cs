@@ -12,7 +12,7 @@ namespace CubePlanet;
 /// </list>
 /// Everything stands on a stone platform in a cleared space, so the terrain cannot interfere.
 /// </summary>
-public static class DemoWorld
+public static partial class DemoWorld
 {
     static int bi, f, x0, y0, z0;
     static BlockPos At(int x, int y, int z) => new(false, bi, f, x0 + x, y0 + y, z0 + z);

@@ -217,6 +217,8 @@ Rotation is its own network (Energy/Kinetics.cs), turned into energy by a genera
 * All parts of a rotation network share one angle and speed (block entity numbers `angle`, `speed`, updated 10 times a second); the
   renderer turns the moving parts every frame from them (Rendering/MovingParts.cs: blocks with `moving_parts` within 96 blocks, built on
   the CPU, drawn with the terrain pipeline). Any block can have moving parts (see the AssetEditor README, `moving_parts`).
+* `--demowind NAME [--demosecs S]` (no window) builds a saved world with a wind farm (3 turbines on 14-block towers, shafts, generators,
+  cables down to 3 batteries and an oxygen generator) and a coal plant (coal generator with 16 coal charging a battery), run for S s (60).
 
 ## Farming (water really used)
 Water goes soil -> plant -> air; nothing is created or lost (Blocks/Behaviors/FarmingBehaviors.cs).
