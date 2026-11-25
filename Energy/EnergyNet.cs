@@ -35,77 +35,183 @@ public interface IEnergyMachine
 /// gets the same share of what it asked for.</item>
 /// </list>
 /// Then the energy is routed through the network (<see cref="CableFlow"/>): each cable block carries at most its capacity (definition key
-/// "cable": {"capacity": E/s}); a machine makes / takes only what actually gets through, the rest is not made (fixed production) or not
-/// delivered. Only loaded chunks take part (a cable into an unloaded chunk ends there).
+/// "cable": {"capacity": E/s at LV, "loss"}) times the voltage level of its part of the grid (<see cref="Voltage"/>); transformers join
+/// levels, wires (<see cref="Wires"/>) join pylons. A machine makes / takes only what actually gets through, the rest is not made (fixed
+/// production) or not delivered; line and transformer losses come off what the consumers get. Only loaded chunks take part (a cable into
+/// an unloaded chunk ends there).
 /// </summary>
 public static class EnergyNet
 {
-    public sealed class Net { public readonly List<BlockEntity> Machines = new(); public double Supply, Demand, Stored, Capacity; }
+    public sealed class Net { public readonly List<BlockEntity> Machines = new(); public double Supply, Demand, Stored, Capacity, Loss; }
     /// <summary>The networks of the last step (for the HUD).</summary>
     public static readonly Dictionary<long, Net> NetOf = new();
     public static int LastNetworks;
-    /// <summary>Energy through each cable block in the last step (E/s) and its capacity (for the HUD).</summary>
-    public static readonly Dictionary<long, (double flow, double cap)> CableLoad = new();
-    static readonly Dictionary<int, double> capOf = new();
-    /// <summary>A cable block's capacity in E/s (definition key "cable": {"capacity"}; 64 if missing).</summary>
-    public static double Capacity(int id)
+    /// <summary>Energy through each cable block in the last step: flow and capacity (E/s), its voltage level and its loss (E/s), for the HUD.</summary>
+    public readonly record struct Load(double Flow, double Cap, double Level, double Loss);
+    public static readonly Dictionary<long, Load> CableLoad = new();
+    /// <summary>Machines on a part of the grid above LV (they do nothing), with that level (HUD).</summary>
+    public static readonly Dictionary<long, double> WrongVoltage = new();
+    static readonly Dictionary<int, (double cap, double loss)> cableOf = new();
+    /// <summary>A cable block's capacity in E/s at LV and its loss at full current per block (definition key "cable": {"capacity", "loss"}).</summary>
+    public static (double cap, double loss) CableSpec(int id)
     {
-        lock (capOf)
+        lock (cableOf)
         {
-            if (capOf.TryGetValue(id, out var c)) return c;
-            c = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.cable") is { ValueKind: System.Text.Json.JsonValueKind.Object } j ? DefinitionFile.Num(j, "capacity", 64) : 64;
-            return capOf[id] = c;
+            if (cableOf.TryGetValue(id, out var c)) return c;
+            c = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.cable") is { ValueKind: System.Text.Json.JsonValueKind.Object } j
+                ? (DefinitionFile.Num(j, "capacity", 64), DefinitionFile.Num(j, "loss", .003)) : (64, .003);
+            return cableOf[id] = c;
         }
     }
+    public static double Capacity(int id) => CableSpec(id).cap;
     public static string DescribeCable(BlockPos p)
     {
-        double cap = Capacity(p.Id);
-        if (!CableLoad.TryGetValue(p.Key, out var l)) return $"CARRIES UP TO {cap:0} E/S  (NOTHING FLOWING)";
-        return $"{l.flow:0.0} / {cap:0} E/S" + (l.flow >= cap * .995 ? "  AT ITS LIMIT (USE A BETTER CABLE OR A SECOND LINE)" : "");
+        var (cap, _) = CableSpec(p.Id);
+        if (!CableLoad.TryGetValue(p.Key, out var l)) return $"CARRIES UP TO {cap:0} E/S AT LV ({cap * 8:0} MV, {cap * 64:0} HV)  NOTHING FLOWING";
+        return $"{Voltage.Name(l.Level)}  {l.Flow:0.0} / {l.Cap:0} E/S  LOSS {l.Loss:0.00} E/S" + (l.Flow >= l.Cap * .995 ? "  AT ITS LIMIT (A BETTER CABLE, A SECOND LINE OR A HIGHER VOLTAGE)" : "");
     }
 
-    static readonly int[][] N6 = { new[] { 1, 0, 0 }, new[] { -1, 0, 0 }, new[] { 0, 1, 0 }, new[] { 0, -1, 0 }, new[] { 0, 0, 1 }, new[] { 0, 0, -1 } };
+    static readonly (int x, int y, int z)[] N6 = { (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
     public static bool IsCable(int id) => DEFS[id]?.HasTag("energy_cable") ?? false;
     public static IEnergyMachine MachineOf(BlockEntity e) => BEH[e.BlockId] as IEnergyMachine;
+    static bool IsMachine(BlockPos p) => BlockStates.entities.TryGetValue(p.Key, out var e) && MachineOf(e) != null;
+    static bool IsTransformer(int id) => BEH[id] is TransformerBehavior;
+    /// <summary>A transformer's back (low side) and front (high side) neighbours.</summary>
+    static (BlockPos back, BlockPos front, bool ok) Sides(BlockPos t)
+    {
+        var e = BlockStates.entities.TryGetValue(t.Key, out var te) ? te : null;
+        var (fx, fy, fz) = e != null ? WaterMachines.Dir(e) : (0, 0, -1);
+        bool a = t.TryOffset(-fx, -fy, -fz, out var back), b = t.TryOffset(fx, fy, fz, out var front);
+        return (back, front, a && b);
+    }
+
+    enum Kind : byte { Machine, Cable, Transformer, Anchor, Wire }
+    /// <summary>One network being built: the flow graph plus what each node is.</summary>
+    sealed class Build
+    {
+        public readonly CableFlow.Graph G = new();
+        public readonly List<Kind> K = new(); public readonly List<double> CapLv = new(), LossF = new(), Len = new();
+        public readonly List<BlockPos> Pos = new(); public readonly List<Wires.Link> Wire = new();
+        public int Add(long key, Kind k, BlockPos p, double cap = 0, double loss = 0, double len = 1, Wires.Link w = null)
+        {
+            K.Add(k); CapLv.Add(cap); LossF.Add(loss); Len.Add(len); Pos.Add(p); Wire.Add(w); return G.Add(key, CableFlow.Inf);
+        }
+    }
 
     public static void Tick(double dt)
     {
-        NetOf.Clear(); CableLoad.Clear(); LastNetworks = 0;
-        var done = new HashSet<long>(); var q = new Queue<BlockPos>();
+        NetOf.Clear(); CableLoad.Clear(); WrongVoltage.Clear(); LastNetworks = 0;
+        Wires.Clean();
+        // wires by anchor (both ends)
+        var wiresAt = new Dictionary<long, List<Wires.Link>>();
+        foreach (var l in Wires.Links) { foreach (var p in new[] { l.A, l.B }) { if (!wiresAt.TryGetValue(p.Key, out var ls)) wiresAt[p.Key] = ls = new(); ls.Add(l); } l.Flow = l.LossNow = 0; }
+        var q = new Queue<int>();
         foreach (var e in BlockStates.entities.Values.ToArray())
         {
             if (MachineOf(e) == null || NetOf.ContainsKey(e.Pos.Key) || !e.Pos.Loaded) continue;
-            // the network this machine belongs to: flood through cables and machines, recording the blocks and the joins between them
-            var net = new Net(); var g = new CableFlow.Graph(); var node = new List<int>();
-            done.Clear(); q.Clear(); q.Enqueue(e.Pos); g.Add(e.Pos.Key, CableFlow.Inf);
+            // the network this machine belongs to: flood through cables, machines, transformers (front / back only), anchors and their wires
+            var net = new Net(); var b = new Build(); var node = new List<int>(); var done = new HashSet<int>();
+            q.Clear(); q.Enqueue(b.Add(e.Pos.Key, Kind.Machine, e.Pos));
             while (q.Count > 0)
             {
-                var p = q.Dequeue(); done.Add(p.Key); int pi = g.Index[p.Key];
-                if (BlockStates.entities.TryGetValue(p.Key, out var me) && MachineOf(me) != null) { net.Machines.Add(me); node.Add(pi); NetOf[p.Key] = net; }
-                foreach (var o in N6)
+                int pi = q.Dequeue(); if (!done.Add(pi)) continue;
+                var p = b.Pos[pi]; var kind = b.K[pi];
+                if (kind == Kind.Wire)
                 {
-                    if (!p.TryOffset(o[0], o[1], o[2], out var n) || done.Contains(n.Key) || !n.Loaded) continue;
-                    if (!g.Index.TryGetValue(n.Key, out int ni))
+                    var l = b.Wire[pi];
+                    foreach (var end in new[] { l.A, l.B })
                     {
-                        int id = n.Id; bool cable = IsCable(id);
-                        if (!cable && !(BlockStates.entities.TryGetValue(n.Key, out var ne) && MachineOf(ne) != null)) continue;
-                        if (g.Keys.Count >= 4096) continue; // a network ends after 4096 blocks
-                        ni = g.Add(n.Key, cable ? Capacity(id) * dt : CableFlow.Inf); q.Enqueue(n);
+                        if (!end.Loaded || !Wires.IsAnchor(end)) continue;
+                        if (!b.G.Index.TryGetValue(end.Key, out int ei)) { if (b.G.Keys.Count >= 4096) continue; ei = b.Add(end.Key, KindOf(end), end); q.Enqueue(ei); MaybeCable(b, ei); }
+                        b.G.Edges.Add((pi, ei));
                     }
-                    g.Edges.Add((pi, ni));
+                    continue;
                 }
+                if (kind == Kind.Machine && BlockStates.entities.TryGetValue(p.Key, out var me) && MachineOf(me) != null) { net.Machines.Add(me); node.Add(pi); NetOf[p.Key] = net; }
+                IEnumerable<BlockPos> Around()
+                {
+                    if (kind == Kind.Transformer) { var (bk, fr, ok) = Sides(p); if (ok) { yield return bk; yield return fr; } yield break; }
+                    foreach (var (x, y, z) in N6) if (p.TryOffset(x, y, z, out var n)) yield return n;
+                }
+                foreach (var n in Around())
+                {
+                    if (!n.Loaded) continue;
+                    if (!b.G.Index.TryGetValue(n.Key, out int ni))
+                    {
+                        int id = n.Id; Kind nk;
+                        if (IsTransformer(id)) { var (bk, fr, ok) = Sides(n); if (!ok || (bk.Key != p.Key && fr.Key != p.Key)) continue; nk = Kind.Transformer; }
+                        else if (IsCable(id)) nk = Kind.Cable;
+                        else if (IsMachine(n)) nk = Kind.Machine;
+                        else if (Wires.IsAnchor(n)) nk = Kind.Anchor;
+                        else continue;
+                        if (b.G.Keys.Count >= 4096) continue; // a network ends after 4096 blocks
+                        ni = b.Add(n.Key, nk, n); MaybeCable(b, ni); q.Enqueue(ni);
+                    }
+                    else if (b.K[ni] == Kind.Transformer && kind != Kind.Transformer) { var (bk, fr, ok) = Sides(b.Pos[ni]); if (!ok || (bk.Key != p.Key && fr.Key != p.Key)) continue; }
+                    if (!done.Contains(ni)) b.G.Edges.Add((pi, ni));
+                }
+                // wires from this block (an anchor; cables and machines can be anchors too: wire connectors)
+                if (wiresAt.TryGetValue(p.Key, out var wl) && Wires.IsAnchor(p))
+                    foreach (var l in wl)
+                    {
+                        long wk = 0x7E00_0000_0000_0000L + Wires.Links.IndexOf(l);
+                        if (!b.G.Index.TryGetValue(wk, out int wi))
+                        {
+                            if (b.G.Keys.Count >= 4096) continue;
+                            wi = b.Add(wk, Kind.Wire, p, Wires.WireSpec.Capacity, Wires.WireSpec.Loss, Math.Max(1, l.Length), l); q.Enqueue(wi);
+                        }
+                        if (!done.Contains(wi)) b.G.Edges.Add((pi, wi));
+                    }
             }
             LastNetworks++;
-            Balance(net, dt, g, node.ToArray());
+            Balance(net, dt, b, node.ToArray());
         }
     }
-
-    static void Balance(Net net, double dt, CableFlow.Graph g, int[] node)
+    static Kind KindOf(BlockPos p) { int id = p.Id; return IsCable(id) ? Kind.Cable : IsMachine(p) ? Kind.Machine : Kind.Anchor; }
+    static void MaybeCable(Build b, int i)
     {
+        if (b.K[i] == Kind.Cable) { var (c, l) = CableSpec(b.Pos[i].Id); b.CapLv[i] = c; b.LossF[i] = l; }
+        else if (b.K[i] == Kind.Transformer) b.CapLv[i] = TransformerBehavior.SpecOf(b.Pos[i].Id).Rating;
+    }
+
+    /// <summary>Voltage level of every node: parts of the grid between transformers get the level of the transformer sides touching them.
+    /// Returns the level per node and whether each transformer works.</summary>
+    static (double[] level, bool[] tOk) Levels(Build b)
+    {
+        int n = b.K.Count; var seg = new int[n]; for (int i = 0; i < n; i++) seg[i] = i;
+        int Find(int x) { while (seg[x] != x) x = seg[x] = seg[seg[x]]; return x; }
+        foreach (var (a, c) in b.G.Edges) if (b.K[a] != Kind.Transformer && b.K[c] != Kind.Transformer) seg[Find(a)] = Find(c);
+        var lv = new Dictionary<int, double>(); var conflict = new HashSet<int>(); var tOk = new bool[n];
+        var sides = new Dictionary<int, (int back, int front)>();
+        for (int t = 0; t < n; t++)
+        {
+            if (b.K[t] != Kind.Transformer) continue;
+            var (bk, fr, ok) = Sides(b.Pos[t]); int bi = -1, fi = -1;
+            if (ok) { b.G.Index.TryGetValue(bk.Key, out bi); b.G.Index.TryGetValue(fr.Key, out fi); if (!b.G.Index.ContainsKey(bk.Key)) bi = -1; if (!b.G.Index.ContainsKey(fr.Key)) fi = -1; }
+            sides[t] = (bi, fi); var s = TransformerBehavior.SpecOf(b.Pos[t].Id);
+            void Set(int node, double v) { if (node < 0 || b.K[node] == Kind.Transformer) return; int r = Find(node); if (lv.TryGetValue(r, out var o) && o != v) conflict.Add(r); lv[r] = Math.Max(o, v); }
+            Set(bi, s.Low); Set(fi, s.High);
+        }
+        var level = new double[n];
+        for (int i = 0; i < n; i++) level[i] = b.K[i] == Kind.Transformer ? 0 : lv.TryGetValue(Find(i), out var v) ? v : 1;
+        foreach (var (t, (bi, fi)) in sides)
+        {
+            var s = TransformerBehavior.SpecOf(b.Pos[t].Id);
+            bool ok = (bi < 0 || (level[bi] == s.Low && !conflict.Contains(Find(bi)))) && (fi < 0 || (level[fi] == s.High && !conflict.Contains(Find(fi))));
+            tOk[t] = ok; level[t] = s.High;
+            if (BlockStates.entities.TryGetValue(b.Pos[t].Key, out var te)) te.SetNum("ok", ok ? 1 : -1);
+        }
+        return (level, tOk);
+    }
+
+    static void Balance(Net net, double dt, Build b, int[] node)
+    {
+        var (level, tOk) = Levels(b);
         int n = net.Machines.Count; var plans = new EnergyPlan[n];
         double fix = 0, dis = 0, dem = 0, flex = 0, sin = 0, sout = 0, dst = 0;
         for (int i = 0; i < n; i++)
         {
+            if (level[node[i]] != 1) { WrongVoltage[net.Machines[i].Pos.Key] = level[node[i]]; continue; } // machines run on LV only
             MachineOf(net.Machines[i]).Plan(net.Machines[i], dt, ref plans[i]);
             fix += plans[i].Fixed; dis += plans[i].Dispatch; dst += plans[i].DispatchStore; dem += plans[i].Demand; flex += plans[i].Flexible; sin += plans[i].StoreIn; sout += plans[i].StoreOut;
         }
@@ -136,9 +242,37 @@ public static class EnergyNet
             var p = plans[i];
             made[i] = p.Fixed + p.Dispatch * fDis + p.DispatchStore * fDst + p.StoreOut * fOut; got[i] = p.Demand * fDem + p.Flexible * fFlex + p.StoreIn * fIn;
         }
-        // what actually gets through the cables (and is used: surplus nobody takes is not made)
-        var (mo, go, th) = CableFlow.Route(g, node, made, got);
-        for (int v = 0; v < g.Keys.Count; v++) if (g.Cap[v] < CableFlow.Inf) CableLoad[g.Keys[v]] = (th[v] / dt, g.Cap[v] / dt);
+        // node capacities this step: cables and wires carry their current x the level, transformers their rating (nothing if fighting)
+        var G = b.G;
+        for (int v = 0; v < G.Keys.Count; v++)
+            G.Cap[v] = b.K[v] switch
+            {
+                Kind.Cable or Kind.Wire => b.CapLv[v] * level[v] * dt,
+                Kind.Transformer => tOk[v] ? b.CapLv[v] * dt : 0,
+                _ => CableFlow.Inf
+            };
+        // what actually gets through (and is used: surplus nobody takes is not made)
+        var (mo, go, th) = CableFlow.Route(G, node, made, got);
+        // losses: I^2 R in cables and wires (I = energy / level; a block at full current loses "loss" of what it carries), 2 % in transformers
+        double loss = 0;
+        for (int v = 0; v < G.Keys.Count; v++)
+        {
+            double flow = th[v] / dt, l = 0;
+            if (b.K[v] is Kind.Cable or Kind.Wire)
+            {
+                double cur = flow / level[v], cap = b.CapLv[v]; l = cap > 0 ? b.LossF[v] * cap * (cur / cap) * (cur / cap) * b.Len[v] : 0;
+                if (b.K[v] == Kind.Cable) CableLoad[G.Keys[v]] = new Load(flow, b.CapLv[v] * level[v], level[v], l);
+                else { var w = b.Wire[v]; w.Flow = flow; w.Cap = b.CapLv[v] * level[v]; w.Level = level[v]; w.LossNow = l; }
+            }
+            else if (b.K[v] == Kind.Transformer)
+            {
+                l = flow * TransformerBehavior.Loss;
+                if (BlockStates.entities.TryGetValue(G.Keys[v], out var te)) te.SetNum("flow", flow);
+            }
+            loss += l * dt;
+        }
+        double gotSum = go.Sum(); net.Loss = loss / dt;
+        if (loss > 0 && gotSum > 0) { double k = Math.Max(0, 1 - loss / gotSum); for (int i = 0; i < n; i++) go[i] *= k; }
         for (int i = 0; i < n; i++)
         {
             MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);

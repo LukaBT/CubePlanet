@@ -44,6 +44,7 @@ public abstract class BlockBehavior
         ["shaft"] = () => new ShaftBehavior(),
         ["generator"] = () => new GeneratorBehavior(),
         ["coal_generator"] = () => new CoalGeneratorBehavior(),
+        ["transformer"] = () => new TransformerBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

@@ -190,3 +190,11 @@ texture_rows: 16
 187 gold_cable 176 176
 188 diamond_cable 192 176
 189 superconductor_cable 208 176
+190 transformer_side 224 176
+191 transformer_lv 240 176
+192 transformer_mv 0 192
+193 transformer_hv 16 192
+194 transformer_top 32 192
+195 insulator 48 192
+196 pylon_steel 64 192
+197 power_line 80 192

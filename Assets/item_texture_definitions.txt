@@ -14,4 +14,5 @@ texture_rows: 16
 148 beetroot 128 288
 149 beetroot_seeds 160 288
 150 wooden_hoe 192 288
+164 wire_spool 128 320
 200 bucket 256 384

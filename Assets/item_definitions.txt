@@ -2866,6 +2866,99 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "transformer_lv_mv",
+      "id": 160,
+      "name": "Transformer LV-MV",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "transformer_lv_mv"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "transformer_mv_hv",
+      "id": 161,
+      "name": "Transformer MV-HV",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "transformer_mv_hv"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wire_connector",
+      "id": 162,
+      "name": "Wire Connector",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "wire_connector"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "pylon",
+      "id": 163,
+      "name": "Pylon",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "pylon"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wire_spool",
+      "id": 164,
+      "name": "Wire Spool",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "behavior": "wire_spool",
+          "wire": {
+            "capacity": 256,
+            "loss": 0.001,
+            "max_length": 48,
+            "texture": 197
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",
