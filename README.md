@@ -207,13 +207,14 @@ when the drawn flow of a cell changes. Not yet: machines working in unloaded chu
 Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:
 * **Wind** is one for the whole world: a speed (0..16 m/s, about 8 on average, gusting) and a direction it comes from, in compass terms of
   the block grid (north = -z), turning slowly (a full turn in about 2.3 hours). It is saved with the world (`wind_clock` in world.json).
-  Looking at a turbine shows it: "WIND 9.5 M/S FROM NW, 71% INTO THE BLADES".
+  Looking at a turbine shows it: "WIND 9.5 M/S FROM NW, 71% INTO THE FRONT" (or FROM BEHIND).
   **Settings (Esc) -> WIND**: "Natural wind" on = it changes by itself; moving "Wind speed" (0..20 m/s) or "Wind from" (compass
   degrees, 0 = north, 90 = east) sets it to stay there (natural off). The set wind is saved with the world (`wind_set` in world.json).
 * **Wind Turbines** (small 5, medium 7, large 11 blocks across): a hub block; its blades turn in front of it and need a free
   diameter x diameter area there (air or plants), else it stops (HUD: BLOCKED). What it makes depends on:
-  * the wind straight into the blades: v = wind speed x cos(angle between the wind and the way the blades face); wind from the side or
-    from behind gives nothing, so a turbine facing the wrong way does not turn at all;
+  * the wind along its axis: v = wind speed x |cos(angle between the wind and the way the blades face)|; wind from the side gives
+    nothing (it does not turn at all). Wind from the front turns it one way, from behind the other way (same power). Two turbines
+    back to back on one shaft line both push the same way; every part of a line is drawn turning the same way;
   * height: the wind is x0.8 at sea level up to x1.26 at 60 blocks above it;
   * size: at 10 m/s straight in, small 10, medium 20, large 48 E/s (the swept area); power grows with v^3 (half the wind = an eighth
     of the power), at most 1.5 x that, nothing below 2.5 m/s. Bigger blades turn slower.

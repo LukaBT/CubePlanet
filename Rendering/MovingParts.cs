@@ -42,6 +42,9 @@ public static class MovingParts
     {
         Band B = bands[p.B]; V3 w = Gp(B, p.F, p.Z + lz, p.X + lx, B.inner + p.Y + ly); return w - org;
     }
+    /// <summary>A part's axis as the world turns it: always pointing toward +x / +y / +z, so every part of a line (shafts placed either way
+    /// round, turbines facing each other) turns the same way for the same network angle.</summary>
+    public static V3 WorldAxis(V3 axis) { var a = M.Nrm(axis); return a.X + a.Y + a.Z < 0 ? a * -1 : a; }
     static V3 Rot(V3 q, V3 axis, double a)
     {
         double c = Math.Cos(a), s = Math.Sin(a); V3 k = axis; double d = M.Dot(k, q);
@@ -49,7 +52,7 @@ public static class MovingParts
     }
     static void AddBox(BlockPos p, BlockDefinition.ModelBox mb, BlockDefinition.MovingPart m, double ang, V3 org)
     {
-        var b = mb.Box; V3 ax = M.Nrm(m.Axis);
+        var b = mb.Box; V3 ax = WorldAxis(m.Axis);
         V3 C8(int i)
         {
             var q = new V3((i & 1) != 0 ? b.X1 : b.X0, (i & 2) != 0 ? b.Y1 : b.Y0, (i & 4) != 0 ? b.Z1 : b.Z0) - m.Pivot;

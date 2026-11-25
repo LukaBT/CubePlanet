@@ -9,7 +9,8 @@ public interface IKinetic { (int x, int y, int z)[] Ports(BlockEntity e); }
 /// Rotation networks: wind turbines (sources), shafts (they carry rotation along their axis) and generators (they turn it into energy),
 /// joined where a block's port faces another block's port. Every 0.1 s each network adds up its sources' power, shares it between its
 /// generators (each takes up to <see cref="GeneratorBehavior.MaxIn"/>), and turns: free it spins fastest, load slows it down. All parts of a
-/// network share one angle (block entity numbers "angle", "speed"), which <see cref="MovingParts"/> draws.
+/// network share one angle (block entity numbers "angle", "speed"), which <see cref="MovingParts"/> draws. The speed has a sign: turning
+/// around the line's axis pointing toward +x / +y / +z (<see cref="MovingParts.WorldAxis"/>) is positive, the other way negative.
 /// <para>Wind: one wind for the whole world (speed in m/s and the compass direction it blows toward, in every block grid's own north / east),
 /// changing slowly with game time (<see cref="Clock"/>, saved with the world).</para>
 /// </summary>
@@ -47,7 +48,7 @@ public static class Kinetics
         }
     }
     public static (int, int, int) Dir(BlockEntity e) => WaterMachines.Dir(e);
-    public static double Rpm(BlockEntity e) => e.Num("speed") * 60 / (2 * Math.PI);
+    public static double Rpm(BlockEntity e) => Math.Abs(e.Num("speed")) * 60 / (2 * Math.PI);
 
     public static void Tick(double dt)
     {
@@ -74,14 +75,16 @@ public static class Kinetics
 
     static void Run(List<BlockEntity> net, double dt)
     {
-        double src = 0, free = 0; int turbines = 0, turning = 0; var gens = new List<BlockEntity>();
+        // turbines push the line one way or the other (wind from the front or from behind): signed sums, opposing pushes cancel
+        double torque = 0, free = 0; int turbines = 0, turning = 0; var gens = new List<BlockEntity>();
         foreach (var e in net)
             if (BEH[e.BlockId] is WindTurbineBehavior wt)
             {
-                double p = wt.Power(e); src += p; turbines++;
-                double w = wt.FreeSpeed(e); if (w > 0) { free += w; turning++; }
+                double p = wt.Power(e), sg = WindTurbineBehavior.Spin(e); torque += sg * p; turbines++;
+                double w = wt.FreeSpeed(e); if (w > 0) { free += sg * w; turning++; }
             }
             else if (BEH[e.BlockId] is GeneratorBehavior) gens.Add(e);
+        double src = Math.Abs(torque);
         double used = 0;
         foreach (var g in gens) { double inp = Math.Min(GeneratorBehavior.MaxIn, src / gens.Count); g.SetNum("input", inp); used += inp; }
         double w0 = turning > 0 ? free / turning : 0, load = src > 0 ? used / src : 0;
@@ -97,8 +100,9 @@ public static class Kinetics
 /// Wind turbine: a hub whose blades (a moving part) turn in front of it; rotation comes out of its back only. Sizes come from the definition
 /// key "wind_turbine": {"diameter": blade span in blocks (odd), "power": E/s at 10 m/s of wind straight into the blades}.
 /// <list type="bullet">
-/// <item>Only the part of the wind blowing straight into the blades counts: v = wind speed x cos(angle between the wind and the turbine's
-/// facing); wind from the side or from behind gives nothing. Taller is windier: x0.8 at sea level .. x1.26 at 60 blocks up.</item>
+/// <item>Only the part of the wind along the turbine's axis counts: v = wind speed x |cos(angle between the wind and the turbine's facing)|;
+/// wind from the side gives nothing. Wind from the front turns it one way, wind from behind the other way (same power). Taller is windier:
+/// x0.8 at sea level .. x1.26 at 60 blocks up.</item>
 /// <item>Power = power x (v / 10)^3 (wind power grows with the cube of its speed), at most 1.5 x power; nothing below 2.5 m/s.</item>
 /// <item>The diameter x diameter area of the blades (in front of the hub) must be free (air or plants), else it stops (HUD: BLOCKED).</item>
 /// <item>Bigger blades turn slower (tip speed): free it turns at 0.8 x v / radius rad/s.</item>
@@ -135,18 +139,25 @@ public sealed class WindTurbineBehavior : BlockBehavior, IKinetic
             }
         return false;
     }
-    /// <summary>Share of the wind blowing straight into the blades (cos of the angle; 0 for wind from the side or from behind).</summary>
+    /// <summary>Share of the wind along the turbine's axis: +1 straight into the blades (from the front), -1 straight from behind, 0 from the side.</summary>
     public static double Into(BlockEntity e)
     {
         var (fx, _, fz) = Kinetics.Dir(e); var (wx, wz) = Kinetics.WindDir;
-        return Math.Max(0, -(fx * wx + fz * wz)); // the wind blows against the facing = into the front
+        double c = -(fx * wx + fz * wz); return Math.Abs(c) < 1e-9 ? 0 : c; // the wind blows against the facing = into the front
+    }
+    /// <summary>Which way the wind turns this turbine around its line's world axis (<see cref="MovingParts.WorldAxis"/>): +1, -1, or 0.
+    /// The spin follows the wind along the axis, so two turbines back to back on one line both push the same way.</summary>
+    public static double Spin(BlockEntity e)
+    {
+        var (fx, fy, fz) = Kinetics.Dir(e); double into = Into(e);
+        return Math.Sign(into) * -(fx + fy + fz); // from the front: turning about -facing (clockwise seen from the front)
     }
     public static double Shear(BlockEntity e) => Math.Clamp(.8 + (bands[e.Pos.B].inner + e.Pos.Y + .5 - R) / 130, .8, 1.26);
     public double Power(BlockEntity e)
     {
         var sp = SpecOf(e.BlockId);
         bool blocked = Blocked(e); e.SetNum("blocked", blocked ? 1 : 0);
-        double v = e.Pos.Core ? 0 : Kinetics.WindSpeed * Shear(e) * Into(e); e.SetNum("wind", v);
+        double v = e.Pos.Core ? 0 : Kinetics.WindSpeed * Shear(e) * Math.Abs(Into(e)); e.SetNum("wind", v);
         if (blocked || v < CutIn) { e.SetNum("power", 0); return 0; }
         double p = sp.Power * Math.Min(MaxFactor, Math.Pow(v / RefWind, 3)); e.SetNum("power", p); return p;
     }
@@ -155,8 +166,9 @@ public sealed class WindTurbineBehavior : BlockBehavior, IKinetic
     {
         var sp = SpecOf(e.BlockId); string wind = $"WIND {Kinetics.WindSpeed:0.0} M/S FROM {Kinetics.WindFrom}";
         if (e.Num("blocked") > 0) return $"BLOCKED: THE BLADES NEED A FREE {sp.Diameter:0} X {sp.Diameter:0} AREA IN FRONT";
-        if (Into(e) <= 0) return wind + ": NOT INTO THE BLADES (TURN THE TURBINE TO FACE IT)";
-        return $"{wind}, {Into(e) * 100:0}% INTO THE BLADES  POWER {e.Num("power"):0.0} E/S  {Kinetics.Rpm(e):0} RPM";
+        double into = Into(e);
+        if (into == 0) return wind + ": FROM THE SIDE, NOT TURNING (TURN THE TURBINE TOWARD OR AWAY FROM IT)";
+        return $"{wind}, {Math.Abs(into) * 100:0}% {(into > 0 ? "INTO THE FRONT" : "FROM BEHIND (TURNS THE OTHER WAY)")}  POWER {e.Num("power"):0.0} E/S  {Kinetics.Rpm(e):0} RPM";
     }
 }
 

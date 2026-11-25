@@ -55,14 +55,18 @@ public static partial class SelfTest
               $"wind turbine (wind 10 m/s x{shear:0.00} height, straight in) {pSmall:0.0} E/s turns the shafts ({Kinetics.Rpm(se):0} rpm, one shared angle) into the generator");
         Check(be.Num("energy") > 20 && Math.Abs(be.Num("energy") - expect) < expect * .05 + 1, $"generator charges the battery: {be.Num("energy"):0.0} E in 10 s (expected {expect:0.0})");
         double loaded = te.Num("speed");
-        // wind direction: only the part blowing into the blades counts (45 degrees: cos^3 = 0.35 of the power; side or behind: nothing)
+        // wind direction: only the part along the axis counts (45 degrees: cos^3 = 0.35 of the power; from the side: nothing);
+        // from behind it gives the same power but turns the other way
         double PowerFrom(double heading) { Kinetics.FixedHeading = heading; BlockActions.Tick(.1); return te.Num("power"); }
-        double p45 = PowerFrom(Math.Atan2(1, -1)), pSide = PowerFrom(Kinetics.HeadingFrom("east")), pBack = PowerFrom(Kinetics.HeadingFrom("south"));
-        string hud = BEH[wt].Describe(te);
-        Check(Math.Abs(p45 / pSmall - Math.Pow(Math.Sqrt(.5), 3)) < .01 && pSide == 0 && pBack == 0 && hud.Contains("NOT INTO"),
-              $"only wind into the blades counts: from NE {p45 / pSmall * 100:0}% of the power, from the side {pSide}, from behind {pBack} (HUD: {hud})");
-        for (int i = 0; i < 80; i++) BlockActions.Tick(.1);
-        Check(te.Num("speed") < loaded * .2, $"a turbine with the wind from the side runs down ({Kinetics.Rpm(te):0.0} rpm)");
+        double p45 = PowerFrom(Math.Atan2(1, -1)), pBack = PowerFrom(Kinetics.HeadingFrom("south"));
+        string hudBack = BEH[wt].Describe(te);
+        for (int i = 0; i < 150; i++) BlockActions.Tick(.1);
+        double backSpeed = te.Num("speed");
+        Check(Math.Abs(p45 / pSmall - Math.Pow(Math.Sqrt(.5), 3)) < .01 && Math.Abs(pBack - pSmall) < 1e-9 && backSpeed < -loaded * .8 && hudBack.Contains("FROM BEHIND"),
+              $"from NE {p45 / pSmall * 100:0}% of the power; from behind the same power turning the other way ({loaded:0.00} -> {backSpeed:0.00} rad/s)");
+        double pSide = PowerFrom(Kinetics.HeadingFrom("east")); string hud = BEH[wt].Describe(te);
+        for (int i = 0; i < 100; i++) BlockActions.Tick(.1);
+        Check(pSide == 0 && Math.Abs(te.Num("speed")) < loaded * .2 && hud.Contains("FROM THE SIDE"), $"wind from the side: no power, the turbine runs down ({Kinetics.Rpm(te):0.0} rpm; HUD: {hud})");
         Kinetics.FixedHeading = Kinetics.HeadingFrom("north");
         // without the generator the rotor turns faster (load slows it)
         BlockStates.entities.Remove(At(0, 8, 3).Key); SetCell(bi, f, x0, y0 + 8, z0 + 3, 0);
@@ -76,6 +80,18 @@ public static partial class SelfTest
         SetCell(bi, f, x0 + 2, y0 + 10, z0 - 1, 0);
         for (int i = 0; i < 2; i++) BlockActions.Tick(.1);
         Check(te.Num("blocked") == 0 && te.Num("power") > 0, "clearing the blades starts it again");
+        // two turbines back to back on one line (one facing north, one south): the wind along the line pushes both the same way
+        Clear();
+        Put(0, 8, 0, wt, "north"); Put(0, 8, 1, shaft, "north"); Put(0, 8, 2, gen, "north"); Put(0, 8, 3, shaft, "south"); Put(0, 8, 4, wt, "south"); Put(1, 8, 2, cable); Put(2, 8, 2, bat);
+        var gm = BlockStates.entities[At(0, 8, 2).Key];
+        for (int i = 0; i < 100; i++) BlockActions.Tick(.1);
+        double inN = gm.Num("input"), spN = gm.Num("speed");
+        Kinetics.FixedHeading = Kinetics.HeadingFrom("south"); for (int i = 0; i < 150; i++) BlockActions.Tick(.1);
+        double inS = gm.Num("input"), spS = gm.Num("speed"); Kinetics.FixedHeading = Kinetics.HeadingFrom("north");
+        V3 axN = MovingParts.WorldAxis(Variant(shaft, (int)DEFS[shaft].State.Find("facing").With(0, 0)).Moving[0].Axis);
+        V3 axS = MovingParts.WorldAxis(Variant(shaft, (int)DEFS[shaft].State.Find("facing").With(0, Array.IndexOf(DEFS[shaft].State.Find("facing").Values, "south"))).Moving[0].Axis);
+        Check(Math.Abs(inN - 2 * pSmall) < 1e-6 && Math.Abs(inS - inN) < 1e-6 && spN > 0 && spS < 0 && (axN - axS).Len < 1e-9,
+              $"back-to-back turbines add up ({inN:0.0} E/s = 2 x {pSmall:0.0}); wind from the other end turns the line the other way ({spN:0.00} / {spS:0.00} rad/s); shafts placed either way round turn alike");
         // large turbine (11 blocks): 4.8 x the power at the same wind, turns slower, needs an 11 x 11 area; two generators share it
         Clear(); int big = Id("wind_turbine_large");
         Put(0, 8, 0, big, "north"); Put(0, 8, 1, gen, "north"); Put(0, 8, 2, gen, "south"); Put(1, 8, 1, cable); Put(1, 8, 2, cable); Put(2, 8, 1, bat);
