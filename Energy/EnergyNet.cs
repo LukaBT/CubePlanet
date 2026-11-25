@@ -46,29 +46,36 @@ public static class EnergyNet
     /// <summary>The networks of the last step (for the HUD).</summary>
     public static readonly Dictionary<long, Net> NetOf = new();
     public static int LastNetworks;
-    /// <summary>Energy through each cable block in the last step: flow and capacity (E/s), its voltage level and its loss (E/s), for the HUD.</summary>
-    public readonly record struct Load(double Flow, double Cap, double Level, double Loss);
+    /// <summary>Energy through each cable block in the last step: flow and capacity (E/s), its voltage level, its loss and cooling (E/s), and
+    /// whether the level is above its rating (then it carries nothing), for the HUD.</summary>
+    public readonly record struct Load(double Flow, double Cap, double Level, double Loss, double Upkeep = 0, bool Over = false);
     public static readonly Dictionary<long, Load> CableLoad = new();
     /// <summary>Machines on a part of the grid above LV (they do nothing), with that level (HUD).</summary>
     public static readonly Dictionary<long, double> WrongVoltage = new();
-    static readonly Dictionary<int, (double cap, double loss)> cableOf = new();
-    /// <summary>A cable block's capacity in E/s at LV and its loss at full current per block (definition key "cable": {"capacity", "loss"}).</summary>
-    public static (double cap, double loss) CableSpec(int id)
+    /// <summary>A cable: capacity in E/s at LV, loss at full current per block, the highest voltage its insulation takes, cooling E/s per block.</summary>
+    public readonly record struct CableInfo(double Cap, double Loss, double MaxV, double Upkeep);
+    static readonly Dictionary<int, CableInfo> cableOf = new();
+    /// <summary>Definition key "cable": {"capacity", "loss", "max_voltage": "LV" / "MV" / "HV", "upkeep"}.</summary>
+    public static CableInfo CableSpec(int id)
     {
         lock (cableOf)
         {
             if (cableOf.TryGetValue(id, out var c)) return c;
             c = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.cable") is { ValueKind: System.Text.Json.JsonValueKind.Object } j
-                ? (DefinitionFile.Num(j, "capacity", 64), DefinitionFile.Num(j, "loss", .003)) : (64, .003);
+                ? new CableInfo(DefinitionFile.Num(j, "capacity", 64), DefinitionFile.Num(j, "loss", .003), Voltage.Of(DefinitionFile.Str(j, "max_voltage", "LV")), DefinitionFile.Num(j, "upkeep", 0))
+                : new CableInfo(64, .003, 1, 0);
             return cableOf[id] = c;
         }
     }
-    public static double Capacity(int id) => CableSpec(id).cap;
+    public static double Capacity(int id) => CableSpec(id).Cap;
     public static string DescribeCable(BlockPos p)
     {
-        var (cap, _) = CableSpec(p.Id);
-        if (!CableLoad.TryGetValue(p.Key, out var l)) return $"CARRIES UP TO {cap:0} E/S AT LV ({cap * 8:0} MV, {cap * 64:0} HV)  NOTHING FLOWING";
-        return $"{Voltage.Name(l.Level)}  {l.Flow:0.0} / {l.Cap:0} E/S  LOSS {l.Loss:0.00} E/S" + (l.Flow >= l.Cap * .995 ? "  AT ITS LIMIT (A BETTER CABLE, A SECOND LINE OR A HIGHER VOLTAGE)" : "");
+        var c = CableSpec(p.Id); string rated = $"RATED UP TO {Voltage.Name(c.MaxV)}" + (c.Upkeep > 0 ? $", COOLING {c.Upkeep:0.00} E/S" : "");
+        if (!CableLoad.TryGetValue(p.Key, out var l))
+            return $"CARRIES UP TO {c.Cap:0} E/S AT LV" + (c.MaxV >= 8 ? $", {c.Cap * 8:0} AT MV" : "") + (c.MaxV >= 64 ? $", {c.Cap * 64:0} AT HV" : "") + $"  {rated}  NOTHING FLOWING";
+        if (l.Over) return $"{Voltage.Name(l.Level)} LINE BUT THIS CABLE IS {rated}: ITS INSULATION FAILS, IT CARRIES NOTHING";
+        return $"{Voltage.Name(l.Level)}  {l.Flow:0.0} / {l.Cap:0} E/S  LOSS {l.Loss + l.Upkeep:0.00} E/S" + (l.Upkeep > 0 ? " (COOLING)" : "")
+             + (l.Flow >= l.Cap * .995 ? "  AT ITS LIMIT (A BETTER CABLE, A SECOND LINE OR A HIGHER VOLTAGE)" : "");
     }
 
     static readonly (int x, int y, int z)[] N6 = { (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
@@ -92,6 +99,7 @@ public static class EnergyNet
         public readonly CableFlow.Graph G = new();
         public readonly List<Kind> K = new(); public readonly List<double> CapLv = new(), LossF = new(), Len = new();
         public readonly List<BlockPos> Pos = new(); public readonly List<Wires.Link> Wire = new(); public readonly List<int> Id = new();
+        public readonly Dictionary<int, (double maxV, double upkeep)> Rating = new(); // cables / wires: highest voltage, cooling per block
         public int Add(long key, Kind k, BlockPos p, int id, double cap = 0, double loss = 0, double len = 1, Wires.Link w = null)
         {
             K.Add(k); Id.Add(id); CapLv.Add(cap); LossF.Add(loss); Len.Add(len); Pos.Add(p); Wire.Add(w); return G.Add(key, CableFlow.Inf);
@@ -160,7 +168,7 @@ public static class EnergyNet
                         if (!b.G.Index.TryGetValue(wk, out int wi))
                         {
                             if (b.G.Keys.Count >= 4096) continue;
-                            wi = b.Add(wk, Kind.Wire, p, 0, Wires.WireSpec.Capacity, Wires.WireSpec.Loss, Math.Max(1, l.Length), l); q.Enqueue(wi);
+                            wi = b.Add(wk, Kind.Wire, p, 0, Wires.WireSpec.Capacity, Wires.WireSpec.Loss, Math.Max(1, l.Length), l); q.Enqueue(wi); b.Rating[wi] = (Wires.WireSpec.MaxV, 0);
                         }
                         if (!done.Contains(wi)) b.G.Edges.Add((pi, wi));
                     }
@@ -172,7 +180,7 @@ public static class EnergyNet
     static Kind KindOf(BlockPos p, int id) => IsCable(id) ? Kind.Cable : IsMachine(p) ? Kind.Machine : Kind.Anchor;
     static void MaybeCable(Build b, int i)
     {
-        if (b.K[i] == Kind.Cable) { var (c, l) = CableSpec(b.Id[i]); b.CapLv[i] = c; b.LossF[i] = l; }
+        if (b.K[i] == Kind.Cable) { var c = CableSpec(b.Id[i]); b.CapLv[i] = c.Cap; b.LossF[i] = c.Loss; b.Rating[i] = (c.MaxV, c.Upkeep); }
         else if (b.K[i] == Kind.Transformer) b.CapLv[i] = TransformerBehavior.SpecOf(b.Id[i]).Rating;
     }
 
@@ -244,15 +252,20 @@ public static class EnergyNet
             var p = plans[i];
             made[i] = p.Fixed + p.Dispatch * fDis + p.DispatchStore * fDst + p.StoreOut * fOut; got[i] = p.Demand * fDem + p.Flexible * fFlex + p.StoreIn * fIn;
         }
-        // node capacities this step: cables and wires carry their current x the level, transformers their rating (nothing if fighting)
-        var G = b.G;
+        // node capacities this step: cables and wires carry their current x the level (nothing above their voltage rating: the insulation
+        // fails), transformers their rating (nothing if fighting)
+        var G = b.G; var over = new bool[G.Keys.Count];
         for (int v = 0; v < G.Keys.Count; v++)
+        {
+            if (b.Rating.TryGetValue(v, out var r) && level[v] > r.maxV) over[v] = true;
             G.Cap[v] = b.K[v] switch
             {
-                Kind.Cable or Kind.Wire => b.CapLv[v] * level[v] * dt,
+                Kind.Cable or Kind.Wire => over[v] ? 0 : b.CapLv[v] * level[v] * dt,
                 Kind.Transformer => tOk[v] ? b.CapLv[v] * dt : 0,
                 _ => CableFlow.Inf
             };
+        }
+        bool powered = made.Sum() > 0; // cooling (superconductors) runs while the network has a source
         // what actually gets through (and is used: surplus nobody takes is not made)
         var (mo, go, th) = CableFlow.Route(G, node, made, got);
         // losses: I^2 R in cables and wires (I = energy / level; a block at full current loses "loss" of what it carries), 2 % in transformers
@@ -263,8 +276,10 @@ public static class EnergyNet
             if (b.K[v] is Kind.Cable or Kind.Wire)
             {
                 double cur = flow / level[v], cap = b.CapLv[v]; l = cap > 0 ? b.LossF[v] * cap * (cur / cap) * (cur / cap) * b.Len[v] : 0;
-                if (b.K[v] == Kind.Cable) CableLoad[G.Keys[v]] = new Load(flow, b.CapLv[v] * level[v], level[v], l);
-                else { var w = b.Wire[v]; w.Flow = flow; w.Cap = b.CapLv[v] * level[v]; w.Level = level[v]; w.LossNow = l; }
+                double up = powered && b.Rating.TryGetValue(v, out var rr) ? rr.upkeep * b.Len[v] : 0;
+                if (b.K[v] == Kind.Cable) CableLoad[G.Keys[v]] = new Load(flow, over[v] ? 0 : b.CapLv[v] * level[v], level[v], l, up, over[v]);
+                else { var w = b.Wire[v]; w.Flow = flow; w.Cap = over[v] ? 0 : b.CapLv[v] * level[v]; w.Level = level[v]; w.LossNow = l; }
+                l += up;
             }
             else if (b.K[v] == Kind.Transformer)
             {

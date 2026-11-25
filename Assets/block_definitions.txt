@@ -11025,7 +11025,8 @@
           ],
           "cable": {
             "capacity": 64,
-            "loss": 0.003
+            "loss": 0.003,
+            "max_voltage": "LV"
           }
         },
         "instance_state": {
@@ -12973,7 +12974,8 @@
           ],
           "cable": {
             "capacity": 256,
-            "loss": 0.002
+            "loss": 0.002,
+            "max_voltage": "LV"
           }
         },
         "instance_state": {
@@ -13155,7 +13157,8 @@
           ],
           "cable": {
             "capacity": 1024,
-            "loss": 0.001
+            "loss": 0.001,
+            "max_voltage": "MV"
           }
         },
         "instance_state": {
@@ -13338,7 +13341,9 @@
           ],
           "cable": {
             "capacity": 8192,
-            "loss": 0
+            "loss": 0,
+            "max_voltage": "MV",
+            "upkeep": 0.05
           }
         },
         "instance_state": {
@@ -13585,7 +13590,8 @@
           },
           "cable": {
             "capacity": 1000000,
-            "loss": 0
+            "loss": 0,
+            "max_voltage": "HV"
           },
           "wire_anchor": {
             "x": 0.5,

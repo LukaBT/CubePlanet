@@ -209,24 +209,29 @@ when the drawn flow of a cell changes. Water turbines and pumps idle while their
 ## The grid: voltage, transformers, power lines
 The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machines), **MV** (x8), **HV** (x64).
 * Every part of a network between transformers has one level, set by the transformer sides touching it (LV if none).
-* A cable carries a *current*: its capacity times the level, so copper carries 64 E/s at LV, 512 at MV, 4096 at HV.
-* Losses are I^2 R: a cable block at its full current loses a share of what it carries (copper 0.3 %, gold 0.2 %, diamond 0.1 %,
-  superconductor none). The same energy at a higher level is a smaller current, so it loses (level)^2 less: 80 E/s over 60 blocks of
-  copper arrives as 52.5 E/s at LV (capped at 64, then losses) but 76.5 E/s at MV (after two transformers).
+* A cable carries a *current*: its capacity times the level, so copper carries 64 E/s at LV, diamond 1024 at LV / 8192 at MV.
+* **Voltage ratings** (insulation): copper and gold cable take LV only, diamond and superconductor up to MV, wires and wire connectors
+  up to HV (in real grids high voltage goes overhead, where air is the insulation). A cable on a higher level than its rating carries
+  nothing (HUD: ITS INSULATION FAILS). So HV is only possible on power lines.
+* Losses are I^2 R: a block at its full current loses a share of what it carries (copper 0.3 %, gold 0.2 %, diamond 0.1 %, wire 0.01 %
+  per block of span; wire current 512). The same energy at a higher level is a smaller current, so it loses (level)^2 less: 80 E/s over
+  60 blocks arrives as 52.5 E/s on copper at LV (capped at 64, then losses), 76.8 E/s on diamond at MV (after two transformers).
+* **Superconductor** has no loss but needs cooling: 0.05 E/s per block while its network has a source (100 blocks: 5 E/s), so it pays
+  off for big power over short distances; over 2000 blocks the cooling alone is 100 E/s.
 * **Transformer LV-MV** (up to 1024 E/s) and **Transformer MV-HV** (8192 E/s): the back is the low side (green / yellow face), the front
   the high side (yellow / red). They lose 2 %. A side touching a part at another level (two transformers fighting) passes nothing.
 * **Machines run on LV only**: on an MV / HV part they do nothing (HUD: WRONG VOLTAGE). Step down with a transformer first.
 * **Power lines**: a **Pylon** (5 blocks tall) holds a wire at its top; a **Wire Connector** (an insulator, joins cables like a cable)
   holds one anywhere. Right click two of them with the **Wire Spool** to string a wire (at most 48 blocks, counted in blocks); again on
-  the same pair removes it. A wire is like a cable as long as its span: 256 E/s of current x the level, 0.1 % loss per block at full
-  current. Wires are drawn sagging, saved with the world, and fall when an end is broken.
+  the same pair removes it. A wire is like a cable as long as its span: 512 E/s of current x the level (32768 E/s at HV), 0.01 % loss
+  per block at full current: the best way to go far. Wires are drawn sagging, saved with the world, and fall when an end is broken.
 * Looking at a cable shows its level, flow, capacity and loss; at a pylon / connector its wires; at a transformer its sides and flow.
 * **The grid works in unloaded land.** Cables, machines, transformers, pylon tops and rotation parts are remembered when their chunk
   unloads (Energy/Grid.cs GridCache, saved in world.json as `grid_cache`), so a long power line, a far wind farm or a coal plant keeps
   delivering wherever you are. Machines (block entities) always stay in memory; only water turbines and pumps need their chunk loaded.
 * `--demogrid NAME [--demosecs S]` (no window) builds a world with a wind farm stepping up to MV, wires over 3 pylons to a town 80 blocks
   away (transformer back to LV, batteries, an oxygen generator), and beside it 4 coal generators feeding 110 blocks of plain LV copper:
-  the MV line loses 0.01 E/s, the LV line a third of what it carries.
+  the MV line loses almost nothing, the LV line a third of what it carries.
 
 ## Wind, shafts, generators, coal
 Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:

@@ -39,9 +39,12 @@ public static partial class SelfTest
         double lv = Delivered(64); string hudLv = EnergyNet.DescribeCable(At(30, 8, 0));
         // the same line at MV: transformer up (back LV to the generators, front MV to the line), transformer down at the far end
         Put(4, 8, 0, "transformer_lv_mv", "east"); Put(63, 8, 0, "transformer_lv_mv", "west");
+        double mvCopper = Delivered(64); string hudCu = EnergyNet.DescribeCable(At(30, 8, 0));
+        Check(mvCopper == 0 && hudCu.Contains("INSULATION FAILS"), $"copper (rated LV) on an MV line carries nothing ({hudCu})");
+        for (int x = 5; x <= 62; x++) Put(x, 8, 0, "diamond_cable"); // rated up to MV
         double mv = Delivered(64); string hudMv = EnergyNet.DescribeCable(At(30, 8, 0)); var tr = BlockStates.entities[At(4, 8, 0).Key];
-        Check(lv < 57 && lv > 45 && mv > 75 && hudLv.StartsWith("LV") && hudMv.StartsWith("MV") && tr.Num("ok") > 0 && Math.Abs(tr.Num("flow") - 80) < 1,
-              $"60 blocks of copper: at LV {lv:0.0} of 80 E/s arrive ({hudLv}); stepped up to MV {mv:0.0} E/s ({hudMv}; transformer {tr.Num("flow"):0.0} E/s)");
+        Check(lv < 57 && lv > 45 && mv > 76 && hudLv.StartsWith("LV") && hudMv.StartsWith("MV") && tr.Num("ok") > 0 && Math.Abs(tr.Num("flow") - 80) < 1,
+              $"60 blocks: copper at LV {lv:0.0} of 80 E/s arrive ({hudLv}); diamond stepped up to MV {mv:0.0} E/s ({hudMv}; transformer {tr.Num("flow"):0.0} E/s)");
         // unload the middle of the line (and a wind turbine standing there): power and rotation keep going through unloaded land
         {
             var mid = new List<Chunk>();
@@ -76,6 +79,10 @@ public static partial class SelfTest
         for (int i = 0; i < 5; i++) BlockActions.Tick(.1);
         Check(BlockStates.entities[At(4, 8, 0).Key].Num("ok") < 0, "a transformer with a side on the wrong voltage passes nothing");
 
+        // superconductor: no loss, but cooling 0.05 E/s per block while the network has a source (50 blocks: 2.5 E/s)
+        Clear(); Source(); for (int x = 4; x <= 53; x++) Put(x, 8, 0, "superconductor_cable"); Put(54, 8, 0, "battery"); Put(55, 8, 0, "battery");
+        double sc = Delivered(54); string hudSc = EnergyNet.DescribeCable(At(20, 8, 0));
+        Check(Math.Abs(sc - 77.5) < .3 && hudSc.Contains("COOLING"), $"50 blocks of superconductor deliver {sc:0.0} of 80 E/s (cooling 2.5 E/s; {hudSc})");
         // wires: generators -> gold cable -> connector ==40 blocks of wire== connector -> gold cable -> batteries
         Clear(); Source(); Put(4, 8, 0, "gold_cable"); Put(5, 8, 0, "wire_connector"); Put(45, 8, 0, "wire_connector"); Put(46, 8, 0, "gold_cable");
         Put(47, 8, 0, "battery"); Put(48, 8, 0, "battery");
@@ -92,7 +99,7 @@ public static partial class SelfTest
         // a pylon: 5 blocks tall, its top holds the wire
         BlockActions.Place(At(10, 6, 4), Id("pylon"), new V3(0, 0, 1), out _);
         Check(At(10, 10, 4).Id == Id("pylon") && Wires.IsAnchor(At(10, 10, 4)) && !Wires.IsAnchor(At(10, 6, 4)), "a pylon stands 5 blocks tall and holds wires at its top");
-        Console.WriteLine($"GRID 80 E/s over 60 blocks of copper: LV {lv:0.0} E/s arrive, MV {mv:0.0} E/s; 40-block wire {wired:0.0} E/s");
+        Console.WriteLine($"GRID 80 E/s over 60 blocks: copper LV {lv:0.0} E/s arrive, diamond MV {mv:0.0} E/s; 50 superconductor {sc:0.0}; 40-block wire {wired:0.0} E/s");
         Clear();
         foreach (var c in made) FreeChunk(c);
     }

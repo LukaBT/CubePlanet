@@ -4,7 +4,7 @@ public static partial class DemoWorld
 {
     // ---------- --demogrid NAME [--demosecs S]: a power line from a wind farm to a town, and an LV line beside it for comparison ----------
     // Plant (x 0..28): large, medium and small wind turbines facing north on towers; their cables join a ground cable (z 4) to a transformer
-    // LV-MV (x 29, front east). MV: a cable to a wire connector (x 31), wires up to 3 pylons (x 40, 70, 100) and down to a connector (x 109),
+    // LV-MV (x 29, front east). MV: a wire connector (x 30), wires up to 3 pylons (x 40, 70, 100) and down to a connector (x 110),
     // a transformer back to LV (x 111, front west) and the town (x 112..116): batteries and an oxygen generator.
     // Beside it (z 12): 4 coal generators with 110 blocks of plain LV copper to a battery at x 113: it arrives with big losses (HUD on a cable).
     public static int RunGrid(string name, double secs)
@@ -33,13 +33,13 @@ public static partial class DemoWorld
         Tower(0, "wind_turbine_large"); Tower(14, "wind_turbine_medium"); Tower(24, "wind_turbine");
         for (int x = 0; x <= 28; x++) Put(x, 0, 4, "gold_cable");
         // up to MV, along wires over the pylons, back down to LV
-        Put(29, 0, 4, "transformer_lv_mv", "east"); Put(30, 0, 4, "copper_cable"); Put(31, 0, 4, "wire_connector");
+        Put(29, 0, 4, "transformer_lv_mv", "east"); Put(30, 0, 4, "wire_connector"); // connectors take HV; copper / gold cable only LV
         foreach (int x in new[] { 40, 70, 100 }) BlockActions.Place(At(x, 0, 4), Id("pylon"), new V3(0, 0, 1), out _);
-        Put(109, 0, 4, "wire_connector"); Put(110, 0, 4, "copper_cable"); Put(111, 0, 4, "transformer_lv_mv", "west");
-        int[] anchors = { 31, 40, 70, 100, 109 }; int strung = 0;
+        Put(110, 0, 4, "wire_connector"); Put(111, 0, 4, "transformer_lv_mv", "west");
+        int[] anchors = { 30, 40, 70, 100, 110 }; int strung = 0;
         for (int i = 0; i + 1 < anchors.Length; i++)
         {
-            BlockPos A(int x) => x == 31 || x == 109 ? At(x, 0, 4) : At(x, 4, 4);
+            BlockPos A(int x) => x == 30 || x == 110 ? At(x, 0, 4) : At(x, 4, 4);
             if (Wires.Connect(A(anchors[i]), A(anchors[i + 1]))) strung++;
         }
         Put(112, 0, 4, "gold_cable"); Put(113, 0, 4, "battery"); Put(114, 0, 4, "battery"); Put(115, 0, 4, "battery"); Put(116, 0, 4, "oxygen_generator", "north");

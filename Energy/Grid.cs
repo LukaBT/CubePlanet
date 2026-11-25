@@ -64,7 +64,7 @@ public static class Wires
     }
     public static readonly List<Link> Links = new();
     public static BlockPos? Pending;
-    public sealed class Spec { public double Capacity = 256, Loss = .001, MaxLength = 48; public int Item, Texture; }
+    public sealed class Spec { public double Capacity = 512, Loss = .0001, MaxLength = 48, MaxV = 64; public int Item, Texture; }
     static Spec spec;
     public static Spec WireSpec
     {
@@ -77,7 +77,10 @@ public static class Wires
                 {
                     s.Item = it.Id;
                     if (DefinitionFile.Get(it.Json, "properties.definition.wire") is { ValueKind: JsonValueKind.Object } j)
-                    { s.Capacity = DefinitionFile.Num(j, "capacity", 256); s.Loss = DefinitionFile.Num(j, "loss", .001); s.MaxLength = DefinitionFile.Num(j, "max_length", 48); s.Texture = (int)DefinitionFile.Num(j, "texture", 0); }
+                    {
+                        s.Capacity = DefinitionFile.Num(j, "capacity", 512); s.Loss = DefinitionFile.Num(j, "loss", .0001); s.MaxLength = DefinitionFile.Num(j, "max_length", 48);
+                        s.Texture = (int)DefinitionFile.Num(j, "texture", 0); s.MaxV = Voltage.Of(DefinitionFile.Str(j, "max_voltage", "HV"));
+                    }
                     break;
                 }
             return spec = s;

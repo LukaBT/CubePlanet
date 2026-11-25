@@ -2947,10 +2947,11 @@
           "stack_size": 1,
           "behavior": "wire_spool",
           "wire": {
-            "capacity": 256,
-            "loss": 0.001,
+            "capacity": 512,
+            "loss": 0.0001,
             "max_length": 48,
-            "texture": 197
+            "texture": 197,
+            "max_voltage": "HV"
           }
         },
         "instance_state": {}
