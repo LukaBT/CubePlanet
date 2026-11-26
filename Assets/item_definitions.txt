@@ -2495,6 +2495,72 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "gas_pipe",
+      "id": 209,
+      "name": "Gas Pipe",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "gas_pipe"
+          },
+          "icon_state": {
+            "east": true,
+            "west": true
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dual_gas_pipe",
+      "id": 210,
+      "name": "Dual Gas Pipe",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dual_gas_pipe"
+          },
+          "icon_state": {
+            "east": true,
+            "west": true
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "dual_liquid_pipe",
+      "id": 211,
+      "name": "Dual Liquid Pipe",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "dual_liquid_pipe"
+          },
+          "icon_state": {
+            "east": true,
+            "west": true
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "liquid_turbine",
       "id": 139,
       "name": "Liquid Turbine",

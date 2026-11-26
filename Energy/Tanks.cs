@@ -177,7 +177,7 @@ public static class Tanks
             All[t.Key] = t;
         }
     }
-    public static void Reset() => All.Clear();
+    public static void Reset() { All.Clear(); PipeContents.Reset(); }
 }
 
 /// <summary>Tank valve: part of a tank's shell where pipes and machines connect; forms the tank (right after placing, then every second);

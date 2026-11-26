@@ -21,7 +21,7 @@ public static partial class SelfTest
             if (facing != null && ff != null) w = ff.With(0, Array.IndexOf(ff.Values, facing));
             p.Set(id, (int)w); BEH[id]?.OnPlace(p, id); BlockActions.NotifyNeighbors(p);
         }
-        void Clear() { for (int y = 3; y <= 16; y++) for (int z = -6; z <= 8; z++) for (int x = -6; x <= 10; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); } BlockLights.Reset(); GrowLights.Lit.Clear(); WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); }
+        void Clear() { for (int y = 3; y <= 16; y++) for (int z = -6; z <= 8; z++) for (int x = -6; x <= 10; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); } BlockLights.Reset(); GrowLights.Lit.Clear(); WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); PipeContents.Reset(); }
         BlockEntity E(int x, int y, int z) => BlockStates.entities[At(x, y, z).Key];
         void Ticks(int n) { for (int i = 0; i < n; i++) BlockActions.Tick(.1); }
         void Coal(int x, int y, int z, int count = 1) { for (int k = 0; k < count; k++) { Put(x - k, y, z, "coal_generator", "north"); E(x - k, y, z).Inv("fuel")[0] = new ItemStack(Item("coal"), 64); } }
@@ -39,12 +39,29 @@ public static partial class SelfTest
         // ----- hydrogen: coal -> electrolyzer (water below it) -> tank -> fuel cell -> oxygen generator
         Clear(); SetCell(bi, f, x0, y0 + 5, z0, Stone); SetCell(bi, f, x0, y0 + 6, z0, Water, 8); for (int k = 0; k < 4; k++) { var (ax, az) = k switch { 0 => (1, 0), 1 => (-1, 0), 2 => (0, 1), _ => (0, -1) }; SetCell(bi, f, x0 + ax, y0 + 6, z0 + az, Stone); }
         Put(0, 7, 0, "liquid_pipe"); // the electrolyzer takes water only from a pipe or tank
-        Put(0, 8, 0, "electrolyzer", "up"); Put(1, 8, 0, "gas_tank"); Coal(-1, 8, 0, 5); Put(1, 9, 0, "fuel_cell"); Put(1, 10, 0, "oxygen_generator", "north");
-        var el = E(0, 8, 0); var ht = E(1, 8, 0); var og = E(1, 10, 0); og.SetNum("energy", 0);
+        Put(0, 8, 0, "electrolyzer", "up"); Put(0, 9, 0, "gas_tank"); Coal(-1, 8, 0, 5); Put(1, 9, 0, "fuel_cell"); Put(1, 10, 0, "oxygen_generator", "north");
+        Put(0, 8, 1, "gas_pipe"); Put(0, 8, 2, "gas_pipe"); Put(0, 8, 3, "gas_tank"); // hydrogen out of the front (up) into a tank, oxygen out of a side along a gas pipe
+        var el = E(0, 8, 0); var ht = E(0, 9, 0); var og = E(1, 10, 0); var ot = E(0, 8, 3); og.SetNum("energy", 0);
         Ticks(100);
         double kgExpect = ElectrolyzerBehavior.Power * 10 * Tank.JoulesPerE * ElectrolyzerBehavior.Efficiency / Hydrogen.Hhv;
-        Check(Math.Abs(el.Num("made_kg") - kgExpect) < kgExpect * .05 && og.Num("energy") > 50 && Wl(Wcell(bi, f, x0, y0 + 6, z0)) <= 7,
-              $"electrolyzer: {el.Num("made_kg") * 1000:0.0} g of hydrogen in 10 s at 100 E/s (expected {kgExpect * 1000:0.0}), {8 - Wl(Wcell(bi, f, x0, y0 + 6, z0))} unit(s) of water taken; the fuel cell gave the oxygen generator {og.Num("energy"):0} E; tank {Hydrogen.Bar(ht):0.000} bar");
+        double o2Expect = el.Num("made_kg") / Hydrogen.MolarMass / 2; // 2 H2O -> 2 H2 + O2
+        Check(Math.Abs(el.Num("made_kg") - kgExpect) < kgExpect * .05 && og.Num("energy") > 50 && Wl(Wcell(bi, f, x0, y0 + 6, z0)) <= 7 && (int)ht.Num("gas") == Gas.Hydrogen
+              && (int)ot.Num("gas") == Gas.Oxygen && Math.Abs(ot.Num("mol") - o2Expect) < o2Expect * .02,
+              $"electrolyzer: {el.Num("made_kg") * 1000:0.0} g of hydrogen in 10 s at 100 E/s (expected {kgExpect * 1000:0.0}) into the front tank, {ot.Num("mol"):0.0} mol oxygen along a gas pipe (expected {o2Expect:0.0}), {8 - Wl(Wcell(bi, f, x0, y0 + 6, z0))} unit(s) of water taken; the fuel cell gave the oxygen generator {og.Num("energy"):0} E; tank {Hydrogen.Bar(ht):0.000} bar");
+        // ----- dual gas pipe: hydrogen (front) and oxygen (side) share one dual line, then split into single pipes to two tanks: each tank gets one gas
+        Clear(); SetCell(bi, f, x0, y0 + 5, z0, Stone); SetCell(bi, f, x0, y0 + 6, z0, Water, 8); for (int k = 0; k < 4; k++) { var (ax, az) = k switch { 0 => (1, 0), 1 => (-1, 0), 2 => (0, 1), _ => (0, -1) }; SetCell(bi, f, x0 + ax, y0 + 6, z0 + az, Stone); }
+        Put(0, 7, 0, "liquid_pipe"); Put(0, 8, 0, "electrolyzer", "up"); Coal(-1, 8, 0, 5);
+        Put(0, 9, 0, "dual_gas_pipe"); Put(0, 9, 1, "dual_gas_pipe"); Put(0, 8, 1, "dual_gas_pipe"); Put(0, 9, 2, "dual_gas_pipe");
+        Put(0, 9, 3, "gas_pipe"); Put(0, 9, 4, "gas_tank"); Put(1, 9, 2, "gas_pipe"); Put(2, 9, 2, "gas_tank");
+        Ticks(60); var ta = E(0, 9, 4); var tb2 = E(2, 9, 2); var el2 = E(0, 8, 0);
+        bool split = ta.Num("mol") > 0 && tb2.Num("mol") > 0 && (int)ta.Num("gas") != (int)tb2.Num("gas") && el2.Num("o2_vent") == 0;
+        bool singleOne = !PipeContents.CanCarry(At(0, 9, 3), 10000 + (3 - (int)ta.Num("gas"))) && PipeContents.CanCarry(At(0, 9, 1), 10000 + Gas.Hydrogen) && PipeContents.CanCarry(At(0, 9, 1), 10000 + Gas.Oxygen);
+        Check(split && singleOne, $"a dual gas pipe carries hydrogen and oxygen side by side: tank A {Gas.Name((int)ta.Num("gas"))} {ta.Num("mol"):0.0} mol, tank B {Gas.Name((int)tb2.Num("gas"))} {tb2.Num("mol"):0.0} mol; a single pipe holds one gas");
+        // ----- pipe contents: a single liquid pipe carries one liquid, a dual liquid pipe two
+        Clear(); Put(0, 8, 0, "liquid_pipe"); Put(2, 8, 0, "dual_liquid_pipe"); int oil = Id("oil");
+        PipeContents.Claim(At(0, 8, 0), Water); PipeContents.Claim(At(2, 8, 0), Water); bool s1 = !PipeContents.CanCarry(At(0, 8, 0), oil), d1 = PipeContents.CanCarry(At(2, 8, 0), oil);
+        PipeContents.Claim(At(2, 8, 0), oil); bool d2 = !PipeContents.CanCarry(At(2, 8, 0), Lava) && PipeContents.CanCarry(At(2, 8, 0), Water) && PipeContents.CanCarry(At(2, 8, 0), oil);
+        Check(s1 && d1 && d2, "a liquid pipe holding water takes no oil; a dual liquid pipe carries water and oil, not a third liquid");
         // ----- charger + drill + chainsaw
         Clear(); Coal(-1, 8, 0, 2); Put(0, 8, 0, "charger"); var drill = new ItemStack(Item("electric_drill"), 1); E(0, 8, 0).Inv("slot")[0] = drill;
         Ticks(50); int charged = Tools.Charge(drill);

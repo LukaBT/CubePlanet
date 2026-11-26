@@ -131,32 +131,23 @@ public sealed class MinerBehavior : BlockBehavior, IEnergyMachine
 
 /// <summary>
 /// Hydrogen: the electrolyzer splits water with electricity (real numbers: 141.8 MJ per kg of hydrogen at 100 %, 70 % efficient, 9 kg of
-/// water per kg), storing it in hydrogen tanks (1 m^3 each, up to 30 bar: ideal gas, pV = nRT at 20 C, ~2.5 kg = ~1230 mol). The fuel cell
-/// turns it back into electricity (120 MJ/kg, 55 %) and the water back into the water cycle. Round trip ~33 %, but it keeps for ever.
+/// water per kg; 2 H2O -> 2 H2 + O2, so half as many mol of oxygen), sending the hydrogen and the oxygen through separate gas pipes into gas
+/// tanks (1 m^3 each, up to 30 bar). The fuel cell turns hydrogen back into electricity (120 MJ/kg, 55 %; its oxygen comes from the air) and
+/// the water back into the water cycle. Round trip ~33 %, but it keeps for ever.
 /// 1 E = 12,262 J (125 kg x 9.81 m/s2 x 10 m: one unit of water falling 10 blocks on the surface).
 /// </summary>
 public static class Hydrogen
 {
-    public const double Hhv = 141.8e6, Lhv = 120e6, MolarMass = .002016, R = 8.314, T = 293, Volume = 1, MaxBar = 30;
-    public static double MaxMol => MaxBar * 1e5 * Volume / (R * T);
-    public static double Bar(BlockEntity tank) => tank.Num("mol") * R * T / Volume / 1e5;
-    public static BlockEntity TankNear(BlockEntity e, bool wantGas)
-    {
-        BlockEntity best = null;
-        foreach (var (dx, dy, dz) in ItemsUtil.N6)
-            if (e.Pos.TryOffset(dx, dy, dz, out var n) && BlockStates.entities.TryGetValue(n.Key, out var t) && BEH[t.BlockId] is HydrogenTankBehavior)
-                if (best == null || (wantGas ? t.Num("mol") > best.Num("mol") : t.Num("mol") < best.Num("mol"))) best = t;
-        return best;
-    }
+    public const double Hhv = 141.8e6, Lhv = 120e6, MolarMass = .002016, MaxBar = GasTankBehavior.MaxBar;
+    public static double MaxMol => GasTankBehavior.MaxMol;
+    public static double Bar(BlockEntity tank) => GasTankBehavior.Bar(tank);
 }
 
-public sealed class HydrogenTankBehavior : BlockBehavior
-{
-    public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
-    public override string Describe(BlockEntity e) => $"HYDROGEN {e.Num("mol") * Hydrogen.MolarMass:0.000} KG ({e.Num("mol"):0} MOL)  {Hydrogen.Bar(e):0.0} / {Hydrogen.MaxBar:0} BAR  FUEL CELL ENERGY ~{e.Num("mol") * Hydrogen.MolarMass * Hydrogen.Lhv * FuelCellBehavior.Efficiency / Tank.JoulesPerE:0} E";
-}
-
-/// <summary>Electrolyzer: water from a liquid pipe or tank valve at its back (not loose water) -> hydrogen into a gas tank touching it, up to 100 E/s.</summary>
+/// <summary>
+/// Electrolyzer: water from a liquid pipe or tank valve at its back (not loose water) -> hydrogen out of its front, oxygen out of its sides,
+/// each into the gas tanks on the gas pipes there (or a tank touching that side), up to 100 E/s. Without an oxygen line the oxygen goes into
+/// the air; without room for the hydrogen it stops.
+/// </summary>
 public sealed class ElectrolyzerBehavior : BlockBehavior, IEnergyMachine
 {
     public const double Power = 100, Efficiency = .7;
@@ -167,10 +158,15 @@ public sealed class ElectrolyzerBehavior : BlockBehavior, IEnergyMachine
         if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded || LIQ[b.Id] || !WaterMachines.IsPipe(b.Id)) return default;
         var src = WaterMachines.IntakeEnd(e); return src.Ok && src.Liquid == Water ? src : default;
     }
+    static BlockPos? Front(BlockEntity e) { var (dx, dy, dz) = WaterMachines.Dir(e); return e.Pos.TryOffset(dx, dy, dz, out var f) ? f : null; }
+    static IEnumerable<BlockPos> OxygenSides(BlockEntity e) { var d = WaterMachines.Dir(e); return GasNet.Sides(e, d, (-d.x, -d.y, -d.z)); }
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
-        var t = Hydrogen.TankNear(e, false); if (t == null || t.Num("mol") >= Hydrogen.MaxMol - 1e-6) { e.SetNum("status", t == null ? 1 : 2); return; }
+        var f = Front(e); if (f == null) return;
+        var reach = GasNet.Reach(f.Value, e.Pos, Gas.Hydrogen);
+        double room = reach.Where(r => GasTankBehavior.Accepts(r.tank, Gas.Hydrogen)).Sum(r => GasTankBehavior.MaxMol - r.tank.Num("mol"));
+        if (room <= 1e-6) { e.SetNum("status", reach.Count == 0 ? 1 : 2); return; }
         if (e.Num("water") < 1 && e.Pos.Loaded)
         {   // take a unit of water (125 kg) into its tank
             var src = WaterIn(e);
@@ -182,37 +178,48 @@ public sealed class ElectrolyzerBehavior : BlockBehavior, IEnergyMachine
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
         WaterMachines.Show(e, "power", got / dt); if (got <= 0) return;
-        var t = Hydrogen.TankNear(e, false); if (t == null) return;
-        double kg = got * Tank.JoulesPerE * Efficiency / Hydrogen.Hhv, mol = Math.Min(kg / Hydrogen.MolarMass, Hydrogen.MaxMol - t.Num("mol"));
-        t.SetNum("mol", t.Num("mol") + mol); e.SetNum("water", Math.Max(0, e.Num("water") - mol * Hydrogen.MolarMass * 9 / 125)); // 9 kg of water per kg (the oxygen goes into the air)
+        var f = Front(e); if (f == null) return;
+        double mol = got * Tank.JoulesPerE * Efficiency / Hydrogen.Hhv / Hydrogen.MolarMass;
+        mol = GasNet.Push(f.Value, e.Pos, Gas.Hydrogen, mol);
+        e.SetNum("water", Math.Max(0, e.Num("water") - mol * Hydrogen.MolarMass * 9 / 125)); // 9 kg of water per kg of hydrogen
         e.SetNum("made_kg", e.Num("made_kg") + mol * Hydrogen.MolarMass);
+        double o2 = mol / 2, o0 = o2; foreach (var s in OxygenSides(e)) { if (o2 <= 1e-12) break; o2 -= GasNet.Push(s, e.Pos, Gas.Oxygen, o2); }
+        e.SetNum("o2_kg", e.Num("o2_kg") + (o0 - o2) * Gas.MolarMass[Gas.Oxygen]); e.SetNum("o2_vent", o2 > 1e-12 ? 1 : 0);
     }
     public override string Describe(BlockEntity e) => (int)e.Num("status") switch
     {
-        1 => "NO HYDROGEN TANK NEXT TO IT", 2 => "HYDROGEN TANK FULL", 3 => "NO WATER: A LIQUID PIPE OR TANK VALVE WITH WATER AT ITS BACK",
-        _ => $"MAKING {e.Num("power") * Tank.JoulesPerE * Efficiency / Hydrogen.Hhv * 3600:0.00} KG HYDROGEN AN HOUR  {e.Num("power"):0.0} E/S  WATER {e.Num("water") * 125:0.0} KG"
+        1 => "NO HYDROGEN TANK: A GAS TANK (OR GAS PIPES TO ONE) AT ITS FRONT", 2 => "HYDROGEN TANKS FULL", 3 => "NO WATER: A LIQUID PIPE OR TANK VALVE WITH WATER AT ITS BACK",
+        _ => $"MAKING {e.Num("power") * Tank.JoulesPerE * Efficiency / Hydrogen.Hhv * 3600:0.00} KG HYDROGEN AN HOUR  {e.Num("power"):0.0} E/S  WATER {e.Num("water") * 125:0.0} KG  OXYGEN {(e.Num("o2_vent") > 0 ? "INTO THE AIR (NO OXYGEN LINE AT ITS SIDES)" : $"{e.Num("o2_kg"):0.00} KG STORED")}"
     };
 }
 
-/// <summary>Fuel cell: hydrogen from a tank touching it -> electricity on demand (up to 40 E/s, 55 %), the water back into the water cycle.</summary>
+/// <summary>Fuel cell: hydrogen from gas tanks touching it or on gas pipes at any side -> electricity on demand (up to 40 E/s, 55 %); its
+/// oxygen comes from the air, the water it makes goes back into the water cycle.</summary>
 public sealed class FuelCellBehavior : BlockBehavior, IEnergyMachine
 {
     public const double Power = 40, Efficiency = .55;
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     static double EPerMol => Hydrogen.MolarMass * Hydrogen.Lhv * Efficiency / Tank.JoulesPerE;
+    static double Stored(BlockEntity e)
+    {
+        var seen = new HashSet<long>(); double s = 0;
+        foreach (var side in GasNet.Sides(e)) foreach (var (t, _) in GasNet.Reach(side, e.Pos, Gas.Hydrogen)) if ((int)t.Num("gas") == Gas.Hydrogen && seen.Add(t.Pos.Key)) s += t.Num("mol");
+        return s;
+    }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
-        var t = Hydrogen.TankNear(e, true); if (t == null || t.Num("mol") <= 1e-9) return;
-        p.Dispatch = Math.Min(Power * dt, t.Num("mol") * EPerMol);
+        double mol = Stored(e); e.SetNum("h2", mol); if (mol <= 1e-9) return;
+        p.Dispatch = Math.Min(Power * dt, mol * EPerMol);
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
         WaterMachines.Show(e, "power", made / dt); if (made <= 0) return;
-        var t = Hydrogen.TankNear(e, true); if (t == null) return;
-        double mol = Math.Min(t.Num("mol"), made / EPerMol); t.SetNum("mol", t.Num("mol") - mol);
-        WaterSim.Reservoir += mol * Hydrogen.MolarMass * 9 / 125; // the water it makes goes into the air (the water cycle)
+        double want = made / EPerMol, took = 0;
+        foreach (var side in GasNet.Sides(e)) { if (want - took <= 1e-12) break; took += GasNet.Pull(side, e.Pos, Gas.Hydrogen, want - took); }
+        WaterSim.Reservoir += took * Hydrogen.MolarMass * 9 / 125; // the water it makes goes into the air (the water cycle)
     }
-    public override string Describe(BlockEntity e) => $"{e.Num("power"):0.0} / {Power:0} E/S ON DEMAND  (HYDROGEN: {EPerMol:0.0} E PER MOL)";
+    public override string Describe(BlockEntity e) => e.Num("h2") <= 1e-9 ? "NO HYDROGEN: A GAS TANK WITH HYDROGEN TOUCHING IT OR ON ITS GAS PIPES" :
+        $"{e.Num("power"):0.0} / {Power:0} E/S ON DEMAND  HYDROGEN {e.Num("h2") * Hydrogen.MolarMass:0.000} KG ({EPerMol:0.0} E PER MOL)";
 }
 
 /// <summary>
@@ -312,7 +319,7 @@ public sealed class SprinklerBehavior : BlockBehavior, IEnergyMachine
                     if (dx * dx + dz * dz <= RadiusSq && e.Pos.TryOffset(dx, dy, dz, out var c) && c.Loaded && Farming.IsFarmland(c.Id) && Farming.MoistureAt(c) < 8) yield return c;
     }
     /// <summary>A pipe proper (water pipe, large pipe, pipe valve): not a tank valve, pump or machine that also joins pipes.</summary>
-    public static bool IsPlainPipe(int id) => id > 0 && DEFS[id]?.IdName is "liquid_pipe" or "large_liquid_pipe" or "liquid_pipe_valve";
+    public static bool IsPlainPipe(int id) => id > 0 && DEFS[id]?.IdName is "liquid_pipe" or "large_liquid_pipe" or "liquid_pipe_valve" or "dual_liquid_pipe";
     /// <summary>Water from the pipe at its back, with enough pressure to reach the nozzle (status 1: no pipe, 2: no water on it, 3: too little pressure).</summary>
     static WaterEnd Source(BlockEntity e, out int status)
     {

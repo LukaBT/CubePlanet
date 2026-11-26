@@ -25,7 +25,8 @@ public static partial class DemoWorld
         Column(2, -10, -9); Put(2, 0, -8, "charger"); E(2, 0, -8).Inv("slot")[0] = new ItemStack(GameAssets.ItemReg.Id("electric_drill"), 1);
         // hydrogen: a water basin under the electrolyzer
         for (int z = -1; z <= 1; z++) for (int x = 11; x <= 13; x++) Cell(x, -1, z, Water, 8);
-        Cell(12, -2, 0, Water, 8); Put(12, -1, 0, "liquid_pipe"); Column(12, -10, -2); Put(12, 0, -1, "gold_cable"); Put(12, 0, 0, "electrolyzer", "up"); Put(13, 0, 0, "gas_tank"); Put(13, 1, 0, "fuel_cell"); Put(13, 2, 0, "oxygen_generator", "north");
+        Cell(12, -2, 0, Water, 8); Put(12, -1, 0, "liquid_pipe"); Column(12, -10, -2); Put(12, 0, -1, "gold_cable"); Put(12, 0, 0, "electrolyzer", "up"); Put(12, 1, 0, "gas_tank"); Put(13, 1, 0, "fuel_cell"); Put(13, 2, 0, "oxygen_generator", "north");
+        Put(12, 0, 1, "gas_pipe"); Put(12, 0, 2, "gas_pipe"); Put(12, 0, 3, "gas_tank"); E(12, 0, 3).SetNum("filter", Gas.Oxygen); // oxygen line
         // greenhouse
         for (int z = 0; z <= 4; z++) for (int x = 18; x <= 22; x++)
             {
@@ -57,7 +58,7 @@ public static partial class DemoWorld
         for (int i = 0; i < ticks; i++) BlockActions.Tick(.1);
         int Count(ItemStack[] inv) => inv?.Where(s => s != null && !s.IsEmpty).Sum(s => s.Count) ?? 0;
         string report = $"UTILITYDEMO after {secs:0} s: miner {E(30, 0, 5).Num("mined"):0} blocks ({Count(E(31, 0, 5).Inv("slots"))} in its chest, {E(32, 0, 5).Num("moved"):0} sent on, furnace made {E(36, 0, 5).Inv("output")[0]?.Count ?? 0}, overflow chest {Count(E(35, 0, 6).Inv("slots"))}); " +
-                        $"hydrogen {E(12, 0, 0).Num("made_kg") * 1000:0} g made, tank {Hydrogen.Bar(E(13, 0, 0)):0.00} bar, oxygen generator {E(13, 2, 0).Num("energy"):0} E; drill in the charger {Tools.Charge(E(2, 0, -8).Inv("slot")[0])} E; " +
+                        $"hydrogen {E(12, 0, 0).Num("made_kg") * 1000:0} g made, tank {Hydrogen.Bar(E(12, 1, 0)):0.00} bar, oxygen {E(12, 0, 3).Num("mol"):0} mol, oxygen generator {E(13, 2, 0).Num("energy"):0} E; drill in the charger {Tools.Charge(E(2, 0, -8).Inv("slot")[0])} E; " +
                         $"sprinkler watered {E(20, 1, 2).Num("watered"):0}; grow lights lit {GrowLights.Lit.Count}; elevator {E(38, 14, -6).Num("energy"):0} E, {E(38, 14, -6).Num("car"):0}x car; status lamp level {E(9, 1, -11).Num("level")}";
         return Finish(folder, name, report, 20, -15, 20, 2, 0, false);
     }

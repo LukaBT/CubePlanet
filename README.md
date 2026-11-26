@@ -302,10 +302,15 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 ## Machines that use energy (Energy/Utilities.cs)
 * **Automatic Miner** (20 E/s): digs the 9 x 9 area under it layer by layer (48 deep) into a chest touching it; 2 E + 6 E x hardness
   a block; leaves machines, water and air alone; stops when the chest is full. Right click: ON / OFF.
-* **Electrolyzer** (100 E/s) + **Hydrogen Tank** + **Fuel Cell**: water (from the electrolyzer's back: a cell, pipe or tank) is split
-  with real numbers (141.8 MJ/kg of hydrogen at 100 %, 70 % efficient, 9 kg of water per kg); a tank holds 1 m^3 up to 30 bar (ideal gas,
-  ~2.5 kg); the fuel cell makes up to 40 E/s on demand (120 MJ/kg, 55 %) and gives the water back to the water cycle. Round trip ~33 %,
-  but it keeps for ever: one full tank = ~133,000 E through the fuel cell.
+* **Electrolyzer** (100 E/s) + **Gas Tank** + **Fuel Cell**: water from a liquid pipe or tank valve at the electrolyzer's back (not loose
+  water) is split with real numbers (141.8 MJ per kg of hydrogen, 70 %, 9 kg of water per kg): **hydrogen** leaves through its front,
+  **oxygen** (half as many mol) through its sides, each along **Gas Pipes** into gas tanks (or a tank touching that side); with no oxygen line
+  the oxygen goes into the air. A gas tank is 1 m^3 up to 30 bar (~1230 mol), one gas at a time; right click sets which gas it takes. The fuel
+  cell (40 E/s on demand, 55 %, oxygen from the air) burns hydrogen from tanks touching it or on its gas pipes. Round trip ~33 %, but it keeps
+  for ever: one full tank of hydrogen = ~133,000 E through the fuel cell.
+* **Pipes carry one thing at a time**: a single liquid or gas pipe line holds one liquid / gas (the first to flow claims it; free again after
+  60 s of nothing). A **Dual Liquid Pipe** / **Dual Gas Pipe** has two channels, so two liquids (water and oil) or two gases (hydrogen and
+  oxygen) can share one line and split into single pipes at the ends without mixing.
 * **Charger** + **Electric Drill** / **Chainsaw** (items with a charge, up to 4000 E): the charger fills the tool in its slot (40 E/s,
   95 %). The drill digs 3 x 3 across the face you look at (2 E + 6 E x hardness a block), the chainsaw fells a whole tree (2 E a block);
   what they dig goes into your inventory. The HUD shows the charge of the tool in your hand.

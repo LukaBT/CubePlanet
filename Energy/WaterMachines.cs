@@ -111,8 +111,10 @@ public static class WaterMachines
     public static double MouthK(int id) => EndLoss * VelFactor(Bore(id));
     /// <summary>Open ends of the pipes connected to 'start' (not passing through the machine): a pipe joined to exactly one pipe or pipe
     /// machine opens into the cell on the opposite side; a pipe into a tank valve ends at the tank. k = the friction of the path there.</summary>
-    static IEnumerable<(BlockPos pipe, BlockPos next, double k)> PipeEnds(BlockPos start, BlockPos machine)
+    /// With a liquid given, only pipes that can carry it (<see cref="PipeContents"/>: a single pipe holds one liquid, a dual pipe two).
+    static IEnumerable<(BlockPos pipe, BlockPos next, double k)> PipeEnds(BlockPos start, BlockPos machine, int liquid = 0)
     {
+        if (liquid > 0 && !BlockStates.entities.ContainsKey(start.Key) && !PipeContents.CanCarry(start, liquid)) yield break;
         var seen = new HashSet<long> { start.Key, machine.Key }; var q = new Queue<BlockPos>(); q.Enqueue(start);
         var pathK = new Dictionary<long, double> { [start.Key] = PipeK(start.Id) };
         while (q.Count > 0 && seen.Count < 1024)
@@ -120,12 +122,23 @@ public static class WaterMachines
             var p = q.Dequeue(); int links = 0, lx = 0, ly = 0, lz = 0; double kp = pathK[p.Key], km = MouthK(p.Id);
             foreach (var o in N6)
             {
-                if (!p.TryOffset(o[0], o[1], o[2], out var n) || !n.Loaded || !IsPipe(n.Id)) continue; // pipes and pipe machines (tag water_pipe)
+                if (!p.TryOffset(o[0], o[1], o[2], out var n) || !n.Loaded || !IsPipe(n.Id)) continue; // pipes and pipe machines (tag liquid_pipe)
                 if (Tanks.IsValve(n.Id) && n.Key != machine.Key) { yield return (p, n, kp + km); continue; } // a pipe into a tank valve: the tank
                 links++; lx = o[0]; ly = o[1]; lz = o[2];
-                if (!seen.Contains(n.Key) && !BlockStates.entities.ContainsKey(n.Key)) { seen.Add(n.Key); pathK[n.Key] = kp + PipeK(n.Id); q.Enqueue(n); }
+                if (!seen.Contains(n.Key) && !BlockStates.entities.ContainsKey(n.Key) && (liquid <= 0 || PipeContents.CanCarry(n, liquid))) { seen.Add(n.Key); pathK[n.Key] = kp + PipeK(n.Id); parentOf[n.Key] = p; q.Enqueue(n); }
             }
             if (links == 1 && p.TryOffset(-lx, -ly, -lz, out var open) && open.Loaded && !IsPipe(open.Id)) yield return (p, open, kp + km);
+        }
+    }
+    // the pipe each searched pipe was reached from (the last search), to claim the path to the chosen end
+    static readonly Dictionary<long, BlockPos> parentOf = new();
+    static void ClaimPath(BlockPos pipe, BlockPos start, int liquid)
+    {
+        if (liquid <= 0) return; var p = pipe;
+        for (int i = 0; i < 1100; i++)
+        {
+            if (!BlockStates.entities.ContainsKey(p.Key)) PipeContents.Claim(p, liquid);
+            if (p.Key == start.Key || !parentOf.TryGetValue(p.Key, out var up)) break; p = up;
         }
     }
 
@@ -139,13 +152,18 @@ public static class WaterMachines
         int id = b.Id;
         if (LIQ[id]) return new WaterEnd(Cell(b));
         if (!IsPipe(id)) return default;
-        WaterEnd best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n, pk) in PipeEnds(b, e.Pos))
-        {
-            WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
-            if (!c.Ok || (c.Tank == null && !LIQ[c.Cell.id])) continue;
-            double h = c.SourceSurface + c.Gauge / (Rho * Math.Max(G(e.Pos), 1e-6)); if (h > bestH) { bestH = h; best = c; }
+        WaterEnd best = default; double bestH = double.NegativeInfinity; BlockPos bestPipe = default;
+        for (int pass = 0; pass < 2; pass++)
+        {   // first any liquid (which is best?), then only the ends that liquid can reach through pipes that may carry it
+            int only = pass == 0 ? 0 : best.Liquid; if (pass == 1) { if (only <= 0) return default; best = default; bestH = double.NegativeInfinity; parentOf.Clear(); }
+            foreach (var (pipe, n, pk) in PipeEnds(b, e.Pos, only))
+            {
+                WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
+                if (!c.Ok || (c.Tank == null && !LIQ[c.Cell.id]) || (only > 0 && c.Liquid != only)) continue;
+                double h = c.SourceSurface + c.Gauge / (c.Rho * Math.Max(G(e.Pos), 1e-6)); if (h > bestH) { bestH = h; best = c; bestPipe = pipe; }
+            }
         }
+        if (best.Ok) ClaimPath(bestPipe, b, best.Liquid);
         return best;
     }
     /// <summary>Like Outlet, but a tank in front (its valve) or at the end of its pipes counts too (the highest open end wins). Only ends that
@@ -159,13 +177,14 @@ public static class WaterMachines
         int id = f.Id;
         if (id == liquid || Wfree(id)) return new WaterEnd(Cell(f));
         if (!IsPipe(id)) return default;
-        WaterEnd best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n, pk) in PipeEnds(f, e.Pos))
+        WaterEnd best = default; double bestH = double.NegativeInfinity; BlockPos bestPipe = default; parentOf.Clear();
+        foreach (var (pipe, n, pk) in PipeEnds(f, e.Pos, liquid))
         {
             WaterEnd c = ValveAt(n, out var t) ? (t.Accepts(liquid) ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
             if (!c.Ok || (c.Tank == null && c.Cell.id != liquid && !Wfree(c.Cell.id))) continue;
-            if (n.Y > bestH) { bestH = n.Y; best = c; }
+            if (n.Y > bestH) { bestH = n.Y; best = c; bestPipe = pipe; }
         }
+        if (best.Ok) ClaimPath(bestPipe, f, liquid);
         return best;
     }
     /// <summary>Move between water ends (cells or tanks); returns the units that arrived (the rest goes back).</summary>
