@@ -108,7 +108,7 @@ public sealed class MechanicalPumpBehavior : BlockBehavior, IKinetic, IRotationL
     public double Wants(BlockEntity e)
     {
         if (e.Num("off") > 0 || !PumpBehavior.Job(e, .1, out WaterEnd _, out WaterEnd _, out double cost, out double units)) return 0;
-        return Math.Min(MaxIn, units * cost / .1);
+        return Math.Min(MaxIn, units * cost / .1); // (the pump curve and suction limit are in PumpBehavior.Job)
     }
     public void Work(BlockEntity e, double power, double dt)
     {
@@ -121,5 +121,5 @@ public sealed class MechanicalPumpBehavior : BlockBehavior, IKinetic, IRotationL
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", power);
     }
     public override string Describe(BlockEntity e) => e.Num("off") > 0 ? "OFF" : e.Num("turbines") == 0 ? "NOT DRIVEN: NEEDS A SHAFT ON A SIDE ACROSS ITS AXIS"
-        : $"LIFT {e.Num("lift"):0.0}  FLOW {e.Num("flow"):0.0} U/S  ROTATION IN {e.Num("power"):0.0} E/S  {Kinetics.Rpm(e):0} RPM";
+        : $"LIFT {e.Num("lift"):0.0} OF {e.Num("max_lift"):0}  FLOW {e.Num("flow"):0.0} U/S  ROTATION IN {e.Num("power"):0.0} E/S  {Kinetics.Rpm(e):0} RPM" + PumpBehavior.Why(e);
 }

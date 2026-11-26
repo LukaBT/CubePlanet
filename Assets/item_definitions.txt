@@ -3269,6 +3269,24 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "high_pressure_pump",
+      "id": 183,
+      "name": "High-Pressure Pump",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "high_pressure_pump"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

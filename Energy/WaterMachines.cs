@@ -14,10 +14,12 @@ public readonly struct WaterEnd
     public WaterEnd(WC c) { Cell = c; Tank = null; }
     public WaterEnd(Tank t) { Cell = default; Tank = t; }
     public bool Ok => Tank != null || Cell.ok;
-    /// <summary>Surface height as a source (a tank: its water surface + its pressure's head).</summary>
-    public double SourceLevel => Tank?.Level ?? Surface(Cell);
-    /// <summary>Height water must reach to get in (a tank: its level; an air cell: its floor).</summary>
-    public double OutletLevel => Tank?.Level ?? WaterMachines.OutletLevel(Cell);
+    /// <summary>Water surface height as a source (block Y; a tank: its water surface).</summary>
+    public double SourceSurface => Tank != null ? Tank.Y0 + Tank.Depth : Surface(Cell);
+    /// <summary>Height water must reach to get in (a tank: its water surface; an air cell: its floor).</summary>
+    public double OutletSurface => Tank != null ? Tank.Y0 + Tank.Depth : WaterMachines.OutletLevel(Cell);
+    /// <summary>Pressure above the outside air at that surface, Pa (a sealed tank's air cushion; open water: 0).</summary>
+    public double Gauge => Tank != null ? (Tank.Pressure - 1) * Tank.P0 : 0;
     public int Available => Tank != null ? (int)Math.Floor(Tank.Water + 1e-9) : WaterMachines.Column(Cell);
     public int Room => Tank?.Room() ?? WaterMachines.Room(Cell);
 }
@@ -25,6 +27,16 @@ public readonly struct WaterEnd
 public static class WaterMachines
 {
     public const double K = .1;
+    // ---- hydraulics with real numbers: water 1000 kg/m^3, 1 unit = 125 kg, gravity g = 9.81 m/s^2 x the planet's gravity factor where the
+    // machine is (full at the surface, less inside the planet and out in space); 1 E = 125 x 9.81 J (one unit dropping one block on the surface)
+    public const double Rho = 1000, G0 = 9.81, UnitKg = 125, Patm = 101325, Pvap = 2340, Npshr = 25000;
+    public static double G(BlockPos p) => G0 * GravK(p.Center.Len);
+    /// <summary>Energy per kg water gains going from src to dst (J/kg): g x the height difference + the pressure difference / density.</summary>
+    public static double SpecificEnergy(WaterEnd src, WaterEnd dst, double g) => g * (dst.OutletSurface - src.SourceSurface) + (dst.Gauge - src.Gauge) / Rho;
+    public static double EPerUnit(double jPerKg) => jPerKg * UnitKg / Tank.JoulesPerE;
+    /// <summary>The highest a pump can pull water up to itself (blocks): the outside air (plus a source's pressure) pushes water up its
+    /// intake, less the water's vapour pressure (it would boil) and a margin against cavitation, over rho x g.</summary>
+    public static double MaxSuction(double g, double sourceGauge = 0) => (Patm + sourceGauge - Pvap - Npshr) / (Rho * Math.Max(g, 1e-6));
     public static bool IsPipe(int id) => DEFS[id]?.HasTag("water_pipe") ?? false;
 
     public static (int x, int y, int z) Dir(BlockEntity e)
@@ -103,7 +115,7 @@ public static class WaterMachines
         {
             WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t) : default) : new WaterEnd(Cell(n));
             if (!c.Ok || (c.Tank == null && c.Cell.id != Water)) continue;
-            double h = c.SourceLevel; if (h > bestH) { bestH = h; best = c; }
+            double h = c.SourceSurface + c.Gauge / (Rho * Math.Max(G(e.Pos), 1e-6)); if (h > bestH) { bestH = h; best = c; }
         }
         return best;
     }
@@ -254,25 +266,27 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
         int mode = (int)e.Num("mode"); if (mode == 2) { e.SetNum("head", 0); return; }
         var src = WaterMachines.IntakeEnd(e); var dst = WaterMachines.OutletEnd(e);
         if (!src.Ok || !dst.Ok) { e.SetNum("head", 0); return; }
-        double head = src.SourceLevel - dst.OutletLevel; e.SetNum("head", head); // a pressurized tank adds 10.2 blocks per bar
-        if (head < .5) return;
+        // energy per kg the water gives falling from src to dst: gravity here x the drop + the pressure it leaves behind
+        double g = WaterMachines.G(e.Pos), spec = -WaterMachines.SpecificEnergy(src, dst, g);
+        e.SetNum("head", spec / Math.Max(g, 1e-6)); e.SetNum("spec", spec); e.SetNum("g", g);
+        if (spec < g * .5 || spec < .5) return; // less than half a block's worth
         double units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
-        double energy = Math.Max(0, units) * head * WaterMachines.K * Efficiency;
+        double perUnit = WaterMachines.EPerUnit(spec) * Efficiency, energy = Math.Max(0, units) * perUnit;
         if (mode == 1) p.Fixed = energy; else p.Dispatch = energy;
-        pending[e.Pos.Key] = (src, dst, head);
+        pending[e.Pos.Key] = (src, dst, perUnit);
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
         int moved = 0;
         if (made > 0 && pending.TryGetValue(e.Pos.Key, out var w))
         {
-            double units = made / (w.head * WaterMachines.K * Efficiency) + e.Num("carry");
+            double units = made / w.head + e.Num("carry"); // (w.head: energy per unit)
             int n = (int)units; e.SetNum("carry", Math.Min(1, units - n));
             moved = WaterMachines.Move(w.src, w.dst, n, WaterMachines.Dir(e));
         }
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", made / dt);
     }
-    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  HEAD {e.Num("head"):0.0}  FLOW {e.Num("flow"):0.0} U/S  POWER {e.Num("power"):0.0} E/S";
+    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  HEAD {e.Num("head"):0.0} ({e.Num("spec"):0} J/KG, G {e.Num("g"):0.00})  FLOW {e.Num("flow"):0.0} U/S  POWER {e.Num("power"):0.0} E/S";
 }
 
 /// <summary>
@@ -283,24 +297,62 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
 public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
 {
     public const double MaxFlow = 16, Efficiency = .75, BaseCost = .02;
+    /// <summary>A pump's design (definition key "pump"): centrifugal (an impeller: it gives water up to a fixed energy per kg, so its flow
+    /// falls along a pump curve to zero at its maximum head; best efficiency at ~60 % of it) or piston (positive displacement: a steady flow
+    /// up to its maximum, then it stops). max_head is in blocks at surface gravity (in lower gravity the same pump lifts higher).</summary>
+    public sealed class Spec { public bool Piston; public double MaxHead = 60, Flow = 16, Efficiency = .75; public double MaxSpecific => MaxHead * WaterMachines.G0; }
+    static readonly Dictionary<int, Spec> specs = new();
+    public static Spec SpecOf(int id)
+    {
+        lock (specs)
+        {
+            if (specs.TryGetValue(id, out var s)) return s;
+            s = new Spec();
+            if (DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.pump") is { ValueKind: System.Text.Json.JsonValueKind.Object } j)
+            { s.Piston = DefinitionFile.Str(j, "type", "centrifugal") == "piston"; s.MaxHead = DefinitionFile.Num(j, "max_head", 60); s.Flow = DefinitionFile.Num(j, "flow", 16); s.Efficiency = DefinitionFile.Num(j, "efficiency", .75); }
+            return specs[id] = s;
+        }
+    }
+    /// <summary>Flow (0..1 of the design flow) and efficiency at a needed energy per kg.</summary>
+    public static (double flow, double eff) Curve(Spec s, double spec)
+    {
+        double x = Math.Max(0, spec) / s.MaxSpecific; if (x >= 1) return (0, s.Efficiency);
+        if (s.Piston) return (1, s.Efficiency);
+        double q = Math.Sqrt(1 - x), bep = (x - .6) / .65; // flow falls with head; efficiency peaks at 60 % of the maximum head
+        return (q, s.Efficiency * Math.Clamp(1 - bep * bep, .3, 1));
+    }
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     public override bool Usable => true;
     public override bool OnUse(BlockPos p, int id, int state) => WaterMachines.CycleMode(BlockStates.EntityOrNew(p, id));
 
     static readonly Dictionary<long, (WaterEnd src, WaterEnd dst, double cost)> pending = new();
-    /// <summary>What a pump at e can do this step: water from src to dst at cost E per unit, at most units (into a pressurized tank the
-    /// lift includes the pressure's head: pushing against 10 bar is like lifting 102 blocks).</summary>
+    /// <summary>What a pump at e can do this step: water from src to dst at cost E per unit, at most units. Real limits: it can only pull
+    /// water up to itself as far as the outside air pushes it (suction, ~7.5 blocks at the surface), and push it as far as its design allows
+    /// (pump curve / maximum head); a pressurized tank counts as height (its pressure / (rho g)).</summary>
     public static bool Job(BlockEntity e, double dt, out WaterEnd src, out WaterEnd dst, out double cost, out double units)
     {
-        src = dst = default; cost = units = 0;
+        src = dst = default; cost = units = 0; e.SetNum("why", 0);
         if (!e.Pos.Loaded) return false; // water only moves in loaded land
         src = WaterMachines.IntakeEnd(e); dst = WaterMachines.OutletEnd(e);
         if (!src.Ok || !dst.Ok) return false;
-        double lift = Math.Max(0, dst.OutletLevel - src.SourceLevel); e.SetNum("lift", lift);
-        cost = (lift * WaterMachines.K + BaseCost) / Efficiency;
-        units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
+        var s = SpecOf(e.BlockId); double g = WaterMachines.G(e.Pos);
+        double spec = WaterMachines.SpecificEnergy(src, dst, g); e.SetNum("lift", spec / Math.Max(g, 1e-6)); e.SetNum("spec", spec); e.SetNum("g", g);
+        // suction: the source surface may be at most MaxSuction below the pump
+        double suction = e.Pos.Y + .5 - src.SourceSurface, maxS = WaterMachines.MaxSuction(g, src.Gauge); e.SetNum("max_suction", maxS);
+        if (suction > maxS) { e.SetNum("why", 1); return false; }
+        var (flow, eff) = Curve(s, spec);
+        e.SetNum("max_lift", s.MaxSpecific / Math.Max(g, 1e-6));
+        if (flow <= 0) { e.SetNum("why", 2); return false; }
+        cost = WaterMachines.EPerUnit(Math.Max(0, spec)) / eff + BaseCost;
+        units = Math.Min(s.Flow * flow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
         return units > 0;
     }
+    public static string Why(BlockEntity e) => (int)e.Num("why") switch
+    {
+        1 => $"  CAN'T PULL WATER UP MORE THAN {e.Num("max_suction"):0.0} BLOCKS HERE (THE AIR PUSHES IT UP; PUT THE PUMP LOWER)",
+        2 => $"  TOO HIGH: THIS PUMP PUSHES AT MOST {e.Num("max_lift"):0} BLOCKS HERE (OR THE TANK'S PRESSURE IS TOO HIGH)",
+        _ => ""
+    };
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         pending.Remove(e.Pos.Key);
@@ -321,7 +373,7 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
         }
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", got / dt);
     }
-    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  LIFT {e.Num("lift"):0.0}  FLOW {e.Num("flow"):0.0} U/S  USES {e.Num("power"):0.0} E/S";
+    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  LIFT {e.Num("lift"):0.0} OF {e.Num("max_lift"):0} (G {e.Num("g"):0.00})  FLOW {e.Num("flow"):0.0} U/S  USES {e.Num("power"):0.0} E/S" + Why(e);
 }
 
 /// <summary>Battery: stores up to 2000 E, charges / discharges at up to 50 E/s, 95 % efficient each way.</summary>

@@ -11344,7 +11344,13 @@
               "id_name": "water_pump",
               "count": 1
             }
-          ]
+          ],
+          "pump": {
+            "type": "centrifugal",
+            "max_head": 60,
+            "flow": 16,
+            "efficiency": 0.75
+          }
         },
         "instance_state": {
           "mode": {
@@ -16280,7 +16286,13 @@
               "id_name": "mechanical_pump",
               "count": 1
             }
-          ]
+          ],
+          "pump": {
+            "type": "centrifugal",
+            "max_head": 60,
+            "flow": 16,
+            "efficiency": 0.75
+          }
         },
         "instance_state": {
           "angle": {
@@ -16486,6 +16498,80 @@
             "default": 0
           },
           "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "high_pressure_pump",
+      "id": 171,
+      "name": "High-Pressure Pump",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "water_pipe"
+      ],
+      "textures": {
+        "north": 223,
+        "south": 224,
+        "side": 225,
+        "top": 226,
+        "bottom": 227
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "pump",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            200,
+            170,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "high_pressure_pump",
+              "count": 1
+            }
+          ],
+          "pump": {
+            "type": "piston",
+            "max_head": 265,
+            "flow": 4,
+            "efficiency": 0.85
+          }
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "lift": {
+            "type": "number",
+            "default": 0
+          },
+          "flow": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
             "type": "number",
             "default": 0
           }

@@ -74,6 +74,7 @@ public static partial class SelfTest
         Electric();
         Mechanical();
         TankTest();
+        PumpTest();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");

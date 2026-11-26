@@ -238,6 +238,23 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   an MV branch line ~160 blocks to a village (LV-MV, 3 batteries). It then reloads the saved world with no chunks loaded and checks
   that the town and the village still get their power.
 
+## Hydraulics with real physics (Energy/WaterMachines.cs)
+* Gravity where a machine is: g = 9.81 m/s^2 x the planet's gravity factor (full on the surface, falling linearly toward the centre
+  inside the planet, with the square of the distance out in space). 1 block = 1 m, 1 unit = 125 kg of water, 1 E = 125 x 9.81 J.
+* Energy per kg water gains or gives between two ends: g x the height difference + the pressure difference / 1000 (a sealed tank's
+  pressure; open water 0). A turbine gets 80 % of what the water gives; with less gravity the same drop gives less, a tank's pressure
+  the same anywhere. Heads are shown in blocks at the local gravity (and in J/kg).
+* **Suction**: a pump can only pull water up to itself as far as the outside air pushes it: (1 atm + a source's pressure - water's
+  vapour pressure - a margin against cavitation) / (1000 x g) = ~7.5 blocks on the surface, twice that at half gravity. Put pumps low
+  (down in the water) and push up.
+* **Pump curve**: the Water Pump and the Mechanical Pump are centrifugal: they give water at most a fixed energy per kg (60 blocks of
+  head at surface gravity, so 120 at half gravity); their flow falls as the head rises (16 units/s at no head, 0 at the maximum) and
+  their efficiency is best at ~60 % of the maximum (75 %), poorer at low and high heads. Against a sealed tank they stall near 6 bar.
+* **High-Pressure Pump** (piston, positive displacement): a steady 4 units/s up to 265 blocks of head at surface gravity (~26 bar),
+  85 % efficient: the pump for filling pressurized tanks (up to their 20 bar).
+* The HUD on a pump says why it stops: too high a suction ("CAN'T PULL WATER UP MORE THAN X BLOCKS HERE") or too much head ("TOO HIGH").
+  Definition key "pump": {"type": "centrifugal" / "piston", "max_head" (blocks at surface gravity), "flow", "efficiency"}.
+
 ## Water tanks, pressure and the compressor (Energy/Tanks.cs)
 * **A tank** is a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (**Tank Wall**, **Tank Window**, **Tank Valve**); edges and
   corners do not matter. A valve forms it (right after placing, then every second; water already inside is taken in). 1 block = 1 m^3 =
@@ -254,7 +271,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   gives that energy back as head: water leaving the tank lets the air expand, the pressure falls.
 * Breaking a face (or putting a block inside) **bursts** the tank: its water spills into the room.
 * `--demotank NAME [--demosecs S]` (no window) builds a pumped-storage plant: a sealed 5 x 5 x 5 tank at 8 bar with windows, a pump
-  lifting water from a pool into it (coal powered), a compressor on its top valve, and a turbine on its low valve sending the water back
+  lifting water from a pool into it with a high-pressure (piston) pump (coal powered), a compressor on its top valve, and a turbine on its low valve sending the water back
   down into the pool and charging batteries; the hotbar has a multimeter.
 
 ## Rotation machines and the multimeter (Energy/Mechanical.cs, Energy/Multimeter.cs)

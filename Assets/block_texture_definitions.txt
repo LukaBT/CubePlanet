@@ -223,3 +223,8 @@ texture_rows: 16
 220 tank_valve 192 208
 221 compressor_side 208 208
 222 compressor_top 224 208
+223 hp_pump_north 240 208
+224 hp_pump_south 0 224
+225 hp_pump_side 16 224
+226 hp_pump_top 32 224
+227 hp_pump_bottom 48 224

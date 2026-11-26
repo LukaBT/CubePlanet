@@ -47,8 +47,12 @@ public sealed class Tank
     }
     /// <summary>The water surface's height in the tank (blocks above its floor).</summary>
     public double Depth => Math.Min(H, WaterVol(Pressure) / Foot);
-    /// <summary>The level a turbine / pump sees (block Y): the water surface plus the pressure's head (10.2 blocks per bar over 1 bar).</summary>
-    public double Level => Y0 + Depth + (Pressure - 1) * HeadPerBar;
+    /// <summary>Gravity where the tank is (m/s^2).</summary>
+    public double G => WaterMachines.G(Anchor);
+    /// <summary>The pressure as height of water here (blocks): (p - 1 bar) / (rho g); 10.2 blocks per bar on the surface, more in low gravity.</summary>
+    public double PressureHead => (Pressure - 1) * P0 / (1000 * Math.Max(G, 1e-6));
+    /// <summary>The level a turbine / pump effectively sees (block Y): the water surface plus the pressure's head.</summary>
+    public double Level => Y0 + Depth + PressureHead;
     /// <summary>Units of water that still fit before the pressure reaches the rating.</summary>
     public int Room()
     {
@@ -70,7 +74,7 @@ public sealed class Tank
     public bool Contains(BlockPos p) => !p.Core && p.B == B && p.F == F && p.X >= X0 - 1 && p.X <= X1 + 1 && p.Y >= Y0 - 1 && p.Y <= Y1 + 1 && p.Z >= Z0 - 1 && p.Z <= Z1 + 1;
     public string Describe() =>
         $"TANK {W}X{H}X{D} ({Volume * 8:0} UNITS)  WATER {Water:0} ({Water * Unit / Volume * 100:0}%)  {(Vent ? "VENTED" : "SEALED")} {Pressure:0.00} BAR" +
-        (Vent ? "" : $"  = {(Pressure - 1) * HeadPerBar:0} BLOCKS OF HEAD  AIR STORES {AirEnergy:0} E") + $"  LEVEL Y {Level:0.0}";
+        (Vent ? "" : $"  = {PressureHead:0} BLOCKS OF HEAD HERE  AIR STORES {AirEnergy:0} E") + $"  LEVEL Y {Level:0.0}";
 }
 
 public static class Tanks
