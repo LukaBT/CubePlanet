@@ -348,7 +348,8 @@ public sealed class SprinklerBehavior : BlockBehavior, IEnergyMachine
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
-        int n = (int)Math.Min(e.Num("job"), Math.Floor(got / EPerUnit + 1e-9)); if (n <= 0) return;
+        // energy that arrives short (cable losses) adds up until it pays for a whole unit
+        double paid = e.Num("paid") + got; int n = (int)Math.Min(e.Num("job"), Math.Floor(paid / EPerUnit + 1e-9)); e.SetNum("paid", Math.Min(paid - n * EPerUnit, EPerUnit * 2)); if (n <= 0) return;
         var src = Source(e, out int status); if (status != 0) return;
         int took = src.Tank != null ? src.Tank.Take(n) : TakeWater(src.Cell, n), used = took;
         foreach (var c in Thirsty(e).OrderBy(c => Farming.MoistureAt(c)).ToList())

@@ -335,6 +335,8 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   output at its back and puts them on the belt (or into the inventory) in front. Right click a belt with an item to put it on, with an empty
   hand to take its items. Standing on a flat belt carries you.
 * **Grid Status Lamp**: green above half of the grid's storage, yellow above 10 %, red below (or no storage); glows.
+* `--demosprinkler NAME [--demosecs S]` (no window) shows the sprinkler: A works (a water tower higher than the nozzle feeds it through a
+  liquid pipe), B has a pipe but its basin is lower than the nozzle (no pressure), C stands on a water block (no pipe).
 * `--demoutility NAME [--demosecs S]` (no window) builds a world with all of them on a coal grid; the hotbar has the charged tools.
 * Units: 1 E = 12,262 J (a unit of water falling 10 blocks on the surface), so 1 E/s is about 12 kW.
 
