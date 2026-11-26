@@ -475,6 +475,10 @@ ignores input, prints FPS + chunk pipeline timings, does not save settings), `--
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
+`--benchedits` (with `--bench`, opens a window): after 8 s it digs / fills a block in the ground every 0.15 s and reports frame times with and
+without edits; `--editsync` meshes edited chunks on the main thread (the old way) to compare. Measured (Utility Demo, RX 5700 XT, no vsync):
+old worst frame 13.8 ms while editing (4.7 ms of meshing per chunk), new 7.7 ms, the same as without edits.
+
 `--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes; the meshing now runs on the workers) and autosave time on the main thread vs in the background.
 `--bench N --flyspeed V` (window): flies the free camera at V blocks/s and lists every frame over 25 ms with what it spent its time on
 (chunk work, LOD uploads, shadows, scene, update, UI, end frame, GPU wait, time between frames) and the garbage collections in it.

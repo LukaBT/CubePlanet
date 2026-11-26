@@ -3,7 +3,7 @@ namespace CubePlanet;
 public static class Program
 {
     public static int Msaa = -1; // -1 = use the settings value
-    public static readonly List<string> Overrides = new(); public static bool SyncMesh; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
+    public static readonly List<string> Overrides = new(); public static bool SyncMesh, BenchEdits, EditSync; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
     public static bool Showcase; // --showcase: bench places example blocks in front of the camera
     public static bool BenchSave; // --benchsave: a bench run with --world saves the world when it ends
     public static string WorldArg; // --world NAME: play that saved world right away (created with --radius / --seed if missing)
@@ -21,7 +21,7 @@ public static class Program
             Environment.ExitCode = 1; return;
         }
         // optional: CubePlanet --radius 1200 --seed 1337 --msaa 0|2|4|8 --novsync
-        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--showcase") Showcase = true; if (a == "--benchsave") BenchSave = true; if (a == "--showsettings") UI.settingsOpen = true; }
+        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--benchedits") BenchEdits = true; if (a == "--editsync") EditSync = true; if (a == "--showcase") Showcase = true; if (a == "--benchsave") BenchSave = true; if (a == "--showsettings") UI.settingsOpen = true; }
         for (int i = 0; i + 1 < args.Length; i++)
         {
             if (args[i] == "--radius") UI.radiusStr = args[i + 1];

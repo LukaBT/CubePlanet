@@ -189,6 +189,36 @@ public class Game : GameWindow
     }
 
     double benchT0 = -1, benchLast; int benchFrames; double benchWorst; bool shotDone, turned; double turnWorst; double loadDoneT = -1;
+    // --benchedits (with --bench): 3..8 s no edits, then a block placed / broken every 0.15 s (like holding a mouse button) near the camera;
+    // frame times of both phases are reported (--editsync: edited chunks meshed on the main thread, the old way, to compare)
+    readonly List<double> calmFrames = new(), editFrames = new(); double nextEdit; int editNo; BlockPos hole; bool holeOk;
+    void BenchEdit(double now, double ft)
+    {
+        double el = (now - benchT0) / 1000;
+        if (el < 3) return;
+        if (el < 8) { calmFrames.Add(ft); return; }
+        editFrames.Add(ft);
+        if (el < nextEdit) return; nextEdit = el + .15;
+        V3 c = new(Camera.C.x, Camera.C.y, Camera.C.z), up = M.Nrm(c), f = Camera.C.f;
+        V3 fl = M.Nrm(f - up * M.Dot(f, up)); if (fl.Len < .1) fl = M.Nrm(M.Cross(up, new V3(.3, .8, .5)));
+        V3 side = M.Nrm(M.Cross(fl, up));
+        int k = editNo / 2; double a = (k * 7) % 25 - 12, d = 4 + (k * 3) % 9; // spread along a line across chunk borders
+        if (editNo % 2 == 1)
+        {   // fill the hole dug by the last edit
+            if (holeOk && hole.Loaded && hole.Id == 0) BlockActions.Place(hole, Blocks.Stone, f, out _);
+            editNo++; return;
+        }
+        V3 p = c + fl * d + side * a;
+        for (int i = 0; i < 80 && BlockAccess.GetAt(p.X, p.Y, p.Z) == 0; i++) p -= up; // down to the ground: dig into it (dense chunks)
+        holeOk = BlockPos.TryAt(p.X, p.Y, p.Z, out hole) && hole.Loaded && hole.Id != 0 && !BlockActions.Replaceable(hole.Id) && !BlockStates.entities.ContainsKey(hole.Key);
+        if (holeOk) BlockActions.Break(hole);
+        editNo++;
+    }
+    static string Stats(List<double> fr)
+    {
+        if (fr.Count == 0) return "no frames"; var s = fr.OrderBy(x => x).ToList();
+        return $"{fr.Count} frames, avg {fr.Average():0.0} ms, p99 {s[(int)(s.Count * .99)]:0.0} ms, worst {s[^1]:0.0} ms, over 20 ms {fr.Count(x => x > 20)}, over 33 ms {fr.Count(x => x > 33)}";
+    }
     long profT, frameEndT; readonly double[] prevPhase = new double[11]; int g0Last = -1, g1Last, g2Last; readonly List<string> slow = new(); int slow25, slow50;
     void BenchStep(double now)
     {
@@ -214,6 +244,7 @@ public class Game : GameWindow
                          $" | gc0 +{g0 - g0Last} gc1 +{g1 - g1Last} gc2 +{g2 - g2Last} | chunks {World.chunks.Count}");
         }
         g0Last = g0; g1Last = g1; g2Last = g2;
+        if (Program.BenchEdits) BenchEdit(now, ft);
         if (Program.TurnAt >= 0)
         {
             double el = (now - benchT0) / 1000;
@@ -229,6 +260,7 @@ public class Game : GameWindow
             Close();
             Console.WriteLine($"BENCH {Gpu.DeviceName}: {benchFrames / sec:0.0} avg FPS, worst frame {benchWorst:0.0} ms, chunks {World.chunks.Count}, LOD {LodTerrain.lodDrawn}, mesh heap {Gpu.HeapUsed / 1048576.0:0.0} MB");
             double ms(long t) => t * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+            if (Program.BenchEdits) { Console.WriteLine($"EDITS {(Program.EditSync ? "main-thread meshing (old)" : "worker meshing (new)")}: {editNo / 2} edits"); Console.WriteLine("  no edits:   " + Stats(calmFrames)); Console.WriteLine("  with edits: " + Stats(editFrames)); }
             if (Program.TurnAt >= 0) Console.WriteLine($"TURN worst frame in the 2 s after a 180 degree turn: {turnWorst:0.0} ms");
             Console.WriteLine($"PROF gen {ChunkWorkers.profGenN} chunks, {ms(ChunkWorkers.profGenTicks) / Math.Max(1, ChunkWorkers.profGenN):0.00} ms avg (worker), {ChunkWorkers.profSyncGen} generated synchronously on main thread");
             Console.WriteLine($"PROF mesh (workers) {ChunkWorkers.profMeshN} meshes, {ms(ChunkWorkers.profMeshTicks) / Math.Max(1, ChunkWorkers.profMeshN):0.00} ms avg");

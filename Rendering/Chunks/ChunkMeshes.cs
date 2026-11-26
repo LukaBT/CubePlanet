@@ -83,7 +83,7 @@ public static class ChunkMeshes
             bool edited = ch.built && ch.dirty;
             // a player edit on a chunk that already has a mesh: the worker threads re-mesh it first thing (the old mesh stays drawn until the
             // new one arrives, a frame or two later). Meshing it here on the main thread cost 4 ms a chunk, up to ~20 ms an edit: a visible hitch.
-            if (edited && !ch.core && !ch.gfail && !ch.mfail && !Program.SyncMesh) { ch.dirty = false; ch.relight = true; ch.urgent = true; edited = false; urgent = true; }
+            if (edited && !ch.core && !ch.gfail && !ch.mfail && !Program.SyncMesh && !Program.EditSync) { ch.dirty = false; ch.relight = true; ch.urgent = true; edited = false; urgent = true; }
             if (!edited && ch.built && !ch.relight && !ch.mfail) continue;
             double dx = ch.mx - C.x, dy = ch.my - C.y, dz = ch.mz - C.z, d2 = dx * dx + dy * dy + dz * dz;
             bool vis = Vis(ch.mx, ch.my, ch.mz, ch.cr);
