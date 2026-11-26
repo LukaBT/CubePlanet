@@ -25,15 +25,15 @@ public static partial class DemoWorld
         Column(2, -10, -9); Put(2, 0, -8, "charger"); E(2, 0, -8).Inv("slot")[0] = new ItemStack(GameAssets.ItemReg.Id("electric_drill"), 1);
         // hydrogen: a water basin under the electrolyzer
         for (int z = -1; z <= 1; z++) for (int x = 11; x <= 13; x++) Cell(x, -1, z, Water, 8);
-        Column(12, -10, -2); Put(12, 0, -1, "gold_cable"); Put(12, 0, 0, "electrolyzer", "up"); Put(13, 0, 0, "hydrogen_tank"); Put(13, 1, 0, "fuel_cell"); Put(13, 2, 0, "oxygen_generator", "north");
+        Cell(12, -2, 0, Water, 8); Put(12, -1, 0, "liquid_pipe"); Column(12, -10, -2); Put(12, 0, -1, "gold_cable"); Put(12, 0, 0, "electrolyzer", "up"); Put(13, 0, 0, "gas_tank"); Put(13, 1, 0, "fuel_cell"); Put(13, 2, 0, "oxygen_generator", "north");
         // greenhouse
         for (int z = 0; z <= 4; z++) for (int x = 18; x <= 22; x++)
             {
-                if (x == 20 && z == 2) { Put(x, 0, z, "water_pipe"); Put(x, -1, z, "water_pipe"); continue; }
+                if (x == 20 && z == 2) { Put(x, 0, z, "liquid_pipe"); Put(x, -1, z, "liquid_pipe"); continue; }
                 Cell(x, -1, z, Id("dirt")); Cell(x, 0, z, Id("dirt")); Farming.Till(At(x, 0, z)); Put(x, 1, z, "wheat");
             }
         // the sprinkler's pipe runs under the floor to a raised basin south of the greenhouse (pressure), a spring keeps the basin full
-        for (int z = 3; z <= 6; z++) Put(20, -1, z, "water_pipe"); for (int y = 0; y <= 3; y++) Put(20, y, 6, "water_pipe");
+        for (int z = 3; z <= 6; z++) Put(20, -1, z, "liquid_pipe"); for (int y = 0; y <= 3; y++) Put(20, y, 6, "liquid_pipe");
         Cell(20, 4, 6, Water, 8); Cell(19, 4, 6, stone); Cell(20, 4, 5, stone); Cell(20, 4, 7, stone); Put(21, 4, 6, "spring", "west"); E(21, 4, 6).SetNum("rate", 4);
         Put(20, 1, 2, "sprinkler", "up");
         Column(20, -10, -1); for (int y = 1; y <= 1; y++) Put(20, 0, -1, "gold_cable"); Put(19, 1, -1, "gold_cable"); Put(20, 1, -1, "gold_cable"); Put(20, 1, 0, "gold_cable"); Put(20, 1, 1, "gold_cable"); // to the sprinkler
@@ -50,7 +50,7 @@ public static partial class DemoWorld
         var drillItem = new ItemStack(GameAssets.ItemReg.Id("electric_drill"), 1); Tools.SetCharge(drillItem, 4000);
         var sawItem = new ItemStack(GameAssets.ItemReg.Id("chainsaw"), 1); Tools.SetCharge(sawItem, 4000);
         PlayerInventory.Hotbar[0] = drillItem; PlayerInventory.Hotbar[1] = sawItem;
-        string[] give = { "multimeter", "miner", "guide_rail", "conveyor_belt", "extractor", "electrolyzer", "hydrogen_tank" };
+        string[] give = { "multimeter", "miner", "guide_rail", "conveyor_belt", "extractor", "electrolyzer", "gas_tank" };
         for (int i = 0; i < give.Length; i++) PlayerInventory.Hotbar[i + 2] = new ItemStack(GameAssets.ItemReg.Id(give[i]), give[i] == "multimeter" ? 1 : 64);
         PlayerInventory.Selected = 0; WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
         int ticks = (int)(secs * 10);

@@ -31,9 +31,9 @@ public static partial class SelfTest
             for (int y = 8; y <= 12; y++) for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++)
                     {
                         bool inside = x >= 1 && x <= 3 && y >= 9 && y <= 11 && z >= 1 && z <= 3;
-                        SetCell(bi, f, x0 + x, y0 + y, z0 + z, inside ? 0 : y == 12 ? Id("tank_window") : Id("tank_wall"));
+                        SetCell(bi, f, x0 + x, y0 + y, z0 + z, inside ? 0 : y == 12 ? Id("liquid_tank_window") : Id("liquid_tank_wall"));
                     }
-            Put(2, 8, 2, "tank_valve"); Put(4, 9, 2, "tank_valve");
+            Put(2, 8, 2, "liquid_tank_valve"); Put(4, 9, 2, "liquid_tank_valve");
         }
         Clear(); Shell();
         var t = Tanks.Form(At(2, 8, 2));
@@ -57,7 +57,7 @@ public static partial class SelfTest
         for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++) SetCell(bi, f, x0 + x, y0 + 4, z0 + z, Stone);
         for (int z = 1; z <= 3; z++) for (int x = 1; x <= 3; x++) SetCell(bi, f, x0 + x, y0 + 5, z0 + z, Water, 8);
         for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++) if (x == 0 || x == 4 || z == 0 || z == 4) SetCell(bi, f, x0 + x, y0 + 5, z0 + z, Stone);
-        Put(2, 6, 2, "water_pump", "up"); Put(2, 7, 2, "water_pipe"); E(2, 6, 2).SetNum("mode", 1);
+        Put(2, 6, 2, "liquid_pump", "up"); Put(2, 7, 2, "liquid_pipe"); E(2, 6, 2).SetNum("mode", 1);
         for (int x = -2; x <= 0; x++) { Put(x, 6, 2, x == 0 ? "copper_cable" : "coal_generator", "north"); if (x < 0) E(x, 6, 2).Inv("fuel")[0] = new ItemStack(GameAssets.ItemReg.Id("coal"), 16); }
         Put(1, 6, 2, "copper_cable");
         int Pool() { int n = 0; for (int z = 1; z <= 3; z++) for (int x = 1; x <= 3; x++) n += Wl(Wcell(bi, f, x0 + x, y0 + 5, z0 + z)); return n; }
@@ -66,7 +66,7 @@ public static partial class SelfTest
               $"a pump fills the sealed tank through a pipe: {t.Water:0} units in, {t.Pressure:0.00} bar, lift {E(2, 6, 2).Num("lift"):0.0}; pool + tank = {Pool() + t.Water:0} (was {pool0})");
         E(2, 6, 2).SetNum("mode", 2); double pPump = t.Pressure;
         // a turbine on the east valve, outlet into the air: at 10 bar the tank gives ~92 blocks of head
-        t.Water = 108; t.Air = 10 * (27 - 13.5); Put(5, 9, 2, "water_turbine", "east"); Put(5, 10, 2, "copper_cable"); Put(5, 11, 2, "battery");
+        t.Water = 108; t.Air = 10 * (27 - 13.5); Put(5, 9, 2, "liquid_turbine", "east"); Put(5, 10, 2, "copper_cable"); Put(5, 11, 2, "battery");
         var tb = E(5, 9, 2); tb.SetNum("mode", 1); double p10 = t.Pressure, w0 = t.Water; Ticks(10);
         double head = tb.Num("head"), used = w0 - t.Water, e1 = E(5, 11, 2).Num("energy");
         Check(Math.Abs(p10 - 10) < .05 && head > 80 && used > 5 && t.Pressure < p10 && e1 > used * 80 * WaterMachines.K * TurbineBehavior.Efficiency * BatteryBehavior.Efficiency && e1 < (used + 1) * 95 * WaterMachines.K * TurbineBehavior.Efficiency * BatteryBehavior.Efficiency, // the head falls from ~93 as it drains

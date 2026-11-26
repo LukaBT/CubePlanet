@@ -37,13 +37,14 @@ public static partial class SelfTest
         Check(left == 0 && CountIn(E(1, 8, 0).Inv("slots"), dirtItem) >= 81 && mn.Num("mined") >= 81, $"the miner digs a 9x9 layer of dirt into its chest ({CountIn(E(1, 8, 0).Inv("slots"), dirtItem)} dirt, {mn.Num("mined"):0} blocks, {left} left)");
         mn.SetNum("off", 1);
         // ----- hydrogen: coal -> electrolyzer (water below it) -> tank -> fuel cell -> oxygen generator
-        Clear(); SetCell(bi, f, x0, y0 + 6, z0, Stone); SetCell(bi, f, x0, y0 + 7, z0, Water, 8); for (int k = 0; k < 4; k++) { var (ax, az) = k switch { 0 => (1, 0), 1 => (-1, 0), 2 => (0, 1), _ => (0, -1) }; SetCell(bi, f, x0 + ax, y0 + 7, z0 + az, Stone); }
-        Put(0, 8, 0, "electrolyzer", "up"); Put(1, 8, 0, "hydrogen_tank"); Coal(-1, 8, 0, 5); Put(1, 9, 0, "fuel_cell"); Put(1, 10, 0, "oxygen_generator", "north");
+        Clear(); SetCell(bi, f, x0, y0 + 5, z0, Stone); SetCell(bi, f, x0, y0 + 6, z0, Water, 8); for (int k = 0; k < 4; k++) { var (ax, az) = k switch { 0 => (1, 0), 1 => (-1, 0), 2 => (0, 1), _ => (0, -1) }; SetCell(bi, f, x0 + ax, y0 + 6, z0 + az, Stone); }
+        Put(0, 7, 0, "liquid_pipe"); // the electrolyzer takes water only from a pipe or tank
+        Put(0, 8, 0, "electrolyzer", "up"); Put(1, 8, 0, "gas_tank"); Coal(-1, 8, 0, 5); Put(1, 9, 0, "fuel_cell"); Put(1, 10, 0, "oxygen_generator", "north");
         var el = E(0, 8, 0); var ht = E(1, 8, 0); var og = E(1, 10, 0); og.SetNum("energy", 0);
         Ticks(100);
         double kgExpect = ElectrolyzerBehavior.Power * 10 * Tank.JoulesPerE * ElectrolyzerBehavior.Efficiency / Hydrogen.Hhv;
-        Check(Math.Abs(el.Num("made_kg") - kgExpect) < kgExpect * .05 && og.Num("energy") > 50 && Wl(Wcell(bi, f, x0, y0 + 7, z0)) <= 7,
-              $"electrolyzer: {el.Num("made_kg") * 1000:0.0} g of hydrogen in 10 s at 100 E/s (expected {kgExpect * 1000:0.0}), {8 - Wl(Wcell(bi, f, x0, y0 + 7, z0))} unit(s) of water taken; the fuel cell gave the oxygen generator {og.Num("energy"):0} E; tank {Hydrogen.Bar(ht):0.000} bar");
+        Check(Math.Abs(el.Num("made_kg") - kgExpect) < kgExpect * .05 && og.Num("energy") > 50 && Wl(Wcell(bi, f, x0, y0 + 6, z0)) <= 7,
+              $"electrolyzer: {el.Num("made_kg") * 1000:0.0} g of hydrogen in 10 s at 100 E/s (expected {kgExpect * 1000:0.0}), {8 - Wl(Wcell(bi, f, x0, y0 + 6, z0))} unit(s) of water taken; the fuel cell gave the oxygen generator {og.Num("energy"):0} E; tank {Hydrogen.Bar(ht):0.000} bar");
         // ----- charger + drill + chainsaw
         Clear(); Coal(-1, 8, 0, 2); Put(0, 8, 0, "charger"); var drill = new ItemStack(Item("electric_drill"), 1); E(0, 8, 0).Inv("slot")[0] = drill;
         Ticks(50); int charged = Tools.Charge(drill);
@@ -68,11 +69,11 @@ public static partial class SelfTest
         Clear(); Farm(); SetCell(bi, f, x0, y0 + 6, z0, Stone); SetCell(bi, f, x0, y0 + 7, z0, Water, 8); Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0); Ticks(50);
         Check(E(0, 8, 0).Num("watered") == 0 && E(0, 8, 0).Num("status") == 1, $"a sprinkler takes no water straight from a water cell, only from a pipe (status {E(0, 8, 0).Num("status")})");
         // a pipe to a basin lower than the nozzle: no pressure
-        Clear(); Farm(); Put(0, 7, 0, "water_pipe"); Put(0, 6, 0, "water_pipe"); Put(1, 6, 0, "water_pipe"); Basin(2, 6, 0); SetCell(bi, f, x0 + 2, y0 + 5, z0, Stone);
+        Clear(); Farm(); Put(0, 7, 0, "liquid_pipe"); Put(0, 6, 0, "liquid_pipe"); Put(1, 6, 0, "liquid_pipe"); Basin(2, 6, 0); SetCell(bi, f, x0 + 2, y0 + 5, z0, Stone);
         Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0); Ticks(50);
         Check(E(0, 8, 0).Num("watered") == 0 && E(0, 8, 0).Num("status") == 3, $"a sprinkler fed from a basin below its nozzle has no pressure (status {E(0, 8, 0).Num("status")})");
         // a pipe up to a raised basin (3 cells deep): wet soil -> no spray; dry soil -> spray, water used = moisture added
-        Clear(); Farm(); Put(0, 7, 0, "water_pipe"); Put(0, 6, 0, "water_pipe"); for (int x = 1; x <= 3; x++) Put(x, 6, 0, "water_pipe"); for (int y = 7; y <= 9; y++) Put(3, y, 0, "water_pipe");
+        Clear(); Farm(); Put(0, 7, 0, "liquid_pipe"); Put(0, 6, 0, "liquid_pipe"); for (int x = 1; x <= 3; x++) Put(x, 6, 0, "liquid_pipe"); for (int y = 7; y <= 9; y++) Put(3, y, 0, "liquid_pipe");
         for (int y = 10; y <= 12; y++) Basin(3, y, 0);
         Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0);
         int Basins() { int n = 0; for (int y = 10; y <= 12; y++) n += Wl(Wcell(bi, f, x0 + 3, y0 + y, z0)); return n; }

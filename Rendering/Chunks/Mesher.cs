@@ -8,7 +8,7 @@ public static class Mesher
         new[]{1,0,3}, new[]{-1,0,3}, new[]{0,1,3}, new[]{0,-1,3}, new[]{1,0,6}, new[]{-1,0,6}, new[]{0,1,6}, new[]{0,-1,6},
         new[]{1,1,4}, new[]{1,-1,4}, new[]{-1,1,4}, new[]{-1,-1,4}
     };
-    internal static bool Cul(int v, bool wt, int id) => wt ? (v == Water || UWP[v] || OPQ[v] != 0 || TGR[v] >= 2) : (OPQ[v] != 0 || (TGR[id] != 0 && TGR[v] == TGR[id]));
+    internal static bool Cul(int v, bool wt, int id) => wt ? (v == id || (id == Water && UWP[v]) || OPQ[v] != 0 || TGR[v] >= 2) : (OPQ[v] != 0 || (TGR[id] != 0 && TGR[v] == TGR[id]));
     // scratch buffers reused by every Build on the same thread (meshing runs on the worker threads) so meshing doesn't churn the GC
     [ThreadStatic] internal static List<float> pVs, pWv, pGv;
     [ThreadStatic] internal static List<uint> pIx, pWi, pGi;
@@ -433,37 +433,37 @@ public static class Mesher
                         id = Water; // an underwater plant sits inside water: give its cell the water faces too (otherwise it leaves a hole in the surface)
                     }
                     if (ch.solid && x > 0 && x < CS - 1 && y > 0 && y < CS - 1 && z > 0 && z < CS - 1) continue;
-                    bool wt = id == Water;
+                    bool lq = LIQ[id], wt = id == Water; // every liquid gets a surface; water is drawn by the water shader, the others opaque
                     for (int fc = 0; fc < 6; fc++)
                     {
                         int nx = x + DX[fc], ny = y + DY[fc], nz = z + DZ[fc];
                         int nb = nx >= 0 && nx < CS && ny >= 0 && ny < CS && nz >= 0 && nz < CS ? d[nx + CS * (nz + CS * ny)] : Blk(ch.band, f, ch.cx * CS + nx, ch.cy * CS + ny, ch.cz * CS + nz);
                         // band seam: the next band has 2x2 cells above one cell of this band; Blk() only sees one of them, so look at all four and keep the face if any is open
-                        if (fc == 2 && ny == CS && topB && Cul(nb, wt, id))
+                        if (fc == 2 && ny == CS && topB && Cul(nb, lq, id))
                         {
                             bool op = false;
                             for (int a = 0; a < 2 && !op; a++) for (int c2 = 0; c2 < 2; c2++)
                                 {
                                     int vv = Blk(ch.band + 1, f, (ch.cx * CS + x) * 2 + a, 0, (ch.cz * CS + z) * 2 + c2);
-                                    if (!Cul(vv, wt, id)) { nb = vv; op = true; break; }
+                                    if (!Cul(vv, lq, id)) { nb = vv; op = true; break; }
                                 }
                         }
                         bool wallW = false;
                         // step between a full-height water cell (water, ice or a block above it) and a neighbouring water cell whose surface is open
                         // (lower, at ~0.8): water faces between water cells are normally hidden, so draw the strip from the neighbour's surface up
-                        if (wt && DY[fc] == 0 && Wet(nb))
+                        if (lq && DY[fc] == 0 && Wet(nb))
                         {
                             int ux = Gb(x, y + 1, z), u2 = Gb(nx, y + 1, nz);
                             bool xFull = Wet(ux) || OPQ[ux] != 0 || TGR[ux] >= 2;
                             wallW = xFull && !Wet(u2) && OPQ[u2] == 0 && TGR[u2] < 2;
                         }
-                        if (Cul(nb, wt, id) && !wallW) continue;
+                        if (Cul(nb, lq, id) && !wallW) continue;
                         bool isT = TGR[id] >= 2; // glass / ice
                         var A = wt ? wv : isT ? gv : vs; var I = wt ? wi : isT ? gi2 : ix;
                         uint first = (uint)(A.Count / 10); var c = CN[fc];
-                        int ua = wt ? Gb(x, y + 1, z) : 0;
-                        bool ab = wt && !Wet(ua) && OPQ[ua] == 0 && TGR[ua] < 2;
-                        bool led = wt && DY[fc] == 0 && !wallW && OPQ[Gb(x, y - 1, z)] != 0 && Wet(Gb(nx, y - 1, nz));
+                        int ua = lq ? Gb(x, y + 1, z) : 0;
+                        bool ab = lq && !Wet(ua) && OPQ[ua] == 0 && TGR[ua] < 2;
+                        bool led = lq && DY[fc] == 0 && !wallW && OPQ[Gb(x, y - 1, z)] != 0 && Wet(Gb(nx, y - 1, nz));
                         for (int i = 0; i < 4; i++)
                         {
                             int c1 = c[i * 3 + 1]; double yy = y + c1;
@@ -510,7 +510,7 @@ public static class Mesher
                         for (int i = 0; i < 4; i++)
                         {
                             A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] * 16 + 32 * (3 - aoq[i]) + 128 * flow); A.Add(CV[i] * 16); A.Add(lay);
-                            A.Add((float)(sky + (ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0)));
+                            A.Add((float)(sky + (wt && ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0)));
                             A.Add((float)fx); A.Add((float)fy); A.Add((float)fz);
                         }
                         // split the quad along the diagonal that keeps the occlusion gradient smooth

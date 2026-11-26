@@ -174,11 +174,17 @@ Performance: the simulation runs on the main thread (it changes the same block d
   256, **Diamond** 1024, **Superconductor** 8192. Energy is routed through the network as a maximum flow, so a thin cable limits only
   its own branch and parallel lines add up; a machine makes / takes only what gets through. Looking at a cable shows its flow, e.g.
   "64.0 / 64 E/S AT ITS LIMIT". (Energy/CableFlow.cs)
-* **Water Pipe** carries water for turbines and pumps. A pipe opens at its ends only (the side opposite its single connection).
-* **Water Turbine**: water flows from its back (intake) to its front (outlet; it faces you when placed, up or down when you look up or
+* **Liquids**: water, **lava**, **oil** and **liquid oxygen** all flow with the same finite-liquid rules (8 units a block, never created
+  or lost). They do not mix: a heavier liquid sinks under a lighter one (water under oil). Lava is thick (moves every 6th tick) and glows;
+  lava touching water freezes (a full cell to obsidian, else cobblestone) and boils a unit of the water off into the water cycle. Liquid
+  oxygen open to the air boils away (about 0.2 units a second per open cell); keep it in a tank. The bucket holds one liquid at a time.
+  Pipes, pumps, turbines, valves and tanks work with any liquid (one liquid per tank); energy uses the liquid's density (oil 850 kg/m^3,
+  lava 3100, liquid oxygen 1141), so the same drop of oil gives 85 % of water's energy.
+* **Liquid Pipe** carries water for turbines and pumps. A pipe opens at its ends only (the side opposite its single connection).
+* **Liquid Turbine**: water flows from its back (intake) to its front (outlet; it faces you when placed, up or down when you look up or
   down). Energy = units x head x 0.1 x 0.8 E, head = the intake's water surface over the outlet's (a pipe from a lake's bottom down to the
   turbine is a penstock). At most 16 units (2 blocks) of water a second.
-* **Water Pump**: lifts water from its back to its front (or to the top end of a pipe column) for units x lift x 0.1 / 0.75 E.
+* **Liquid Pump**: lifts water from its back to its front (or to the top end of a pipe column) for units x lift x 0.1 / 0.75 E.
 * **Battery**: 2000 E, 50 E/s in or out, 95 % each way.
 * **Spring**: water comes out of its front (right click: 1, 2, 4, 8, 16 units/s) for streams, waterfalls and fountains you build.
 * **Drain**: takes up to 32 units/s from the cell in front of it back into the water cycle (where a turbine's water goes without a river
@@ -209,7 +215,7 @@ visibly changes.
 The mesher puts each moving cell's flow into the free vertex bits of its water faces (direction in 8 steps + strength 0..7 on top faces,
 falling strength on side faces) and the water shader draws it: ripples and foam streaks drifting with the flow, faster and whiter the
 stronger it is, and white streaks running down waterfalls. A steady stream does not re-mesh: chunks are re-meshed (in the background) only
-when the drawn flow of a cell changes. Water turbines and pumps idle while their chunk is unloaded (water only moves in loaded land).
+when the drawn flow of a cell changes. Liquid turbines and pumps idle while their chunk is unloaded (water only moves in loaded land).
 
 ## The grid: voltage, transformers, power lines
 The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machines), **MV** (x8), **HV** (x64).
@@ -233,7 +239,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * Looking at a cable shows its level, flow, capacity and loss; at a pylon / connector its wires; at a transformer its sides and flow.
 * **The grid works in unloaded land.** Cables, machines, transformers, pylon tops and rotation parts are remembered when their chunk
   unloads (Energy/Grid.cs GridCache, saved in world.json as `grid_cache`), so a long power line, a far wind farm or a coal plant keeps
-  delivering wherever you are. Machines (block entities) always stay in memory; only water turbines and pumps need their chunk loaded.
+  delivering wherever you are. Machines (block entities) always stay in memory; only liquid turbines and pumps need their chunk loaded.
 * `--demogrid NAME [--demosecs S]` (no window) builds a world with a wind farm stepping up to MV, wires over 3 pylons to a town 80 blocks
   away (transformer back to LV, batteries, an oxygen generator), and beside it 4 coal generators feeding 110 blocks of plain LV copper:
   the MV line loses almost nothing, the LV line a third of what it carries.
@@ -255,17 +261,17 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * **Suction**: a pump can only pull water up to itself as far as the outside air pushes it: (1 atm + a source's pressure - water's
   vapour pressure - a margin against cavitation) / (1000 x g) = ~7.5 blocks on the surface, twice that at half gravity. Put pumps low
   (down in the water) and push up.
-* **Pump curve**: the Water Pump and the Mechanical Pump are centrifugal: they give water at most a fixed energy per kg (60 blocks of
+* **Pump curve**: the Liquid Pump and the Mechanical Pump are centrifugal: they give water at most a fixed energy per kg (60 blocks of
   head at surface gravity, so 120 at half gravity); their flow falls as the head rises (16 units/s at no head, 0 at the maximum) and
   their efficiency is best at ~60 % of the maximum (75 %), poorer at low and high heads. Against a sealed tank they stall near 6 bar.
 * **High-Pressure Pump** (piston, positive displacement): a steady 4 units/s up to 265 blocks of head at surface gravity (~26 bar),
   85 % efficient: the pump for filling pressurized tanks (up to their 20 bar).
 * **Pipes have friction** (Darcy-Weisbach, f = 0.015): each pipe block of bore D loses f/D x v^2/2 J/kg, an open end 0.5 x v^2/2,
-  v = flow / area. **Water Pipe**: 0.35 m bore; **Large Pipe**: 0.8 m bore (5x the area, ~1/30 the friction per unit of flow).
+  v = flow / area. **Liquid Pipe**: 0.35 m bore; **Large Liquid Pipe**: 0.8 m bore (5x the area, ~1/30 the friction per unit of flow).
   A turbine runs at the flow giving the most power (friction = a third of its head, at most 16 units/s): 20 small pipes from a
   2 bar tank let it take 5.5 u/s, 20 large ones the full 16. A pump must also overcome the friction (its curve meets lift + friction).
   The HUD shows how much of the head the pipes take.
-* **Pipe Valve** (in a pipe line, back to front, one way): water flows on its own when the far end is lower or the near end under
+* **Liquid Pipe Valve** (in a pipe line, back to front, one way): water flows on its own when the far end is lower or the near end under
   pressure, as fast as friction allows (all the available energy goes into friction: Q = sqrt(available / K)): a pressurized tank
   pushing water up a pipe like a water tower, a siphon between lakes. A 3 bar tank pushed water 12 blocks up into a basin and
   stopped where its pressure balanced the height. Right click: OPEN / CLOSED.
@@ -273,7 +279,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   Definition key "pump": {"type": "centrifugal" / "piston", "max_head" (blocks at surface gravity), "flow", "efficiency"}.
 
 ## Water tanks, pressure and the compressor (Energy/Tanks.cs)
-* **A tank** is a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (**Tank Wall**, **Tank Window**, **Tank Valve**); edges and
+* **A tank** is a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (**Liquid Tank Wall**, **Liquid Tank Window**, **Liquid Tank Valve**); edges and
   corners do not matter. A valve forms it (right after placing, then every second; water already inside is taken in). 1 block = 1 m^3 =
   8 units (1 unit = 125 l). Pipes and machines connect at valves (a valve right behind / in front of a turbine or pump, or at the end of
   its pipes). The water is drawn inside, seen through windows; the HUD on a valve shows the tank.
@@ -302,7 +308,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   95 %). The drill digs 3 x 3 across the face you look at (2 E + 6 E x hardness a block), the chainsaw fells a whole tree (2 E a block);
   what they dig goes into your inventory. The HUD shows the charge of the tool in your hand.
 * **Grow Light** (1 E/s): a lamp; while lit, crops within 4 blocks grow twice as fast.
-* **Sprinkler**: takes water only from a water pipe at its back (the pipe's far end in water or at a tank valve). The water needs pressure:
+* **Sprinkler**: takes water only from a liquid pipe (with water) at its back (the pipe's far end in water or at a tank valve). The water needs pressure:
   the source's surface (plus a tank's air pressure) must stand above the nozzle, so feed it from a higher basin or a pressurised tank.
   Every 4 s it checks the farmland within a radius of 4 blocks (its row and two below); when any of it is at moisture 6 of 8 or less it
   sprays (you see the drops), filling the dry farmland back to 8: 1 unit of water per moisture level, 0.3 E a unit. Wet soil: no spray.

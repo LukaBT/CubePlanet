@@ -8,7 +8,7 @@ namespace CubePlanet;
 public static class BlockActions
 {
     /// <summary>Cells a placed block may replace: air, water, plants.</summary>
-    public static bool Replaceable(int id) => id == 0 || id == Water || (SPC[id] != 0);
+    public static bool Replaceable(int id) => id == 0 || LIQ[id] || (SPC[id] != 0);
 
     /// <summary>Facing index for a block placed while looking along look (see placement_facing).</summary>
     public static int FacingFor(BlockDefinition d, BlockPos p, V3 look)

@@ -173,8 +173,8 @@ public static partial class DemoWorld
         // three penstocks (pipes from the reservoir floor down) to three turbines facing down
         foreach (int x in new[] { 3, 5, 7 })
         {
-            for (int y = 14; y >= 2; y--) Put(x, y, 4, "water_pipe");
-            Put(x, 1, 4, "water_turbine", "down"); E(x, 1, 4).SetNum("mode", 1);
+            for (int y = 14; y >= 2; y--) Put(x, y, 4, "liquid_pipe");
+            Put(x, 1, 4, "liquid_turbine", "down"); E(x, 1, 4).SetNum("mode", 1);
         }
         // tailwater basin under the turbines (interior x 2..8, z 3..5) with drains in its floor
         for (int z = 2; z <= 6; z++) for (int x = 1; x <= 9; x++) if (x == 1 || x == 9 || z == 2 || z == 6) for (int y = 0; y <= 1; y++) Cell(x, y, z, stone);
@@ -197,13 +197,13 @@ public static partial class DemoWorld
             }
         foreach (var (px, pz) in new[] { (25, 2), (31, 2), (25, 8), (31, 8) }) for (int y = 4; y <= 15; y++) Cell(px, y, pz, stone);
         // pump in the pool's east wall (intake: the pool), pipe up and into the tank
-        Put(33, 0, 5, "water_pump", "east"); E(33, 0, 5).SetNum("mode", 0);
-        for (int y = 0; y <= 17; y++) Put(34, y, 5, "water_pipe");
-        Put(33, 17, 5, "water_pipe"); Put(32, 17, 5, "water_pipe"); Put(31, 17, 5, "water_pipe");
+        Put(33, 0, 5, "liquid_pump", "east"); E(33, 0, 5).SetNum("mode", 0);
+        for (int y = 0; y <= 17; y++) Put(34, y, 5, "liquid_pipe");
+        Put(33, 17, 5, "liquid_pipe"); Put(32, 17, 5, "liquid_pipe"); Put(31, 17, 5, "liquid_pipe");
         // turbine in the pool's west wall (outlet: the pool), pipe from the tank's bottom
-        Put(23, 0, 5, "water_turbine", "east"); E(23, 0, 5).SetNum("mode", 0);
-        for (int y = 0; y <= 17; y++) Put(22, y, 5, "water_pipe");
-        Put(23, 17, 5, "water_pipe"); Put(24, 17, 5, "water_pipe"); Put(25, 17, 5, "water_pipe");
+        Put(23, 0, 5, "liquid_turbine", "east"); E(23, 0, 5).SetNum("mode", 0);
+        for (int y = 0; y <= 17; y++) Put(22, y, 5, "liquid_pipe");
+        Put(23, 17, 5, "liquid_pipe"); Put(24, 17, 5, "liquid_pipe"); Put(25, 17, 5, "liquid_pipe");
         // the cable from plant A's batteries to plant B's turbine and pump
         for (int x = 14; x <= 22; x++) Put(x, 1, 4, "copper_cable");
         Put(22, 0, 4, "copper_cable"); Put(23, 0, 4, "copper_cable");

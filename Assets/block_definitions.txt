@@ -470,7 +470,100 @@
             "selection": [],
             "state_overrides": []
           },
-          "drops": []
+          "drops": [],
+          "liquid": {
+            "density": 1000
+          }
+        },
+        "instance_state": {
+          "level": {
+            "type": "integer",
+            "min": 1,
+            "max": 8,
+            "default": 8
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oil",
+      "id": 191,
+      "name": "Oil",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 256
+      },
+      "properties": {
+        "definition": {
+          "model": "liquid",
+          "render": {
+            "layer": "liquid"
+          },
+          "lod_color": [
+            24,
+            20,
+            18
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [],
+            "state_overrides": []
+          },
+          "drops": [],
+          "liquid": {
+            "density": 850,
+            "viscosity": 2
+          }
+        },
+        "instance_state": {
+          "level": {
+            "type": "integer",
+            "min": 1,
+            "max": 8,
+            "default": 8
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "liquid_oxygen",
+      "id": 192,
+      "name": "Liquid Oxygen",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 257
+      },
+      "properties": {
+        "definition": {
+          "model": "liquid",
+          "render": {
+            "layer": "liquid"
+          },
+          "lod_color": [
+            150,
+            200,
+            245
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [],
+            "selection": [],
+            "state_overrides": []
+          },
+          "drops": [],
+          "liquid": {
+            "density": 1141,
+            "boil": 0.2
+          }
         },
         "instance_state": {
           "level": {
@@ -3966,16 +4059,16 @@
       "id_name": "lava",
       "id": 75,
       "name": "Lava",
-      "stateless": true,
+      "stateless": false,
       "group_tags": [],
       "textures": {
         "all": 75
       },
       "properties": {
         "definition": {
-          "model": "cube",
+          "model": "liquid",
           "render": {
-            "layer": "opaque",
+            "layer": "liquid",
             "emissive": 1
           },
           "lod_color": [
@@ -3986,33 +4079,24 @@
           "default_state": "normal",
           "hardness": 1,
           "geometry": {
-            "collision": [
-              {
-                "x": 0,
-                "y": 0,
-                "width": 1,
-                "height": 1
-              }
-            ],
-            "selection": [
-              {
-                "x": 0,
-                "y": 0,
-                "width": 1,
-                "height": 1
-              }
-            ],
+            "collision": [],
+            "selection": [],
             "state_overrides": []
           },
-          "drops": [
-            {
-              "namespace": "base",
-              "id_name": "lava",
-              "count": 1
-            }
-          ]
+          "drops": [],
+          "liquid": {
+            "density": 3100,
+            "viscosity": 6
+          }
         },
-        "instance_state": {}
+        "instance_state": {
+          "level": {
+            "type": "integer",
+            "min": 1,
+            "max": 8,
+            "default": 8
+          }
+        }
       }
     },
     {
@@ -11060,12 +11144,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "water_pipe",
+      "id_name": "liquid_pipe",
       "id": 133,
-      "name": "Water Pipe",
+      "name": "Liquid Pipe",
       "stateless": false,
       "group_tags": [
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "all": 141
@@ -11075,7 +11159,7 @@
           "model": "boxes",
           "behavior": "connecting",
           "connects_to": [
-            "water_pipe"
+            "liquid_pipe"
           ],
           "connect_solid": false,
           "boxes": [
@@ -11201,7 +11285,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "water_pipe",
+              "id_name": "liquid_pipe",
               "count": 1
             }
           ],
@@ -11240,13 +11324,13 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "water_turbine",
+      "id_name": "liquid_turbine",
       "id": 134,
-      "name": "Water Turbine",
+      "name": "Liquid Turbine",
       "stateless": false,
       "group_tags": [
         "energy",
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "north": 142,
@@ -11276,7 +11360,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "water_turbine",
+              "id_name": "liquid_turbine",
               "count": 1
             }
           ]
@@ -11308,13 +11392,13 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "water_pump",
+      "id_name": "liquid_pump",
       "id": 135,
-      "name": "Water Pump",
+      "name": "Liquid Pump",
       "stateless": false,
       "group_tags": [
         "energy",
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "north": 146,
@@ -11344,7 +11428,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "water_pump",
+              "id_name": "liquid_pump",
               "count": 1
             }
           ],
@@ -16256,7 +16340,7 @@
       "name": "Mechanical Pump",
       "stateless": false,
       "group_tags": [
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "north": 216,
@@ -16332,12 +16416,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "tank_wall",
+      "id_name": "liquid_tank_wall",
       "id": 167,
-      "name": "Tank Wall",
+      "name": "Liquid Tank Wall",
       "stateless": true,
       "group_tags": [
-        "tank_wall"
+        "liquid_tank_wall"
       ],
       "textures": {
         "all": 218
@@ -16361,7 +16445,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "tank_wall",
+              "id_name": "liquid_tank_wall",
               "count": 1
             }
           ]
@@ -16372,12 +16456,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "tank_window",
+      "id_name": "liquid_tank_window",
       "id": 168,
-      "name": "Tank Window",
+      "name": "Liquid Tank Window",
       "stateless": true,
       "group_tags": [
-        "tank_wall"
+        "liquid_tank_wall"
       ],
       "textures": {
         "all": 219
@@ -16401,7 +16485,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "tank_window",
+              "id_name": "liquid_tank_window",
               "count": 1
             }
           ]
@@ -16412,13 +16496,13 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "tank_valve",
+      "id_name": "liquid_tank_valve",
       "id": 169,
-      "name": "Tank Valve",
+      "name": "Liquid Tank Valve",
       "stateless": false,
       "group_tags": [
-        "tank_wall",
-        "water_pipe"
+        "liquid_tank_wall",
+        "liquid_pipe"
       ],
       "textures": {
         "all": 220
@@ -16443,7 +16527,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "tank_valve",
+              "id_name": "liquid_tank_valve",
               "count": 1
             }
           ]
@@ -16516,7 +16600,7 @@
       "stateless": false,
       "group_tags": [
         "energy",
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "north": 223,
@@ -16584,12 +16668,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "large_pipe",
+      "id_name": "large_liquid_pipe",
       "id": 172,
-      "name": "Large Pipe",
+      "name": "Large Liquid Pipe",
       "stateless": false,
       "group_tags": [
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "all": 141
@@ -16599,7 +16683,7 @@
           "model": "boxes",
           "behavior": "connecting",
           "connects_to": [
-            "water_pipe"
+            "liquid_pipe"
           ],
           "connect_solid": false,
           "boxes": [
@@ -16725,7 +16809,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "large_pipe",
+              "id_name": "large_liquid_pipe",
               "count": 1
             }
           ],
@@ -16764,12 +16848,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "pipe_valve",
+      "id_name": "liquid_pipe_valve",
       "id": 173,
-      "name": "Pipe Valve",
+      "name": "Liquid Pipe Valve",
       "stateless": false,
       "group_tags": [
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "all": 228,
@@ -16796,7 +16880,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "pipe_valve",
+              "id_name": "liquid_pipe_valve",
               "count": 1
             }
           ]
@@ -16911,7 +16995,7 @@
       "stateless": false,
       "group_tags": [
         "energy",
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "all": 232
@@ -16965,9 +17049,9 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "hydrogen_tank",
+      "id_name": "gas_tank",
       "id": 176,
-      "name": "Hydrogen Tank",
+      "name": "Gas Tank",
       "stateless": false,
       "group_tags": [],
       "textures": {
@@ -16993,7 +17077,7 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "hydrogen_tank",
+              "id_name": "gas_tank",
               "count": 1
             }
           ]
@@ -17198,7 +17282,7 @@
       "stateless": false,
       "group_tags": [
         "energy",
-        "water_pipe"
+        "liquid_pipe"
       ],
       "textures": {
         "all": 238

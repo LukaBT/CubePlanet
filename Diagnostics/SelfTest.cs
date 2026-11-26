@@ -76,6 +76,7 @@ public static partial class SelfTest
         TankTest();
         PumpTest();
         Utilities();
+        LiquidTest();
         Phase4(up, fwd);
         SaveReload();
         Console.WriteLine(fails == 0 ? $"SELFTEST OK ({checks} checks)" : $"SELFTEST FAILED: {fails} of {checks} checks");
@@ -202,7 +203,7 @@ public static partial class SelfTest
         for (int z = -1; z <= 3; z++) for (int x = -1; x <= 3; x++) { SetCell(bi, f, x0 + x, y0 + 9, z0 + z, Stone); for (int y = 10; y <= 14; y++) if (x < 0 || x > 2 || z < 0 || z > 2) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Stone); }
         for (int y = 10; y <= 13; y++) for (int z = 0; z <= 2; z++) for (int x = 0; x <= 2; x++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Water, 8);
         for (int z = -3; z <= 5; z++) for (int x = -3; x <= 8; x++) { SetCell(bi, f, x0 + x, y0 - 3, z0 + z, Stone); if (x == -3 || x == 8 || z == -3 || z == 5) for (int y = -2; y <= -1; y++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Stone); } // basin
-        int pipe = Id("water_pipe"), cable = Id("copper_cable"), turb = Id("water_turbine"), bat = Id("battery"), pump = Id("water_pump");
+        int pipe = Id("liquid_pipe"), cable = Id("copper_cable"), turb = Id("liquid_turbine"), bat = Id("battery"), pump = Id("liquid_pump");
         for (int y = 9; y >= 2; y--) Put(1, y, 1, pipe);
         Put(1, 1, 1, turb, "down"); Put(2, 1, 1, cable); Put(3, 1, 1, cable); Put(4, 1, 1, bat);
         var cst = At(2, 1, 1).State; var cdef = DEFS[cable];

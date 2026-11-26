@@ -2473,16 +2473,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "water_pipe",
+      "id_name": "liquid_pipe",
       "id": 138,
-      "name": "Water Pipe",
+      "name": "Liquid Pipe",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "water_pipe"
+            "id_name": "liquid_pipe"
           },
           "icon_state": {
             "east": true,
@@ -2495,16 +2495,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "water_turbine",
+      "id_name": "liquid_turbine",
       "id": 139,
-      "name": "Water Turbine",
+      "name": "Liquid Turbine",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "water_turbine"
+            "id_name": "liquid_turbine"
           }
         },
         "instance_state": {}
@@ -2513,16 +2513,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "water_pump",
+      "id_name": "liquid_pump",
       "id": 140,
-      "name": "Water Pump",
+      "name": "Liquid Pump",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "water_pump"
+            "id_name": "liquid_pump"
           }
         },
         "instance_state": {}
@@ -3197,16 +3197,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "tank_wall",
+      "id_name": "liquid_tank_wall",
       "id": 179,
-      "name": "Tank Wall",
+      "name": "Liquid Tank Wall",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "tank_wall"
+            "id_name": "liquid_tank_wall"
           }
         },
         "instance_state": {}
@@ -3215,16 +3215,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "tank_window",
+      "id_name": "liquid_tank_window",
       "id": 180,
-      "name": "Tank Window",
+      "name": "Liquid Tank Window",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "tank_window"
+            "id_name": "liquid_tank_window"
           }
         },
         "instance_state": {}
@@ -3233,16 +3233,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "tank_valve",
+      "id_name": "liquid_tank_valve",
       "id": 181,
-      "name": "Tank Valve",
+      "name": "Liquid Tank Valve",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "tank_valve"
+            "id_name": "liquid_tank_valve"
           }
         },
         "instance_state": {}
@@ -3287,16 +3287,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "large_pipe",
+      "id_name": "large_liquid_pipe",
       "id": 184,
-      "name": "Large Pipe",
+      "name": "Large Liquid Pipe",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "large_pipe"
+            "id_name": "large_liquid_pipe"
           }
         },
         "instance_state": {}
@@ -3305,16 +3305,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "pipe_valve",
+      "id_name": "liquid_pipe_valve",
       "id": 185,
-      "name": "Pipe Valve",
+      "name": "Liquid Pipe Valve",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "pipe_valve"
+            "id_name": "liquid_pipe_valve"
           }
         },
         "instance_state": {}
@@ -3403,16 +3403,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "hydrogen_tank",
+      "id_name": "gas_tank",
       "id": 190,
-      "name": "Hydrogen Tank",
+      "name": "Gas Tank",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "hydrogen_tank"
+            "id_name": "gas_tank"
           }
         },
         "instance_state": {}
@@ -3671,8 +3671,54 @@
             "default": 0,
             "min": 0,
             "max": 8
+          },
+          "liquid": {
+            "type": "string",
+            "values": [
+              "water",
+              "lava",
+              "oil",
+              "liquid_oxygen"
+            ],
+            "default": "water"
           }
         }
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oil",
+      "id": 206,
+      "name": "Oil",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oil"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "liquid_oxygen",
+      "id": 207,
+      "name": "Liquid Oxygen",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "liquid_oxygen"
+          }
+        },
+        "instance_state": {}
       }
     }
   ]

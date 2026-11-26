@@ -135,7 +135,7 @@ public static class BlockAccess
         long k = ck(bi, f, bx >> 5, by >> 5, bz >> 5);
         lock (EditLock) { edits[kk] = (ushort)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
         if (!chunks.ContainsKey(k)) lastScan = new V3(1e9, 0, 0); // chunk was skipped as deep solid: make the loader create it now
-        if (id == Water && lvl > 0) state = WaterSim.LevelState(lvl);
+        if (LIQ[id] && lvl > 0) state = WaterSim.LevelState(lvl);
         lock (EditLock) { if (state != 0) BlockStates.states[kk] = (ushort)state; else BlockStates.states.Remove(kk); }
         if (BlockStates.entities.Count > 0 && BlockStates.entities.TryGetValue(kk, out var be) && be.BlockId != id) BlockStates.entities.Remove(kk);
         if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.ver++; if (background) ch.relight = true; else ch.dirty = true; }

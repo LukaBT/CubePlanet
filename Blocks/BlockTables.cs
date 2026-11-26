@@ -47,7 +47,12 @@ public static partial class Blocks
     public const int MatSwayLeaves = 1, MatSwayPlant = 2, MatSwayWater = 4, MatEmissive = 8, MatNoShadow = 16, MatIce = 32;
     static readonly int[] GrayLod = { 128, 128, 128 };
 
-    public static bool Wet(int id) => id == Water || UWP[id];
+    /// <summary>Liquids (model "liquid" with a "level" state: water, lava, oil, liquid oxygen): the liquid simulation moves them.</summary>
+    public static readonly bool[] LIQ = new bool[N];
+    /// <summary>Per liquid (definition key "liquid"): density kg/m^3 [1000], viscosity = it moves every n-th tick [1], boil = units a second that
+    /// boil off an open surface [0].</summary>
+    public static readonly double[] LiquidDensity = new double[N], LiquidBoil = new double[N]; public static readonly int[] LiquidVisc = new int[N];
+    public static bool Wet(int id) => LIQ[id] || UWP[id];
     /// <summary>Colour of a surface block on the distant LOD terrain.</summary>
     public static int[] TileColor(int id) => LODC[id] ?? GrayLod;
     /// <summary>Texture layer + material flags as the mesher's float "layer" vertex component (layer in the low 16 bits, flags above).</summary>
@@ -108,6 +113,8 @@ public static partial class Blocks
             MATF[i] = (b.Sway == "leaves" ? MatSwayLeaves : b.Sway == "plant" ? MatSwayPlant : b.Sway == "underwater" ? MatSwayWater : 0)
                     | (EMI[i] ? MatEmissive : 0) | (b.CastsShadow ? 0 : MatNoShadow) | (b.ConnectGroup == "ice" ? MatIce : 0);
             LODC[i] = b.LodColor;
+            LIQ[i] = b.Model == "liquid" && b.State.Find("level") != null;
+            LiquidDensity[i] = Electric.Key(null, i, "liquid", "density", 1000); LiquidVisc[i] = Math.Max(1, (int)Electric.Key(null, i, "liquid", "viscosity", 1)); LiquidBoil[i] = Electric.Key(null, i, "liquid", "boil", 0);
         }
         for (int i = 1; i < Count; i++) BN[i] ??= "unknown_" + i;
         ResolveNames(reg);

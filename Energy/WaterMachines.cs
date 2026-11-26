@@ -2,7 +2,7 @@ namespace CubePlanet;
 
 /// <summary>
 /// Water paths of hydro machines. A machine's "back" is its intake, its "front" (the facing side) its outlet. Either side may be a water /
-/// air cell or a pipe (blocks with group tag "water_pipe"): water then enters / leaves at the open ends of the connected pipes (a pipe with a
+/// air cell or a pipe (blocks with group tag "liquid_pipe"): water then enters / leaves at the open ends of the connected pipes (a pipe with a
 /// single connection opens on the opposite side): the intake takes from the end in water with the highest surface (a penstock reaching into
 /// a lake), the outlet uses the highest open end (a pipe column lifting water up to a tank).
 /// Energy: one unit of water (1/8 block) dropping one block = <see cref="K"/> E.
@@ -23,7 +23,13 @@ public readonly struct WaterEnd
     /// <summary>Pressure above the outside air at that surface, Pa (a sealed tank's air cushion; open water: 0).</summary>
     public double Gauge => Tank != null ? (Tank.Pressure - 1) * Tank.P0 : 0;
     public int Available => Tank != null ? (int)Math.Floor(Tank.Water + 1e-9) : WaterMachines.Column(Cell);
-    public int Room => Tank?.Room() ?? WaterMachines.Room(Cell);
+    public int Room => RoomFor(Liquid > 0 ? Liquid : Water);
+    /// <summary>Units of this liquid that still fit (a tank holding another liquid, or a cell of another liquid: none).</summary>
+    public int RoomFor(int liquid) => Tank != null ? (Tank.Accepts(liquid) ? Tank.Room() : 0) : WaterMachines.Room(Cell, liquid);
+    /// <summary>The liquid there (a liquid cell's block, a tank's contents; 0 for air / an empty tank).</summary>
+    public int Liquid => Tank != null ? Tank.Holds : (LIQ[Cell.id] ? Cell.id : 0);
+    /// <summary>Density of that liquid, kg/m^3 (water if none).</summary>
+    public double Rho => Liquid > 0 ? LiquidDensity[Liquid] : WaterMachines.Rho;
 }
 
 public static class WaterMachines
@@ -34,12 +40,13 @@ public static class WaterMachines
     public const double Rho = 1000, G0 = 9.81, UnitKg = 125, Patm = 101325, Pvap = 2340, Npshr = 25000;
     public static double G(BlockPos p) => G0 * GravK(p.Center.Len);
     /// <summary>Energy per kg water gains going from src to dst (J/kg): g x the height difference + the pressure difference / density.</summary>
-    public static double SpecificEnergy(WaterEnd src, WaterEnd dst, double g) => g * (dst.OutletSurface - src.SourceSurface) + (dst.Gauge - src.Gauge) / Rho;
-    public static double EPerUnit(double jPerKg) => jPerKg * UnitKg / Tank.JoulesPerE;
+    public static double SpecificEnergy(WaterEnd src, WaterEnd dst, double g) => g * (dst.OutletSurface - src.SourceSurface) + (dst.Gauge - src.Gauge) / src.Rho;
+    /// <summary>E per unit (1/8 m^3) of a liquid of density rho given J/kg: oil (850 kg/m^3) gives less than water for the same drop.</summary>
+    public static double EPerUnit(double jPerKg, double rho = Rho) => jPerKg * rho * UnitM3 / Tank.JoulesPerE;
     /// <summary>The highest a pump can pull water up to itself (blocks): the outside air (plus a source's pressure) pushes water up its
     /// intake, less the water's vapour pressure (it would boil) and a margin against cavitation, over rho x g.</summary>
-    public static double MaxSuction(double g, double sourceGauge = 0) => (Patm + sourceGauge - Pvap - Npshr) / (Rho * Math.Max(g, 1e-6));
-    public static bool IsPipe(int id) => DEFS[id]?.HasTag("water_pipe") ?? false;
+    public static double MaxSuction(double g, double sourceGauge = 0, double rho = Rho) => (Patm + sourceGauge - Pvap - Npshr) / (rho * Math.Max(g, 1e-6));
+    public static bool IsPipe(int id) => DEFS[id]?.HasTag("liquid_pipe") ?? false;
 
     public static (int x, int y, int z) Dir(BlockEntity e)
     {
@@ -130,31 +137,33 @@ public static class WaterMachines
         if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded) return default;
         if (ValveAt(b, out var tb)) return new WaterEnd(tb);
         int id = b.Id;
-        if (id == Water) return new WaterEnd(Cell(b));
+        if (LIQ[id]) return new WaterEnd(Cell(b));
         if (!IsPipe(id)) return default;
         WaterEnd best = default; double bestH = double.NegativeInfinity;
         foreach (var (pipe, n, pk) in PipeEnds(b, e.Pos))
         {
             WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
-            if (!c.Ok || (c.Tank == null && c.Cell.id != Water)) continue;
+            if (!c.Ok || (c.Tank == null && !LIQ[c.Cell.id])) continue;
             double h = c.SourceSurface + c.Gauge / (Rho * Math.Max(G(e.Pos), 1e-6)); if (h > bestH) { bestH = h; best = c; }
         }
         return best;
     }
-    /// <summary>Like Outlet, but a tank in front (its valve) or at the end of its pipes counts too (the highest open end wins).</summary>
-    public static WaterEnd OutletEnd(BlockEntity e)
+    /// <summary>Like Outlet, but a tank in front (its valve) or at the end of its pipes counts too (the highest open end wins). Only ends that
+    /// can take this liquid (air, the same liquid, a tank that is empty or holds it).</summary>
+    public static WaterEnd OutletEnd(BlockEntity e, int liquid = 0)
     {
+        if (liquid <= 0) liquid = Water;
         var (dx, dy, dz) = Dir(e);
         if (!e.Pos.TryOffset(dx, dy, dz, out var f) || !f.Loaded) return default;
-        if (ValveAt(f, out var tf)) return new WaterEnd(tf);
+        if (ValveAt(f, out var tf)) return tf.Accepts(liquid) ? new WaterEnd(tf) : default;
         int id = f.Id;
-        if (id == Water || Wfree(id)) return new WaterEnd(Cell(f));
+        if (id == liquid || Wfree(id)) return new WaterEnd(Cell(f));
         if (!IsPipe(id)) return default;
         WaterEnd best = default; double bestH = double.NegativeInfinity;
         foreach (var (pipe, n, pk) in PipeEnds(f, e.Pos))
         {
-            WaterEnd c = ValveAt(n, out var t) ? new WaterEnd(t, pk) : new WaterEnd(Cell(n), pk);
-            if (!c.Ok || (c.Tank == null && c.Cell.id != Water && !Wfree(c.Cell.id))) continue;
+            WaterEnd c = ValveAt(n, out var t) ? (t.Accepts(liquid) ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
+            if (!c.Ok || (c.Tank == null && c.Cell.id != liquid && !Wfree(c.Cell.id))) continue;
             if (n.Y > bestH) { bestH = n.Y; best = c; }
         }
         return best;
@@ -164,23 +173,25 @@ public static class WaterMachines
     {
         if (n <= 0 || !from.Ok || !to.Ok) return 0;
         if (from.Tank == null && to.Tank == null) return Move(from.Cell, to.Cell, n, dir);
+        int liq = from.Liquid; if (liq <= 0) return 0;
         int took = from.Tank != null ? from.Tank.Take(n) : TakeWater(from.Cell, n); if (took == 0) return 0;
         int put;
-        if (to.Tank != null) put = to.Tank.Put(took);
-        else { var t2 = Wcell(to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z); put = StackAdd(t2, took); if (put < took) put += SpreadAdd(t2, took - put); if (put > 0) WaterFlow.AddCell(to.Cell.k, to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z, dir.x, dir.y, dir.z, put); }
-        if (put < took) { if (from.Tank != null) from.Tank.Water += took - put; else AddWater(Wcell(from.Cell.b, from.Cell.F, from.Cell.X, from.Cell.Y, from.Cell.Z), took - put); }
+        if (to.Tank != null) put = to.Tank.Put(took, liq);
+        else { var t2 = Wcell(to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z); put = StackAdd(t2, took, liq); if (put < took) put += SpreadAdd(t2, took - put); if (put > 0) WaterFlow.AddCell(to.Cell.k, to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z, dir.x, dir.y, dir.z, put); }
+        if (put < took) { if (from.Tank != null) from.Tank.Put(took - put, liq); else AddLiquid(Wcell(from.Cell.b, from.Cell.F, from.Cell.X, from.Cell.Y, from.Cell.Z), took - put, liq); }
         if (put > 0 && from.Tank == null) WaterFlow.AddCell(from.Cell.k, from.Cell.b, from.Cell.F, from.Cell.X, from.Cell.Y, from.Cell.Z, dir.x, dir.y, dir.z, put);
         return put;
     }
     /// <summary>Moves up to n units from 'from' to 'to'; returns the units that arrived (the rest goes back).</summary>
     public static int Move(WC from, WC to, int n, (int x, int y, int z) dir)
     {
-        if (n <= 0 || !from.ok || !to.ok) return 0;
+        if (n <= 0 || !from.ok || !to.ok || !LIQ[from.id]) return 0;
+        int liq = from.id; if (to.id != liq && !Wfree(to.id)) return 0;
         int took = TakeWater(from, n); if (took == 0) return 0;
         var t2 = Wcell(to.b, to.F, to.X, to.Y, to.Z); // re-read: taking may have changed it if both are the same column
-        int put = StackAdd(t2, took);
+        int put = StackAdd(t2, took, liq);
         if (put < took) put += SpreadAdd(t2, took - put);
-        if (put < took) AddWater(Wcell(from.b, from.F, from.X, from.Y, from.Z), took - put);
+        if (put < took) AddLiquid(Wcell(from.b, from.F, from.X, from.Y, from.Z), took - put, liq);
         if (put > 0)
         {
             WaterFlow.AddCell(from.k, from.b, from.F, from.X, from.Y, from.Z, dir.x, dir.y, dir.z, put);
@@ -190,33 +201,35 @@ public static class WaterMachines
     }
     /// <summary>Units a cell can still take: its own room plus up to 7 cells above (water stacks up over an outlet, then spreads out;
     /// the simulation does not level a 1-unit difference, so counting only the outlet cell could stall a pump with its tank half empty).</summary>
-    public static int Room(WC c)
+    public static int Room(WC c, int liquid = 0)
     {
+        if (liquid <= 0) liquid = LIQ[c.id] ? c.id : Water;
         int n = 0; var c0 = c;
-        for (int i = 0; i < 8 && c.ok && (c.id == Water || Wfree(c.id)) && (i == 0 || Contained(c)); i++) { n += 8 - Wl(c); c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); }
+        for (int i = 0; i < 8 && c.ok && (c.id == liquid || Wfree(c.id)) && (i == 0 || Contained(c, liquid)); i++) { n += 8 - Wl(c); c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); }
+        if (c0.ok && LIQ[c0.id] && c0.id != liquid) return 0;
         foreach (var s in SurfaceAround(c0)) n += 8 - Wl(s);
         return n;
     }
     /// <summary>Water put into this cell stays in its basin: each side is solid, water, or air resting on water (not open air beyond the
     /// basin's walls), so a pump stops when its tank is full instead of spilling over the walls.</summary>
-    static bool Contained(WC c)
+    static bool Contained(WC c, int liquid)
     {
         foreach (var n in WaterSim.N4)
         {
             var s = Wcell(c.b, c.F, c.X + n[0], c.Y, c.Z + n[1]); if (!s.ok) return false;
-            if (s.id == Water || !Wfree(s.id)) continue;
-            var below = Wcell(s.b, s.F, s.X, s.Y - 1, s.Z); if (!below.ok || below.id != Water) return false;
+            if (s.id == liquid || !Wfree(s.id)) continue;
+            var below = Wcell(s.b, s.F, s.X, s.Y - 1, s.Z); if (!below.ok || below.id != liquid) return false;
         }
         return true;
     }
     /// <summary>Like AddWater (fill the cell, then the cells above), but only while the water stays contained (see <see cref="Contained"/>).</summary>
-    static int StackAdd(WC c, int units)
+    static int StackAdd(WC c, int units, int liquid)
     {
         int placed = 0;
-        for (int i = 0; i < 8 && units > 0 && c.ok && (c.id == Water || Wfree(c.id)) && (i == 0 || Contained(c)); i++)
+        for (int i = 0; i < 8 && units > 0 && c.ok && (c.id == liquid || Wfree(c.id)) && (i == 0 || Contained(c, liquid)); i++)
         {
-            int l = Wl(c), t = Math.Min(8, l + units);
-            if (t > l) { Wput(c, t); units -= t - l; placed += t - l; }
+            int l = c.id == liquid ? Wl(c) : 0, t = Math.Min(8, l + units);
+            if (t > l) { Wput(c, t, liquid); units -= t - l; placed += t - l; }
             c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z);
         }
         return placed;
@@ -226,8 +239,8 @@ public static class WaterMachines
     /// pressure (the simulation alone does not level 1-unit differences).</summary>
     static List<WC> SurfaceAround(WC c)
     {
-        var res = new List<WC>(); if (!c.ok || c.id != Water) return res;
-        var top = c; for (int i = 0; i < 64; i++) { var u = Wcell(top.b, top.F, top.X, top.Y + 1, top.Z); if (!u.ok || u.id != Water) break; top = u; }
+        var res = new List<WC>(); if (!c.ok || !LIQ[c.id]) return res; int L = c.id;
+        var top = c; for (int i = 0; i < 64; i++) { var u = Wcell(top.b, top.F, top.X, top.Y + 1, top.Z); if (!u.ok || u.id != L) break; top = u; }
         var seen = new HashSet<long> { top.k }; var q = new Queue<WC>(); q.Enqueue(top);
         while (q.Count > 0 && seen.Count < 64)
         {
@@ -235,7 +248,7 @@ public static class WaterMachines
             foreach (var n in WaterSim.N4)
             {
                 var nb = Wcell(s.b, s.F, s.X + n[0], s.Y, s.Z + n[1]);
-                if (nb.ok && nb.id == Water && seen.Add(nb.k)) q.Enqueue(nb);
+                if (nb.ok && nb.id == L && seen.Add(nb.k)) q.Enqueue(nb);
             }
         }
         res.Sort((a, b) => Wl(a).CompareTo(Wl(b))); return res;
@@ -247,19 +260,19 @@ public static class WaterMachines
         {
             if (units <= 0) break;
             int l = Wl(s), m = Math.Min(units, 8 - l); if (m <= 0) continue;
-            Wput(s, l + m); units -= m; put += m;
+            Wput(s, l + m, s.id); units -= m; put += m;
         }
         return put;
     }
     /// <summary>Units in the water column above (and including) c.</summary>
     public static int Column(WC c)
     {
-        int n = 0;
-        for (int i = 0; i < 64 && c.ok && c.id == Water; i++) { n += Wl(c); c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); }
+        int n = 0, L = c.id; if (!c.ok || !LIQ[L]) return 0;
+        for (int i = 0; i < 64 && c.ok && c.id == L; i++) { n += Wl(c); c = Wcell(c.b, c.F, c.X, c.Y + 1, c.Z); }
         return n;
     }
     /// <summary>Height of an outlet's water surface (its floor when it is air).</summary>
-    public static double OutletLevel(WC c) => c.id == Water ? Surface(c) : c.Y;
+    public static double OutletLevel(WC c) => LIQ[c.id] ? Surface(c) : c.Y;
 
     public static string ModeName(BlockEntity e) => (int)e.Num("mode") switch { 1 => "on", 2 => "off", _ => "auto" };
     public static bool CycleMode(BlockEntity e) { e.SetNum("mode", ((int)e.Num("mode") + 1) % 3); UI.Note($"{DEFS[e.BlockId].Name}: {ModeName(e)}", 1.5); return true; }
@@ -286,7 +299,7 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
         pending.Remove(e.Pos.Key);
         if (!e.Pos.Loaded) return; // water only moves in loaded land
         int mode = (int)e.Num("mode"); if (mode == 2) { e.SetNum("head", 0); return; }
-        var src = WaterMachines.IntakeEnd(e); var dst = WaterMachines.OutletEnd(e);
+        var src = WaterMachines.IntakeEnd(e); var dst = src.Ok ? WaterMachines.OutletEnd(e, src.Liquid) : default;
         if (!src.Ok || !dst.Ok) { e.SetNum("head", 0); return; }
         // energy per kg the water gives falling from src to dst: gravity here x the drop + the pressure it leaves behind
         double g = WaterMachines.G(e.Pos), spec = -WaterMachines.SpecificEnergy(src, dst, g);
@@ -295,8 +308,8 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
         // pipe friction takes K x Q^2 of it: the turbine runs at the flow giving the most power (friction = a third of the head), at most 16/s
         double k = src.K + dst.K, q = k > 0 ? Math.Min(MaxFlow, Math.Sqrt(spec / (3 * k))) : MaxFlow, net = spec - k * q * q;
         e.SetNum("loss", spec > 0 ? k * q * q / spec : 0);
-        double units = Math.Min(q * dt, Math.Min(src.Available, dst.Room));
-        double perUnit = WaterMachines.EPerUnit(net) * Efficiency, energy = Math.Max(0, units) * perUnit; e.SetNum("per_unit", perUnit);
+        double units = Math.Min(q * dt, Math.Min(src.Available, dst.RoomFor(src.Liquid)));
+        double perUnit = WaterMachines.EPerUnit(net, src.Rho) * Efficiency, energy = Math.Max(0, units) * perUnit; e.SetNum("per_unit", perUnit);
         if (mode == 1) p.Fixed = energy; else p.Dispatch = energy;
         pending[e.Pos.Key] = (src, dst, perUnit);
     }
@@ -358,12 +371,12 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
     {
         src = dst = default; cost = units = 0; e.SetNum("why", 0);
         if (!e.Pos.Loaded) return false; // water only moves in loaded land
-        src = WaterMachines.IntakeEnd(e); dst = WaterMachines.OutletEnd(e);
+        src = WaterMachines.IntakeEnd(e); dst = src.Ok ? WaterMachines.OutletEnd(e, src.Liquid) : default;
         if (!src.Ok || !dst.Ok) return false;
         var s = SpecOf(e.BlockId); double g = WaterMachines.G(e.Pos);
         double spec = WaterMachines.SpecificEnergy(src, dst, g); e.SetNum("lift", spec / Math.Max(g, 1e-6)); e.SetNum("spec", spec); e.SetNum("g", g);
         // suction: the source surface may be at most MaxSuction below the pump
-        double suction = e.Pos.Y + .5 - src.SourceSurface, maxS = WaterMachines.MaxSuction(g, src.Gauge); e.SetNum("max_suction", maxS);
+        double suction = e.Pos.Y + .5 - src.SourceSurface, maxS = WaterMachines.MaxSuction(g, src.Gauge, src.Rho); e.SetNum("max_suction", maxS);
         if (suction > maxS) { e.SetNum("why", 1); return false; }
         e.SetNum("max_lift", s.MaxSpecific / Math.Max(g, 1e-6));
         // pipe friction adds K x Q^2: find the flow where the pump's curve meets lift + friction
@@ -372,8 +385,8 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
         else { q = s.Flow * Curve(s, spec).flow; for (int i = 0; i < 12; i++) q = .5 * q + .5 * s.Flow * Curve(s, spec + k * q * q).flow; }
         double total = spec + k * q * q; var (_, eff) = Curve(s, total); e.SetNum("loss", total > 0 ? k * q * q / total : 0);
         if (q <= 1e-3) { e.SetNum("why", 2); return false; }
-        cost = WaterMachines.EPerUnit(Math.Max(0, total)) / eff + BaseCost;
-        units = Math.Min(q * dt, Math.Min(src.Available, dst.Room));
+        cost = WaterMachines.EPerUnit(Math.Max(0, total), src.Rho) / eff + BaseCost;
+        units = Math.Min(q * dt, Math.Min(src.Available, dst.RoomFor(src.Liquid)));
         return units > 0;
     }
     public static string Why(BlockEntity e) => (int)e.Num("why") switch

@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 namespace CubePlanet;
 
 /// <summary>
-/// A sealed water tank (multiblock): a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (group tag "tank_wall": tank walls,
+/// A sealed liquid tank (multiblock): a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (group tag "liquid_tank_wall": tank walls,
 /// tank windows, tank valves). It holds water and an air cushion; 1 block = 1 m^3 = 8 units, 1 unit = 125 l. Real physics:
 /// <list type="bullet">
 /// <item>The air follows Boyle's law (isothermal): p x V_air = Air (m^3 of air at 1 bar). Pumping water into a sealed tank squeezes the
@@ -20,7 +20,13 @@ public sealed class Tank
 {
     public const double Rating = 20, BulkModulus = 2.2e9, P0 = 1e5, Unit = .125, HeadPerBar = P0 / (1000 * 9.81), JoulesPerE = 125 * 9.81 / WaterMachines.K;
     public int B, F, X0, Y0, Z0, X1, Y1, Z1;
-    public double Water, Air; public bool Vent = true;
+    /// <summary>Units of liquid in it (1 unit = 125 l) and which liquid (one at a time; 0 = water for old saves / tests).</summary>
+    public double Water, Air; public bool Vent = true; public int Liquid;
+    /// <summary>The liquid it holds (0 when empty).</summary>
+    public int Holds => Water >= 1e-9 ? (Liquid > 0 ? Liquid : CubePlanet.Blocks.Water) : 0;
+    public double Rho => Holds > 0 ? LiquidDensity[Holds] : 1000;
+    /// <summary>Can this liquid go in (empty, or the same liquid)?</summary>
+    public bool Accepts(int liquid) => Holds == 0 || Holds == liquid;
     public int W => X1 - X0 + 1; public int H => Y1 - Y0 + 1; public int D => Z1 - Z0 + 1;
     public double Volume => W * H * D; public double Foot => W * D;
     public long Key => new BlockPos(false, B, F, X0, Y0, Z0).Key;
@@ -50,7 +56,7 @@ public sealed class Tank
     /// <summary>Gravity where the tank is (m/s^2).</summary>
     public double G => WaterMachines.G(Anchor);
     /// <summary>The pressure as height of water here (blocks): (p - 1 bar) / (rho g); 10.2 blocks per bar on the surface, more in low gravity.</summary>
-    public double PressureHead => (Pressure - 1) * P0 / (1000 * Math.Max(G, 1e-6));
+    public double PressureHead => (Pressure - 1) * P0 / (Rho * Math.Max(G, 1e-6));
     /// <summary>The level a turbine / pump effectively sees (block Y): the water surface plus the pressure's head.</summary>
     public double Level => Y0 + Depth + PressureHead;
     /// <summary>Units of water that still fit before the pressure reaches the rating.</summary>
@@ -59,8 +65,12 @@ public sealed class Tank
         double vmax = Vent ? Volume : (Volume - Air / Rating) * (1 + (Rating - 1) * P0 / BulkModulus);
         return Math.Max(0, (int)Math.Floor(vmax / Unit - Water + 1e-9));
     }
-    public int Take(int n) { int t = Math.Max(0, Math.Min(n, (int)Math.Floor(Water + 1e-9))); Water -= t; Settle(); return t; }
-    public int Put(int n) { int t = Math.Max(0, Math.Min(n, Room())); Water += t; Settle(); return t; }
+    public int Take(int n) { int t = Math.Max(0, Math.Min(n, (int)Math.Floor(Water + 1e-9))); Water -= t; if (Water < 1e-9) Liquid = 0; Settle(); return t; }
+    public int Put(int n, int liquid = 0)
+    {
+        if (liquid <= 0) liquid = CubePlanet.Blocks.Water; if (!Accepts(liquid)) return 0;
+        int t = Math.Max(0, Math.Min(n, Room())); if (t > 0) Liquid = liquid; Water += t; Settle(); return t;
+    }
     /// <summary>A vented tank breathes (1 bar); a sealed one vents air above its rating (safety valve).</summary>
     public void Settle()
     {
@@ -73,7 +83,7 @@ public sealed class Tank
     public double AirEnergy { get { double p = Pressure; return p > 1 ? P0 * (Air * Math.Log(p) - (Air - Air / p)) / JoulesPerE : 0; } }
     public bool Contains(BlockPos p) => !p.Core && p.B == B && p.F == F && p.X >= X0 - 1 && p.X <= X1 + 1 && p.Y >= Y0 - 1 && p.Y <= Y1 + 1 && p.Z >= Z0 - 1 && p.Z <= Z1 + 1;
     public string Describe() =>
-        $"TANK {W}X{H}X{D} ({Volume * 8:0} UNITS)  WATER {Water:0} ({Water * Unit / Volume * 100:0}%)  {(Vent ? "VENTED" : "SEALED")} {Pressure:0.00} BAR" +
+        $"TANK {W}X{H}X{D} ({Volume * 8:0} UNITS)  {(Holds > 0 ? DEFS[Holds].Name.ToUpperInvariant() : "EMPTY")} {Water:0} ({Water * Unit / Volume * 100:0}%)  {(Vent ? "VENTED" : "SEALED")} {Pressure:0.00} BAR" +
         (Vent ? "" : $"  = {PressureHead:0} BLOCKS OF HEAD HERE  AIR STORES {AirEnergy:0} E") + $"  LEVEL Y {Level:0.0}";
 }
 
@@ -81,7 +91,7 @@ public static class Tanks
 {
     public const int MaxSide = 12;
     public static readonly Dictionary<long, Tank> All = new();
-    public static bool IsWall(int id) => DEFS[id]?.HasTag("tank_wall") ?? false;
+    public static bool IsWall(int id) => DEFS[id]?.HasTag("liquid_tank_wall") ?? false;
     public static bool IsValve(int id) => BEH[id] is TankValveBehavior;
     /// <summary>The tank whose shell holds this block (a valve), if any.</summary>
     public static Tank Of(BlockPos p) { foreach (var t in All.Values) if (t.Contains(p)) return t; return null; }
@@ -107,13 +117,13 @@ public static class Tanks
             if (!ok) continue;
             var t = new Tank { B = q.B, F = q.F, X0 = list.Min(c => c.X), X1 = list.Max(c => c.X), Y0 = list.Min(c => c.Y), Y1 = list.Max(c => c.Y), Z0 = list.Min(c => c.Z), Z1 = list.Max(c => c.Z) };
             if (list.Count != (int)t.Volume || t.W > MaxSide || t.H > MaxSide || t.D > MaxSide || !ShellOk(t)) continue;
-            // water already in the room becomes the tank's
-            foreach (var c in list) { var w = Wcell(c.B, c.F, c.X, c.Y, c.Z); if (w.ok && w.id == Water) { t.Water += Wl(w); Wput(w, 0); } }
+            // liquid already in the room becomes the tank's (one liquid: the first found)
+            foreach (var c in list) { var w = Wcell(c.B, c.F, c.X, c.Y, c.Z); if (w.ok && LIQ[w.id] && (t.Liquid == 0 || t.Liquid == w.id)) { t.Liquid = w.id; t.Water += Wl(w); Wput(w, 0); } }
             t.Settle(); All[t.Key] = t; return t;
         }
         return null;
     }
-    static bool Hollow(BlockPos p) { int id = p.Id; return id == 0 || id == Water; }
+    static bool Hollow(BlockPos p) { int id = p.Id; return id == 0 || LIQ[id]; }
     /// <summary>Every face of the room is tank blocks (edges and corners do not matter).</summary>
     static bool ShellOk(Tank t)
     {
@@ -142,19 +152,19 @@ public static class Tanks
     }
     public static void Burst(Tank t)
     {
-        All.Remove(t.Key); double left = t.Water;
+        All.Remove(t.Key); double left = t.Water; int liq = t.Holds > 0 ? t.Holds : Water;
         for (int y = t.Y0; y <= t.Y1 && left >= 1; y++) for (int z = t.Z0; z <= t.Z1 && left >= 1; z++) for (int x = t.X0; x <= t.X1 && left >= 1; x++)
                 {
-                    var c = Wcell(t.B, t.F, x, y, z); if (!c.ok || !(Wfree(c.id) || c.id == Water)) continue;
-                    int put = (int)Math.Min(8 - (c.id == Water ? Wl(c) : 0), Math.Floor(left)); if (put <= 0) continue;
-                    AddWater(c, put); left -= put;
+                    var c = Wcell(t.B, t.F, x, y, z); if (!c.ok || !(Wfree(c.id) || c.id == liq)) continue;
+                    int put = (int)Math.Min(8 - (c.id == liq ? Wl(c) : 0), Math.Floor(left)); if (put <= 0) continue;
+                    AddLiquid(c, put, liq); left -= put;
                 }
-        WaterSim.Reservoir += left; // (the last fractions)
+        if (liq == Water) WaterSim.Reservoir += left; // (the last fractions)
     }
     public static JsonArray Save()
     {
         var r = new JsonArray();
-        foreach (var t in All.Values) r.Add(new JsonObject { ["b"] = t.B, ["f"] = t.F, ["min"] = new JsonArray { t.X0, t.Y0, t.Z0 }, ["max"] = new JsonArray { t.X1, t.Y1, t.Z1 }, ["water"] = t.Water, ["air"] = t.Air, ["vent"] = t.Vent });
+        foreach (var t in All.Values) r.Add(new JsonObject { ["b"] = t.B, ["f"] = t.F, ["min"] = new JsonArray { t.X0, t.Y0, t.Z0 }, ["max"] = new JsonArray { t.X1, t.Y1, t.Z1 }, ["water"] = t.Water, ["air"] = t.Air, ["vent"] = t.Vent, ["liquid"] = t.Holds > 0 ? DEFS[t.Holds].FullName : "" });
         return r;
     }
     public static void Load(JsonNode n)
@@ -163,6 +173,7 @@ public static class Tanks
         foreach (var x in a)
         {
             var t = new Tank { B = (int)x["b"], F = (int)x["f"], X0 = (int)x["min"][0], Y0 = (int)x["min"][1], Z0 = (int)x["min"][2], X1 = (int)x["max"][0], Y1 = (int)x["max"][1], Z1 = (int)x["max"][2], Water = (double)x["water"], Air = (double)x["air"], Vent = (bool)x["vent"] };
+            string ln = (string)x["liquid"] ?? ""; if (ln.Length > 0 && GameAssets.BlockReg.Has(ln)) t.Liquid = GameAssets.BlockReg.Id(ln);
             All[t.Key] = t;
         }
     }

@@ -67,7 +67,7 @@ public static class BlockEditing
             int sel = PlayerInventory.HeldBlock; if (sel == 0) return;
             if ((X - C.x) * (X - C.x) + (Y - C.y) * (Y - C.y) + (Z - C.z) * (Z - C.z) > 1 && BlockPos.TryAt(X, Y, Z, out var at))
             {
-                if (sel == Water) { PlaceWater(X, Y, Z); return; }
+                if (LIQ[sel]) { PlaceLiquid(X, Y, Z, 8, sel); return; }
                 // upper half like Minecraft: clicked the underside of a block, or the upper half of a side face
                 bool upper; var hitPos = BlockPos.Of(T);
                 if (at.TryOffset(0, 1, 0, out var above) && above.Equals(hitPos)) upper = true;
@@ -82,7 +82,7 @@ public static class BlockEditing
     {
         var T = Raycast(P.on ? 6 : 10); if (T == null) return;
         int id = T.core ? T.id : Blk(T.bi, T.f, T.bx, T.by, T.bz);
-        if (id == 0 || id == Water) return;
+        if (id == 0 || LIQ[id]) return;
         PlayerInventory.PickBlock(id);
     }
 }

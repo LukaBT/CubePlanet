@@ -188,11 +188,19 @@ public static class WorldSave
     }
     static int MapBlock(int id) => blockMap == null ? id : id >= 0 && id < blockMap.Length ? blockMap[id] : 0;
     static int MapItem(int id) => itemMap == null ? id : id >= 0 && id < itemMap.Length ? itemMap[id] : 0;
+    /// <summary>Blocks / items renamed since older saves (old full name -> new): their cells and stacks keep working.</summary>
+    static readonly Dictionary<string, string> Renamed = new()
+    {
+        ["base:water_pipe"] = "base:liquid_pipe", ["base:water_turbine"] = "base:liquid_turbine", ["base:water_pump"] = "base:liquid_pump",
+        ["base:large_pipe"] = "base:large_liquid_pipe", ["base:pipe_valve"] = "base:liquid_pipe_valve", ["base:tank_wall"] = "base:liquid_tank_wall",
+        ["base:tank_window"] = "base:liquid_tank_window", ["base:tank_valve"] = "base:liquid_tank_valve", ["base:hydrogen_tank"] = "base:gas_tank",
+        ["base:elevator_3x3"] = "base:elevator_car_3x3", ["base:elevator_5x5"] = "base:elevator_car_5x5",
+    };
     static int[] BuildMap(JsonObject saved, Func<string, int> current)
     {
         if (saved == null) return null;
         int max = saved.Select(kv => (int)kv.Value).DefaultIfEmpty(0).Max(); var m = new int[max + 1];
-        foreach (var (name, v) in saved) m[(int)v] = current(name);
+        foreach (var (name, v) in saved) { int id = current(name); if (id == 0 && Renamed.TryGetValue(name, out var nn)) id = current(nn); m[(int)v] = id; }
         return m;
     }
 

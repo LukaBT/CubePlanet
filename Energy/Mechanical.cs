@@ -145,13 +145,13 @@ public sealed class PipeValveBehavior : BlockBehavior
         int moved = 0; e.SetNum("q", 0);
         if (e.Num("closed") == 0 && e.Pos.Loaded)
         {
-            var src = WaterMachines.IntakeEnd(e); var dst = WaterMachines.OutletEnd(e);
+            var src = WaterMachines.IntakeEnd(e); var dst = src.Ok ? WaterMachines.OutletEnd(e, src.Liquid) : default;
             if (src.Ok && dst.Ok)
             {
                 double g = WaterMachines.G(e.Pos), avail = -WaterMachines.SpecificEnergy(src, dst, g);
-                double k = src.K + dst.K + ValveLoss * WaterMachines.MouthK(GameAssets.BlockReg.Id("water_pipe")) / WaterMachines.EndLoss + 2 * WaterMachines.MouthK(GameAssets.BlockReg.Id("water_pipe"));
+                double k = src.K + dst.K + ValveLoss * WaterMachines.MouthK(GameAssets.BlockReg.Id("liquid_pipe")) / WaterMachines.EndLoss + 2 * WaterMachines.MouthK(GameAssets.BlockReg.Id("liquid_pipe"));
                 double q = avail > 0 ? Math.Min(MaxFlow, Math.Sqrt(avail / k)) : 0; e.SetNum("q", q); e.SetNum("drive", avail / Math.Max(g, 1e-6));
-                double units = Math.Min(q * dt + e.Num("carry"), Math.Min(src.Available, dst.Room)); int n = (int)units; e.SetNum("carry", Math.Clamp(units - n, 0, 1));
+                double units = Math.Min(q * dt + e.Num("carry"), Math.Min(src.Available, dst.RoomFor(src.Liquid))); int n = (int)units; e.SetNum("carry", Math.Clamp(units - n, 0, 1));
                 if (n > 0) moved = WaterMachines.Move(src, dst, n, WaterMachines.Dir(e));
             }
         }

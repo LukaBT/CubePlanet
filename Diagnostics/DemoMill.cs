@@ -21,10 +21,10 @@ public static partial class DemoWorld
         E(1, 0, 3).Inv("input")[0] = new ItemStack(GameAssets.ItemReg.Id("iron_ore"), 64); E(-1, 0, 3).Inv("input")[0] = new ItemStack(GameAssets.ItemReg.Id("oak_log"), 64);
         // wind pump: a pool dug into the ground, the pump on it facing up into a glass tank
         for (int z = 5; z <= 10; z++) for (int x = -3; x <= 3; x++) for (int y = -3; y <= -1; y++) Cell(x, y, z, Water, 8);
-        Put(0, -1, 6, "water_pipe"); Put(0, -2, 6, "water_pipe"); // the intake pipe down to the bottom of the pool
+        Put(0, -1, 6, "liquid_pipe"); Put(0, -2, 6, "liquid_pipe"); // the intake pipe down to the bottom of the pool
                 Put(0, 0, 4, "shaft", "south"); Put(0, 0, 5, "shaft", "south"); Put(0, 0, 6, "mechanical_pump", "up");
         // a pipe up from the pump into a raised glass tank (floor y 3, inside y 4..7)
-        for (int y = 1; y <= 3; y++) Put(0, y, 6, "water_pipe");
+        for (int y = 1; y <= 3; y++) Put(0, y, 6, "liquid_pipe");
         for (int z = 4; z <= 8; z++) for (int x = -2; x <= 2; x++) for (int y = 3; y <= 8; y++) if ((x == -2 || x == 2 || z == 4 || z == 8 || y == 3) && !(x == 0 && z == 6 && y == 3)) Cell(x, y, z, glass);
         string[] give = { "multimeter", "wind_turbine_large", "shaft", "gearbox", "millstone", "sawmill", "mechanical_pump", "iron_ore", "oak_log" };
         for (int i = 0; i < give.Length; i++) PlayerInventory.Hotbar[i] = new ItemStack(GameAssets.ItemReg.Id(give[i]), give[i] == "multimeter" ? 1 : 64);

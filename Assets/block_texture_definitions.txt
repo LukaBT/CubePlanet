@@ -256,3 +256,12 @@ texture_rows: 128
 253 cable_drum 208 240
 254 cabin_floor 224 240
 255 control_panel 240 240
+256 oil 0 256
+257 liquid_oxygen 16 256
+258 oil_shale 32 256
+259 liquid_pipe 48 256
+260 gas_pipe 64 256
+261 dual_liquid_pipe 80 256
+262 dual_gas_pipe 96 256
+263 gas_tank 112 256
+264 gas_valve 128 256

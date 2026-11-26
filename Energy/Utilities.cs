@@ -90,8 +90,8 @@ public sealed class MinerBehavior : BlockBehavior, IEnergyMachine
             if (e.Pos.TryOffset(cx, cy, cz, out var c) && c.Loaded)
             {
                 int id = c.Id;
-                if (id != 0 && id != Water && !BlockStates.entities.ContainsKey(c.Key) && (DEFS[id]?.Hardness ?? 1) >= 0 && SPC[id] == 0) return c;
-                if (id != 0 && id != Water && SPC[id] != 0) return c; // plants: dig them too
+                if (id != 0 && !LIQ[id] && !BlockStates.entities.ContainsKey(c.Key) && (DEFS[id]?.Hardness ?? 1) >= 0 && SPC[id] == 0) return c;
+                if (id != 0 && !LIQ[id] && SPC[id] != 0) return c; // plants: dig them too
             }
             cx++; if (cx > r) { cx = -r; cz++; if (cz > r) { cz = -r; cy--; } }
             e.SetNum("cx", cx); e.SetNum("cz", cz); e.SetNum("cy", cy);
@@ -156,17 +156,24 @@ public sealed class HydrogenTankBehavior : BlockBehavior
     public override string Describe(BlockEntity e) => $"HYDROGEN {e.Num("mol") * Hydrogen.MolarMass:0.000} KG ({e.Num("mol"):0} MOL)  {Hydrogen.Bar(e):0.0} / {Hydrogen.MaxBar:0} BAR  FUEL CELL ENERGY ~{e.Num("mol") * Hydrogen.MolarMass * Hydrogen.Lhv * FuelCellBehavior.Efficiency / Tank.JoulesPerE:0} E";
 }
 
-/// <summary>Electrolyzer: water from its back (a cell, pipe or tank) -> hydrogen into a hydrogen tank touching it, up to 100 E/s.</summary>
+/// <summary>Electrolyzer: water from a liquid pipe or tank valve at its back (not loose water) -> hydrogen into a gas tank touching it, up to 100 E/s.</summary>
 public sealed class ElectrolyzerBehavior : BlockBehavior, IEnergyMachine
 {
     public const double Power = 100, Efficiency = .7;
+    /// <summary>Water from the pipe / tank valve at its back (loose water in the world does not count).</summary>
+    public static WaterEnd WaterIn(BlockEntity e)
+    {
+        var (dx, dy, dz) = WaterMachines.Dir(e);
+        if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded || LIQ[b.Id] || !WaterMachines.IsPipe(b.Id)) return default;
+        var src = WaterMachines.IntakeEnd(e); return src.Ok && src.Liquid == Water ? src : default;
+    }
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         var t = Hydrogen.TankNear(e, false); if (t == null || t.Num("mol") >= Hydrogen.MaxMol - 1e-6) { e.SetNum("status", t == null ? 1 : 2); return; }
         if (e.Num("water") < 1 && e.Pos.Loaded)
         {   // take a unit of water (125 kg) into its tank
-            var src = WaterMachines.IntakeEnd(e);
+            var src = WaterIn(e);
             if (src.Ok && src.Available >= 1) { int got = src.Tank != null ? src.Tank.Take(1) : TakeWater(src.Cell, 1); e.SetNum("water", e.Num("water") + got); }
         }
         if (e.Num("water") <= 0) { e.SetNum("status", 3); return; }
@@ -182,7 +189,7 @@ public sealed class ElectrolyzerBehavior : BlockBehavior, IEnergyMachine
     }
     public override string Describe(BlockEntity e) => (int)e.Num("status") switch
     {
-        1 => "NO HYDROGEN TANK NEXT TO IT", 2 => "HYDROGEN TANK FULL", 3 => "NO WATER (A WATER CELL, PIPE OR TANK AT ITS BACK)",
+        1 => "NO HYDROGEN TANK NEXT TO IT", 2 => "HYDROGEN TANK FULL", 3 => "NO WATER: A LIQUID PIPE OR TANK VALVE WITH WATER AT ITS BACK",
         _ => $"MAKING {e.Num("power") * Tank.JoulesPerE * Efficiency / Hydrogen.Hhv * 3600:0.00} KG HYDROGEN AN HOUR  {e.Num("power"):0.0} E/S  WATER {e.Num("water") * 125:0.0} KG"
     };
 }
@@ -220,7 +227,7 @@ public static class Tools
     public static int MaxCharge(ItemStack s) { var f = ChargeField(s); return f == null ? 0 : f.Min + f.Count - 1; }
     public static void SetCharge(ItemStack s, int c) { var f = ChargeField(s); if (f != null) s.State = f.With(s.State, Math.Clamp(c, f.Min, f.Min + f.Count - 1) - f.Min); }
     static void Give(BlockPos p) { foreach (var d in ItemsUtil.Drops(p)) PlayerInventory.Add(d); ItemsUtil.Remove(p); }
-    static bool Diggable(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id != 0 && id != Water && !BlockStates.entities.ContainsKey(c.Key) && (DEFS[id]?.Hardness ?? 1) >= 0; }
+    static bool Diggable(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id != 0 && !LIQ[id] && !BlockStates.entities.ContainsKey(c.Key) && (DEFS[id]?.Hardness ?? 1) >= 0; }
     /// <summary>Drill: 3 x 3 across the axis you look along, centred on the hit block. Returns blocks dug.</summary>
     public static int Drill(ItemStack tool, BlockPos hit, V3 look)
     {
@@ -305,13 +312,13 @@ public sealed class SprinklerBehavior : BlockBehavior, IEnergyMachine
                     if (dx * dx + dz * dz <= RadiusSq && e.Pos.TryOffset(dx, dy, dz, out var c) && c.Loaded && Farming.IsFarmland(c.Id) && Farming.MoistureAt(c) < 8) yield return c;
     }
     /// <summary>A pipe proper (water pipe, large pipe, pipe valve): not a tank valve, pump or machine that also joins pipes.</summary>
-    public static bool IsPlainPipe(int id) => id > 0 && DEFS[id]?.IdName is "water_pipe" or "large_pipe" or "pipe_valve";
+    public static bool IsPlainPipe(int id) => id > 0 && DEFS[id]?.IdName is "liquid_pipe" or "large_liquid_pipe" or "liquid_pipe_valve";
     /// <summary>Water from the pipe at its back, with enough pressure to reach the nozzle (status 1: no pipe, 2: no water on it, 3: too little pressure).</summary>
     static WaterEnd Source(BlockEntity e, out int status)
     {
         var (dx, dy, dz) = WaterMachines.Dir(e); status = 1;
         if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded || !IsPlainPipe(b.Id)) return default;
-        var src = WaterMachines.IntakeEnd(e); status = 2; if (!src.Ok || src.Available < 1) return default;
+        var src = WaterMachines.IntakeEnd(e); status = 2; if (!src.Ok || src.Available < 1 || src.Liquid != Water) return default;
         double g = Math.Max(WaterMachines.G(e.Pos), 1e-6), head = src.SourceSurface + src.Gauge / (WaterMachines.Rho * g);
         status = 3; if (head < e.Pos.Y + 1) return default;
         status = 0; return src;
@@ -474,7 +481,7 @@ public static class Elevator
         }
         return null;
     }
-    static bool Free(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id == 0 || id == Water || SPC[id] != 0; }
+    static bool Free(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id == 0 || LIQ[id] || SPC[id] != 0; }
     /// <summary>The car's cells at floor height fy (relative to the motor): N deep away from the rails, N wide.</summary>
     static IEnumerable<(int dx, int dz)> Footprint(BlockEntity m)
     {
