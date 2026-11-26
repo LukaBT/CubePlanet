@@ -21,7 +21,7 @@ public static partial class SelfTest
             if (facing != null && ff != null) w = ff.With(0, Array.IndexOf(ff.Values, facing));
             p.Set(id, (int)w); BEH[id]?.OnPlace(p, id); BlockActions.NotifyNeighbors(p);
         }
-        void Clear() { Tanks.Reset(); for (int y = -2; y <= 18; y++) for (int z = -3; z <= 7; z++) for (int x = -4; x <= 9; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); } WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); }
+        void Clear() { Tanks.Reset(); for (int y = -2; y <= 20; y++) for (int z = -3; z <= 20; z++) for (int x = -4; x <= 9; x++) { var p = At(x, y, z); BlockStates.entities.Remove(p.Key); SetCell(bi, f, x0 + x, y0 + y, z0 + z, 0); } WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); }
         BlockEntity E(int x, int y, int z) => BlockStates.entities[At(x, y, z).Key];
         void Ticks(int n) { for (int i = 0; i < n; i++) { BlockActions.Tick(.1); if ((i & 1) == 1) WaterSim.WaterStep(); } }
         void Power(int x, int y, int z) // coal generators and a cable into (x, y, z)
@@ -77,6 +77,39 @@ public static partial class SelfTest
         Settings.SET.realgrav = keep;
         Check(gGame == 30 && gReal == 9.81 && hGame > 1.2 && hReal > 1.2 && tReal > tGame * 1.5,
               $"player gravity: game {gGame} m/s2 (jump {hGame:0.00} blocks, {tGame:0.00} s in the air), realistic {gReal} m/s2 (jump {hReal:0.00} blocks, {tReal:0.00} s)");
+        // ----- pipe friction: a turbine fed from a sealed tank at 2 bar through 20 small pipes vs 20 large ones
+        Tank PipeTank(double bar)
+        {
+            Clear();
+            for (int y = 3; y <= 7; y++) for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++)
+                    {
+                        bool inside = x >= 1 && x <= 3 && y >= 4 && y <= 6 && z >= 1 && z <= 3;
+                        SetCell(bi, f, x0 + x, y0 + y, z0 + z, inside ? 0 : Id("tank_wall"));
+                    }
+            Put(4, 4, 2, "tank_valve"); var tk = Tanks.Form(At(4, 4, 2)); tk.Vent = false; tk.Water = 108; tk.Air = bar * (27 - 13.5); return tk;
+        }
+        double TurbineFlow(string pipe)
+        {
+            var tk = PipeTank(2); for (int x = 5; x <= 24; x++) { int px = x <= 9 ? x : x; if (x > 9) continue; Put(x, 4, 2, pipe); } // 5 straight...
+            for (int z = 3; z <= 17; z++) Put(9, 4, z, pipe);                                                                         // ...then 15 along z (20 pipes)
+            Put(9, 4, 18, "water_turbine", "south"); var tu = E(9, 4, 18); tu.SetNum("mode", 1); Put(10, 4, 18, "copper_cable"); Put(11, 4, 18, "battery");
+            double w0 = tk.Water; Ticks(20); return (w0 - tk.Water) / 2.0;
+        }
+        double qSmall = TurbineFlow("water_pipe"), lossSmall = E(9, 4, 18).Num("loss"), qLarge = TurbineFlow("large_pipe"), lossLarge = E(9, 4, 18).Num("loss");
+        Check(qSmall < 8 && qLarge > 14 && lossSmall > .3 && lossLarge < .15, $"pipe friction: 20 small pipes let a turbine take {qSmall:0.0} u/s (friction {lossSmall * 100:0}% of the head), 20 large pipes {qLarge:0.0} u/s ({lossLarge * 100:0}%)");
+        // ----- pipe valve: a sealed tank at 3 bar pushes water 13 blocks up a pipe into a basin, with no pump, until its pressure balances the height
+        {
+            var tk = PipeTank(3); SetCell(bi, f, x0 + 4, y0 + 4, z0 + 2, Id("tank_wall")); BlockStates.entities.Remove(At(4, 4, 2).Key);
+            Put(2, 7, 2, "tank_valve"); Tanks.Reset(); tk = Tanks.Form(At(2, 7, 2)); tk.Vent = false; tk.Water = 108; tk.Air = 3 * (27 - 13.5);
+            Put(2, 8, 2, "water_pipe"); Put(2, 9, 2, "pipe_valve", "up"); for (int y = 10; y <= 17; y++) Put(2, y, 2, "water_pipe");
+            for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++) { if (!(x == 2 && z == 2)) SetCell(bi, f, x0 + x, y0 + 17, z0 + z, Stone); if (x == 0 || x == 4 || z == 0 || z == 4) for (int y = 18; y <= 19; y++) SetCell(bi, f, x0 + x, y0 + y, z0 + z, Stone); }
+            double p0 = tk.Pressure, w0 = tk.Water; Ticks(300);
+            int basin = 0; for (int y = 18; y <= 19; y++) for (int z = 1; z <= 3; z++) for (int x = 1; x <= 3; x++) basin += Wl(Wcell(bi, f, x0 + x, y0 + y, z0 + z));
+            double height = y0 + 18 - (tk.Y0 + tk.Depth), pEq = 1 + height * g * 1000 / 1e5; var vv = E(2, 9, 2);
+            Check(basin > 5 && Math.Abs(basin - (w0 - tk.Water)) < 1.01 && Math.Abs(tk.Pressure - pEq) < .15 && vv.Num("q") < .5,
+                  $"a pipe valve lets a 3 bar tank push {basin} units {height:0} blocks up into a basin with no pump; it stops at {tk.Pressure:0.00} bar (balance {pEq:0.00})");
+            vv.SetNum("closed", 1); double wc = tk.Water; Ticks(10); Check(tk.Water == wc, "a closed valve stops it");
+        }
         Console.WriteLine($"PUMPS suction limit {maxS:0.0} blocks; centrifugal stalls at {pCentri:0.0} bar, piston {pPiston:0.0} bar; g here {g:0.00}");
         Clear(); WaterFlow.Clear();
         foreach (var c in made) FreeChunk(c);

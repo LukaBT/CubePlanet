@@ -115,11 +115,48 @@ public sealed class MechanicalPumpBehavior : BlockBehavior, IKinetic, IRotationL
         int moved = 0;
         if (power > 0 && e.Num("off") == 0 && PumpBehavior.Job(e, dt, out var src, out var dst, out double cost, out double max))
         {
-            double units = Math.Min(max, power * dt / cost + e.Num("carry")); int n = (int)units; e.SetNum("carry", Math.Min(1, units - n));
-            moved = WaterMachines.Move(src, dst, n, WaterMachines.Dir(e));
+            double acc = e.Num("carry") + power * dt / cost; int n = (int)Math.Min(acc, max + 1); // a running total of the water paid for
+            moved = WaterMachines.Move(src, dst, n, WaterMachines.Dir(e)); e.SetNum("carry", Math.Clamp(acc - moved, 0, 2));
         }
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", power);
     }
     public override string Describe(BlockEntity e) => e.Num("off") > 0 ? "OFF" : e.Num("turbines") == 0 ? "NOT DRIVEN: NEEDS A SHAFT ON A SIDE ACROSS ITS AXIS"
         : $"LIFT {e.Num("lift"):0.0} OF {e.Num("max_lift"):0}  FLOW {e.Num("flow"):0.0} U/S  ROTATION IN {e.Num("power"):0.0} E/S  {Kinetics.Rpm(e):0} RPM" + PumpBehavior.Why(e);
+}
+
+/// <summary>
+/// Pipe valve: lets water flow from its back to its front through pipes on its own, driven by gravity and pressure (a pressurized tank
+/// pushing water up a pipe, a siphon from a high lake to a low one), as fast as pipe friction allows: the energy per kg available
+/// (g x the height difference + the pressure difference / 1000) all goes into friction, Q = sqrt(available / K). One way (a check valve:
+/// nothing flows backwards). Right click: OPEN / CLOSED.
+/// </summary>
+public sealed class PipeValveBehavior : BlockBehavior
+{
+    public const double ValveLoss = .3, MaxFlow = 64;
+    public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
+    public override bool Usable => true;
+    public override bool OnUse(BlockPos p, int id, int state)
+    {
+        var e = BlockStates.EntityOrNew(p, id); if (e == null) return false;
+        e.SetNum("closed", e.Num("closed") > 0 ? 0 : 1); UI.Note(e.Num("closed") > 0 ? "Valve CLOSED" : "Valve OPEN", 1.5); return true;
+    }
+    public override void OnTick(BlockEntity e, double dt)
+    {
+        int moved = 0; e.SetNum("q", 0);
+        if (e.Num("closed") == 0 && e.Pos.Loaded)
+        {
+            var src = WaterMachines.IntakeEnd(e); var dst = WaterMachines.OutletEnd(e);
+            if (src.Ok && dst.Ok)
+            {
+                double g = WaterMachines.G(e.Pos), avail = -WaterMachines.SpecificEnergy(src, dst, g);
+                double k = src.K + dst.K + ValveLoss * WaterMachines.MouthK(GameAssets.BlockReg.Id("water_pipe")) / WaterMachines.EndLoss + 2 * WaterMachines.MouthK(GameAssets.BlockReg.Id("water_pipe"));
+                double q = avail > 0 ? Math.Min(MaxFlow, Math.Sqrt(avail / k)) : 0; e.SetNum("q", q); e.SetNum("drive", avail / Math.Max(g, 1e-6));
+                double units = Math.Min(q * dt + e.Num("carry"), Math.Min(src.Available, dst.Room)); int n = (int)units; e.SetNum("carry", Math.Clamp(units - n, 0, 1));
+                if (n > 0) moved = WaterMachines.Move(src, dst, n, WaterMachines.Dir(e));
+            }
+        }
+        WaterMachines.Show(e, "flow", moved / dt);
+    }
+    public override string Describe(BlockEntity e) => e.Num("closed") > 0 ? "CLOSED" :
+        $"OPEN  FLOW {e.Num("flow"):0.0} U/S  DRIVING HEAD {e.Num("drive"):0.0} BLOCKS" + (e.Num("drive") <= 0 ? "  (THE FRONT IS HIGHER OR UNDER MORE PRESSURE: NOTHING FLOWS)" : "");
 }

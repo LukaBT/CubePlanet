@@ -11,8 +11,10 @@ namespace CubePlanet;
 public readonly struct WaterEnd
 {
     public readonly WC Cell; public readonly Tank Tank;
-    public WaterEnd(WC c) { Cell = c; Tank = null; }
-    public WaterEnd(Tank t) { Cell = default; Tank = t; }
+    /// <summary>Friction of the pipe path to this end: the loss in J/kg is K x (units/s)^2 (0 without pipes).</summary>
+    public readonly double K;
+    public WaterEnd(WC c, double k = 0) { Cell = c; Tank = null; K = k; }
+    public WaterEnd(Tank t, double k = 0) { Cell = default; Tank = t; K = k; }
     public bool Ok => Tank != null || Cell.ok;
     /// <summary>Water surface height as a source (block Y; a tank: its water surface).</summary>
     public double SourceSurface => Tank != null ? Tank.Y0 + Tank.Depth : Surface(Cell);
@@ -56,7 +58,7 @@ public static class WaterMachines
         if (id == Water) return Cell(b);
         if (!IsPipe(id)) return default;
         WC best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n) in PipeEnds(b, e.Pos))
+        foreach (var (pipe, n, pk) in PipeEnds(b, e.Pos))
         {
             var c = Cell(n); if (!c.ok || c.id != Water) continue;
             double h = Surface(c); if (h > bestH) { bestH = h; best = c; }
@@ -72,7 +74,7 @@ public static class WaterMachines
         if (id == Water || Wfree(id)) return Cell(f);
         if (!IsPipe(id)) return default;
         WC best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n) in PipeEnds(f, e.Pos))
+        foreach (var (pipe, n, pk) in PipeEnds(f, e.Pos))
         {
             var c = Cell(n); if (!c.ok || (c.id != Water && !Wfree(c.id))) continue;
             if (n.Y > bestH) { bestH = n.Y; best = c; }
@@ -83,20 +85,40 @@ public static class WaterMachines
     static readonly int[][] N6 = { new[] { 0, 1, 0 }, new[] { 1, 0, 0 }, new[] { -1, 0, 0 }, new[] { 0, 0, 1 }, new[] { 0, 0, -1 }, new[] { 0, -1, 0 } };
     /// <summary>Open ends of the pipes connected to 'start' (not passing through the machine): a pipe joined to exactly one pipe or pipe
     /// machine opens into the cell on the opposite side.</summary>
-    static IEnumerable<(BlockPos pipe, BlockPos next)> PipeEnds(BlockPos start, BlockPos machine)
+    // ---- pipe friction (Darcy-Weisbach): a pipe block (1 m) of bore D loses f / D x v^2 / 2 J/kg, v = flow / area; an open end (entry or
+    // exit) loses 0.5 x v^2 / 2. With flow in units/s (1 unit = 0.125 m^3) that is K x Q^2, K summed along the path.
+    public const double Friction = .015, EndLoss = .5, UnitM3 = .125;
+    static readonly Dictionary<int, double> bore = new();
+    /// <summary>A pipe's inner diameter in m (definition key "pipe": {"diameter"}; 0.35 if missing).</summary>
+    public static double Bore(int id)
+    {
+        lock (bore)
+        {
+            if (bore.TryGetValue(id, out var d)) return d;
+            d = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.pipe") is { ValueKind: System.Text.Json.JsonValueKind.Object } j ? DefinitionFile.Num(j, "diameter", .35) : .35;
+            return bore[id] = d;
+        }
+    }
+    static double VelFactor(double d) { double a = Math.PI * d * d / 4, u = UnitM3 / a; return u * u / 2; } // (v per unit/s)^2 / 2
+    public static double PipeK(int id) => Friction / Bore(id) * VelFactor(Bore(id));
+    public static double MouthK(int id) => EndLoss * VelFactor(Bore(id));
+    /// <summary>Open ends of the pipes connected to 'start' (not passing through the machine): a pipe joined to exactly one pipe or pipe
+    /// machine opens into the cell on the opposite side; a pipe into a tank valve ends at the tank. k = the friction of the path there.</summary>
+    static IEnumerable<(BlockPos pipe, BlockPos next, double k)> PipeEnds(BlockPos start, BlockPos machine)
     {
         var seen = new HashSet<long> { start.Key, machine.Key }; var q = new Queue<BlockPos>(); q.Enqueue(start);
+        var pathK = new Dictionary<long, double> { [start.Key] = PipeK(start.Id) };
         while (q.Count > 0 && seen.Count < 1024)
         {
-            var p = q.Dequeue(); int links = 0, lx = 0, ly = 0, lz = 0;
+            var p = q.Dequeue(); int links = 0, lx = 0, ly = 0, lz = 0; double kp = pathK[p.Key], km = MouthK(p.Id);
             foreach (var o in N6)
             {
                 if (!p.TryOffset(o[0], o[1], o[2], out var n) || !n.Loaded || !IsPipe(n.Id)) continue; // pipes and pipe machines (tag water_pipe)
-                if (Tanks.IsValve(n.Id) && n.Key != machine.Key) { yield return (p, n); continue; } // a pipe into a tank valve: the tank
+                if (Tanks.IsValve(n.Id) && n.Key != machine.Key) { yield return (p, n, kp + km); continue; } // a pipe into a tank valve: the tank
                 links++; lx = o[0]; ly = o[1]; lz = o[2];
-                if (!seen.Contains(n.Key) && !BlockStates.entities.ContainsKey(n.Key)) { seen.Add(n.Key); q.Enqueue(n); }
+                if (!seen.Contains(n.Key) && !BlockStates.entities.ContainsKey(n.Key)) { seen.Add(n.Key); pathK[n.Key] = kp + PipeK(n.Id); q.Enqueue(n); }
             }
-            if (links == 1 && p.TryOffset(-lx, -ly, -lz, out var open) && open.Loaded && !IsPipe(open.Id)) yield return (p, open);
+            if (links == 1 && p.TryOffset(-lx, -ly, -lz, out var open) && open.Loaded && !IsPipe(open.Id)) yield return (p, open, kp + km);
         }
     }
 
@@ -111,9 +133,9 @@ public static class WaterMachines
         if (id == Water) return new WaterEnd(Cell(b));
         if (!IsPipe(id)) return default;
         WaterEnd best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n) in PipeEnds(b, e.Pos))
+        foreach (var (pipe, n, pk) in PipeEnds(b, e.Pos))
         {
-            WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t) : default) : new WaterEnd(Cell(n));
+            WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t, pk) : default) : new WaterEnd(Cell(n), pk);
             if (!c.Ok || (c.Tank == null && c.Cell.id != Water)) continue;
             double h = c.SourceSurface + c.Gauge / (Rho * Math.Max(G(e.Pos), 1e-6)); if (h > bestH) { bestH = h; best = c; }
         }
@@ -129,9 +151,9 @@ public static class WaterMachines
         if (id == Water || Wfree(id)) return new WaterEnd(Cell(f));
         if (!IsPipe(id)) return default;
         WaterEnd best = default; double bestH = double.NegativeInfinity;
-        foreach (var (pipe, n) in PipeEnds(f, e.Pos))
+        foreach (var (pipe, n, pk) in PipeEnds(f, e.Pos))
         {
-            WaterEnd c = ValveAt(n, out var t) ? new WaterEnd(t) : new WaterEnd(Cell(n));
+            WaterEnd c = ValveAt(n, out var t) ? new WaterEnd(t, pk) : new WaterEnd(Cell(n), pk);
             if (!c.Ok || (c.Tank == null && c.Cell.id != Water && !Wfree(c.Cell.id))) continue;
             if (n.Y > bestH) { bestH = n.Y; best = c; }
         }
@@ -270,8 +292,11 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
         double g = WaterMachines.G(e.Pos), spec = -WaterMachines.SpecificEnergy(src, dst, g);
         e.SetNum("head", spec / Math.Max(g, 1e-6)); e.SetNum("spec", spec); e.SetNum("g", g);
         if (spec < g * .5 || spec < .5) return; // less than half a block's worth
-        double units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
-        double perUnit = WaterMachines.EPerUnit(spec) * Efficiency, energy = Math.Max(0, units) * perUnit;
+        // pipe friction takes K x Q^2 of it: the turbine runs at the flow giving the most power (friction = a third of the head), at most 16/s
+        double k = src.K + dst.K, q = k > 0 ? Math.Min(MaxFlow, Math.Sqrt(spec / (3 * k))) : MaxFlow, net = spec - k * q * q;
+        e.SetNum("loss", spec > 0 ? k * q * q / spec : 0);
+        double units = Math.Min(q * dt, Math.Min(src.Available, dst.Room));
+        double perUnit = WaterMachines.EPerUnit(net) * Efficiency, energy = Math.Max(0, units) * perUnit; e.SetNum("per_unit", perUnit);
         if (mode == 1) p.Fixed = energy; else p.Dispatch = energy;
         pending[e.Pos.Key] = (src, dst, perUnit);
     }
@@ -280,13 +305,13 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
         int moved = 0;
         if (made > 0 && pending.TryGetValue(e.Pos.Key, out var w))
         {
-            double units = made / w.head + e.Num("carry"); // (w.head: energy per unit)
-            int n = (int)units; e.SetNum("carry", Math.Min(1, units - n));
-            moved = WaterMachines.Move(w.src, w.dst, n, WaterMachines.Dir(e));
+            // a running total of the water paid for (energy made / energy per unit); whole units move, the fraction waits for the next step
+            double acc = e.Num("carry") + made / w.head; int n = (int)acc;
+            moved = WaterMachines.Move(w.src, w.dst, n, WaterMachines.Dir(e)); e.SetNum("carry", Math.Clamp(acc - moved, 0, 2));
         }
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", made / dt);
     }
-    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  HEAD {e.Num("head"):0.0} ({e.Num("spec"):0} J/KG, G {e.Num("g"):0.00})  FLOW {e.Num("flow"):0.0} U/S  POWER {e.Num("power"):0.0} E/S";
+    public override string Describe(BlockEntity e) => $"{WaterMachines.ModeName(e).ToUpperInvariant()}  HEAD {e.Num("head"):0.0} ({e.Num("spec"):0} J/KG, G {e.Num("g"):0.00}, PIPES TAKE {e.Num("loss") * 100:0}%)  FLOW {e.Num("flow"):0.0} U/S  POWER {e.Num("power"):0.0} E/S";
 }
 
 /// <summary>
@@ -340,11 +365,15 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
         // suction: the source surface may be at most MaxSuction below the pump
         double suction = e.Pos.Y + .5 - src.SourceSurface, maxS = WaterMachines.MaxSuction(g, src.Gauge); e.SetNum("max_suction", maxS);
         if (suction > maxS) { e.SetNum("why", 1); return false; }
-        var (flow, eff) = Curve(s, spec);
         e.SetNum("max_lift", s.MaxSpecific / Math.Max(g, 1e-6));
-        if (flow <= 0) { e.SetNum("why", 2); return false; }
-        cost = WaterMachines.EPerUnit(Math.Max(0, spec)) / eff + BaseCost;
-        units = Math.Min(s.Flow * flow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
+        // pipe friction adds K x Q^2: find the flow where the pump's curve meets lift + friction
+        double k = src.K + dst.K, q;
+        if (s.Piston) { q = s.Flow; if (k > 0 && spec + k * q * q > s.MaxSpecific) q = Math.Sqrt(Math.Max(0, (s.MaxSpecific - spec) / k)); if (spec >= s.MaxSpecific) q = 0; }
+        else { q = s.Flow * Curve(s, spec).flow; for (int i = 0; i < 12; i++) q = .5 * q + .5 * s.Flow * Curve(s, spec + k * q * q).flow; }
+        double total = spec + k * q * q; var (_, eff) = Curve(s, total); e.SetNum("loss", total > 0 ? k * q * q / total : 0);
+        if (q <= 1e-3) { e.SetNum("why", 2); return false; }
+        cost = WaterMachines.EPerUnit(Math.Max(0, total)) / eff + BaseCost;
+        units = Math.Min(q * dt, Math.Min(src.Available, dst.Room));
         return units > 0;
     }
     public static string Why(BlockEntity e) => (int)e.Num("why") switch
@@ -367,9 +396,8 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
         int moved = 0;
         if (got > 0 && pending.TryGetValue(e.Pos.Key, out var w))
         {
-            double units = got / w.cost + e.Num("carry");
-            int n = (int)units; e.SetNum("carry", Math.Min(1, units - n));
-            moved = WaterMachines.Move(w.src, w.dst, n, WaterMachines.Dir(e));
+            double acc = e.Num("carry") + got / w.cost; int n = (int)acc; // a running total of the water paid for
+            moved = WaterMachines.Move(w.src, w.dst, n, WaterMachines.Dir(e)); e.SetNum("carry", Math.Clamp(acc - moved, 0, 2));
         }
         WaterMachines.Show(e, "flow", moved / dt); WaterMachines.Show(e, "power", got / dt);
     }

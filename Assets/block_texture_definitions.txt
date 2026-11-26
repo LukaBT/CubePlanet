@@ -228,3 +228,5 @@ texture_rows: 16
 225 hp_pump_side 16 224
 226 hp_pump_top 32 224
 227 hp_pump_bottom 48 224
+228 pipe_valve 64 224
+229 pipe_valve_front 80 224

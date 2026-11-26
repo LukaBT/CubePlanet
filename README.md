@@ -255,6 +255,15 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   their efficiency is best at ~60 % of the maximum (75 %), poorer at low and high heads. Against a sealed tank they stall near 6 bar.
 * **High-Pressure Pump** (piston, positive displacement): a steady 4 units/s up to 265 blocks of head at surface gravity (~26 bar),
   85 % efficient: the pump for filling pressurized tanks (up to their 20 bar).
+* **Pipes have friction** (Darcy-Weisbach, f = 0.015): each pipe block of bore D loses f/D x v^2/2 J/kg, an open end 0.5 x v^2/2,
+  v = flow / area. **Water Pipe**: 0.35 m bore; **Large Pipe**: 0.8 m bore (5x the area, ~1/30 the friction per unit of flow).
+  A turbine runs at the flow giving the most power (friction = a third of its head, at most 16 units/s): 20 small pipes from a
+  2 bar tank let it take 5.5 u/s, 20 large ones the full 16. A pump must also overcome the friction (its curve meets lift + friction).
+  The HUD shows how much of the head the pipes take.
+* **Pipe Valve** (in a pipe line, back to front, one way): water flows on its own when the far end is lower or the near end under
+  pressure, as fast as friction allows (all the available energy goes into friction: Q = sqrt(available / K)): a pressurized tank
+  pushing water up a pipe like a water tower, a siphon between lakes. A 3 bar tank pushed water 12 blocks up into a basin and
+  stopped where its pressure balanced the height. Right click: OPEN / CLOSED.
 * The HUD on a pump says why it stops: too high a suction ("CAN'T PULL WATER UP MORE THAN X BLOCKS HERE") or too much head ("TOO HIGH").
   Definition key "pump": {"type": "centrifugal" / "piston", "max_head" (blocks at surface gravity), "flow", "efficiency"}.
 

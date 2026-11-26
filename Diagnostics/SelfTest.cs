@@ -216,7 +216,7 @@ public static partial class SelfTest
         Check(Tank() == tank0 && be.Num("energy") == 0, "turbine on auto keeps the water when nothing needs energy");
         te.SetNum("mode", 1); // on: runs and charges the battery
         for (int i = 0; i < 40; i++) { BlockActions.Tick(.1); WaterSim.WaterStep(); }
-        int moved = tank0 - Tank(); double head = te.Num("head"), expect = moved * head * WaterMachines.K * TurbineBehavior.Efficiency * BatteryBehavior.Efficiency;
+        int moved = tank0 - Tank(); double head = te.Num("head"), expect = moved * te.Num("per_unit") * BatteryBehavior.Efficiency; // energy per unit after gravity here and pipe friction
         Check(moved > 20 && Math.Abs(be.Num("energy") - expect) < expect * .2 + 2, $"turbine: {moved} units fell {head:0.0} blocks -> battery {be.Num("energy"):0.0} E (expected ~{expect:0.0})");
         Check(Units() == total0, $"turbine moves water without creating or losing any ({Units()} vs {total0})");
         // flow: the falling water under the outlet is measured and drawn (flow bits in the water mesh)
@@ -243,7 +243,7 @@ public static partial class SelfTest
         pe.SetNum("mode", 2); te.SetNum("mode", 0); be.SetNum("energy", 0); Put(4, 2, 1, Id("oxygen_generator"), "north");
         var og = BlockStates.entities[At(4, 2, 1).Key]; int tankC = Tank();
         for (int i = 0; i < 20; i++) BlockActions.Tick(.1);
-        Check(og.Num("energy") > 5 && Tank() < tankC, $"turbine on auto runs when a machine needs energy (generator got {og.Num("energy"):0.0} E, {tankC - Tank()} units used)");
+        Check(og.Num("energy") > 2 && Tank() < tankC, $"turbine on auto runs when a machine needs energy (generator got {og.Num("energy"):0.0} E, {tankC - Tank()} units used)");
         // spring: water comes from the reservoir, which loses exactly what the world gains
         Put(0, 2, 4, Id("spring"), "east"); double res0 = WaterSim.Reservoir; int w0 = Units();
         for (int i = 0; i < 20; i++) BlockActions.Tick(.1);

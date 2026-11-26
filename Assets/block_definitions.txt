@@ -11204,7 +11204,10 @@
               "id_name": "water_pipe",
               "count": 1
             }
-          ]
+          ],
+          "pipe": {
+            "diameter": 0.35
+          }
         },
         "instance_state": {
           "north": {
@@ -16572,6 +16575,242 @@
             "default": 0
           },
           "carry": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "large_pipe",
+      "id": 172,
+      "name": "Large Pipe",
+      "stateless": false,
+      "group_tags": [
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 141
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "water_pipe"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.0625,
+              "w": 0.875,
+              "y": 0.0625,
+              "h": 0.875,
+              "z": 0.0625,
+              "d": 0.875
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.0625,
+                    "w": 0.875,
+                    "y": 0.0625,
+                    "h": 0.875,
+                    "z": 0,
+                    "d": 0.0625
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.0625,
+                    "w": 0.875,
+                    "y": 0.0625,
+                    "h": 0.875,
+                    "z": 0.9375,
+                    "d": 0.0625
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.9375,
+                    "w": 0.0625,
+                    "y": 0.0625,
+                    "h": 0.875,
+                    "z": 0.0625,
+                    "d": 0.875
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "w": 0.0625,
+                    "y": 0.0625,
+                    "h": 0.875,
+                    "z": 0.0625,
+                    "d": 0.875
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.0625,
+                    "w": 0.875,
+                    "y": 0.9375,
+                    "h": 0.0625,
+                    "z": 0.0625,
+                    "d": 0.875
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.0625,
+                    "w": 0.875,
+                    "y": 0,
+                    "h": 0.0625,
+                    "z": 0.0625,
+                    "d": 0.875
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            110,
+            116,
+            122
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "large_pipe",
+              "count": 1
+            }
+          ],
+          "pipe": {
+            "diameter": 0.8
+          }
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "pipe_valve",
+      "id": 173,
+      "name": "Pipe Valve",
+      "stateless": false,
+      "group_tags": [
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 228,
+        "north": 229
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "pipe_valve",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            110,
+            116,
+            122
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "pipe_valve",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "closed": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          },
+          "flow": {
             "type": "number",
             "default": 0
           }

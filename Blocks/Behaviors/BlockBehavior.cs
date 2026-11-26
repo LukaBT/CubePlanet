@@ -54,6 +54,7 @@ public abstract class BlockBehavior
         ["mechanical_pump"] = () => new MechanicalPumpBehavior(),
         ["tank_valve"] = () => new TankValveBehavior(),
         ["compressor"] = () => new CompressorBehavior(),
+        ["pipe_valve"] = () => new PipeValveBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>
