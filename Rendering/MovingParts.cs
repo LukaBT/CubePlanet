@@ -172,20 +172,40 @@ public static class MovingParts
         foreach (var f in BoxFaces) { V3 q0 = c[f[0]], q1 = c[f[1]], q2 = c[f[2]], q3 = c[f[3]]; Quad(q0, q1, q2, q3, M.Nrm(M.Cross(q2 - q0, q3 - q1)), lay); }
     }
 
-    /// <summary>Elevator platforms (<see cref="Elevator"/>): one thin box per cell of the platform, at its current height.</summary>
+    /// <summary>Elevator cars (<see cref="Elevator"/>): the floor, railings, the frame with guide shoes on the rails, the hoist cable up to the motor
+    /// and the counterweight in the rail column moving the other way.</summary>
     static int AddPlatforms(V3 org, int quads)
     {
-        if (Elevator.Platforms.IsEmpty) return quads;
+        if (Elevator.Cars.IsEmpty) return quads;
         V3 cam = new(C.x, C.y, C.z);
-        foreach (var l in Elevator.Platforms.Values)
+        float T(string n) => LayTex(0, GameAssets.BlockTex(n));
+        float floorT = T("cabin_floor"), steelT = T("steel"), darkT = T("steel_dark");
+        foreach (var l in Elevator.Cars.Values)
         {
-            var a = l.E.Pos; if (!a.Loaded || (l.At - cam).Len > Range * 2) continue;
-            double top = Elevator.Top(l.E) + .003, bot = top - Elevator.Thick; float lay = LayTex(l.E.BlockId, TEXF[l.E.BlockId * 6 + 2]);
-            for (int dz = -l.Half; dz <= l.Half; dz++) for (int dx = -l.Half; dx <= l.Half; dx++)
-                {
-                    if (quads + 12 > MaxQuads) return quads;
-                    LocalBox(a, dx + .001, bot, dz + .001, dx + .999, top, dz + .999, lay, org); quads += 12;
-                }
+            var e = l.E; var a = e.Pos; int n = (int)e.Num("car"); if (n <= 0 || !a.Loaded || (l.At - cam).Len > Range * 2) continue;
+            if (quads + 400 > MaxQuads) return quads;
+            int fx = (int)e.Num("cdx"), fz = (int)e.Num("cdz"), lx = fz, lz = -fx; double fy = e.Num("fy"), hw = n / 2.0;
+            // a box given in car coordinates: u away from the rails (0 = the rail column's centre), v across, y relative to the motor cell
+            void B(double u0, double u1, double v0, double v1, double y0, double y1, float lay)
+            {
+                double xa = .5 + fx * u0 + lx * v0, xb = .5 + fx * u1 + lx * v1, za = .5 + fz * u0 + lz * v0, zb = .5 + fz * u1 + lz * v1;
+                LocalBox(a, Math.Min(xa, xb), y0, Math.Min(za, zb), Math.Max(xa, xb), y1, Math.Max(za, zb), lay, org); quads += 12;
+            }
+            B(.5, n + .5, -hw, hw, fy - Elevator.Thick, fy + .003, floorT);                                    // floor
+            foreach (double s in new[] { -1.0, 1.0 })
+            {   // railings along both sides: kick plate, hand rail, posts
+                double v0 = s < 0 ? -hw : hw - .06, v1 = v0 + .06;
+                B(.5, n + .5, v0, v1, fy, fy + .15, steelT); B(.5, n + .5, v0, v1, fy + .95, fy + 1.02, steelT);
+                for (int k = 0; k <= n; k++) { double u = .5 + k - (k == n ? .06 : 0); B(u, u + .06, v0, v1, fy, fy + 1, steelT); }
+                B(.5, .62, v0, v1, fy, fy + 2.35, darkT);                                                     // frame stiles on the rail side
+            }
+            B(.5, .62, -hw, hw, fy + 2.2, fy + 2.35, darkT);                                                    // crosshead
+            B(.5, .62, -hw, hw, fy - .25, fy - Elevator.Thick, darkT);                                          // plank under the floor
+            B(.32, .5, -.12, .12, fy + .05, fy + .3, darkT); B(.32, .5, -.12, .12, fy + 2.05, fy + 2.3, darkT);  // guide shoes on the rail
+            B(.38, .44, -.03, .03, fy + 2.35, 0, darkT);                                                        // hoist cable up to the motor
+            // counterweight: in the rail column behind the rail, moving the other way
+            double bottom = -Elevator.Rails(e), cw = -1.35 - (fy - bottom);
+            B(-.45, -.18, -.32, .32, cw, cw + 1.2, darkT); B(-.34, -.29, -.03, .03, cw + 1.2, 0, darkT);
         }
         return quads;
     }

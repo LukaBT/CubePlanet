@@ -17295,22 +17295,24 @@
       "namespace": "base",
       "id_name": "elevator",
       "id": 181,
-      "name": "Elevator 1x1",
+      "name": "Elevator Motor",
       "stateless": false,
       "group_tags": [
         "energy"
       ],
       "textures": {
-        "all": 239
+        "all": 251,
+        "top": 253,
+        "bottom": 253
       },
       "properties": {
         "definition": {
           "model": "cube",
           "behavior": "elevator",
           "lod_color": [
-            170,
-            176,
-            184
+            82,
+            86,
+            94
           ],
           "render": {
             "layer": "opaque"
@@ -17326,43 +17328,187 @@
               "id_name": "elevator",
               "count": 1
             }
+          ]
+        },
+        "instance_state": {
+          "energy": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "guide_rail",
+      "id": 190,
+      "name": "Guide Rail",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 252
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "lod_color": [
+            110,
+            112,
+            118
           ],
-          "elevator": {
+          "render": {
+            "layer": "cutout"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "guide_rail",
+              "count": 1
+            }
+          ],
+          "random_offset": false,
+          "boxes": [
+            {
+              "x": 0.375,
+              "y": 0,
+              "z": 0.375,
+              "w": 0.25,
+              "h": 1,
+              "d": 0.25
+            },
+            {
+              "x": 0.3125,
+              "y": 0,
+              "z": 0.3125,
+              "w": 0.375,
+              "h": 1,
+              "d": 0.0625,
+              "textures": {
+                "all": 251
+              }
+            }
+          ],
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "elevator_car",
+      "id": 189,
+      "name": "Elevator Car 1x1",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 250
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "elevator_car",
+          "lod_color": [
+            140,
+            146,
+            154
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "elevator_car",
+              "count": 1
+            }
+          ],
+          "elevator_car": {
             "size": 1
+          },
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.125,
+              "d": 1,
+              "textures": {
+                "all": 250,
+                "top": 254
+              }
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0.9375,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0.9375,
+              "w": 1,
+              "h": 0.8,
+              "d": 0.0625
+            }
+          ],
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes"
           }
         },
-        "instance_state": {
-          "energy": {
-            "type": "number",
-            "default": 0
-          }
-        }
+        "instance_state": {}
       }
     },
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "elevator_3x3",
+      "id_name": "elevator_car_3x3",
       "id": 186,
-      "name": "Elevator 3x3",
+      "name": "Elevator Car 3x3",
       "stateless": false,
-      "group_tags": [
-        "energy"
-      ],
+      "group_tags": [],
       "textures": {
-        "all": 239
+        "all": 250
       },
       "properties": {
         "definition": {
-          "model": "cube",
-          "behavior": "elevator",
+          "model": "boxes",
+          "behavior": "elevator_car",
           "lod_color": [
-            170,
-            176,
-            184
+            140,
+            146,
+            154
           ],
           "render": {
-            "layer": "opaque"
+            "layer": "cutout"
           },
           "default_state": "normal",
           "hardness": 1.0,
@@ -17372,46 +17518,82 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "elevator_3x3",
+              "id_name": "elevator_car_3x3",
               "count": 1
             }
           ],
-          "elevator": {
+          "elevator_car": {
             "size": 3
+          },
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.125,
+              "d": 1,
+              "textures": {
+                "all": 250,
+                "top": 254
+              }
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0.9375,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0.9375,
+              "w": 1,
+              "h": 0.8,
+              "d": 0.0625
+            }
+          ],
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes"
           }
         },
-        "instance_state": {
-          "energy": {
-            "type": "number",
-            "default": 0
-          }
-        }
+        "instance_state": {}
       }
     },
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "elevator_5x5",
+      "id_name": "elevator_car_5x5",
       "id": 187,
-      "name": "Elevator 5x5",
+      "name": "Elevator Car 5x5",
       "stateless": false,
-      "group_tags": [
-        "energy"
-      ],
+      "group_tags": [],
       "textures": {
-        "all": 239
+        "all": 250
       },
       "properties": {
         "definition": {
-          "model": "cube",
-          "behavior": "elevator",
+          "model": "boxes",
+          "behavior": "elevator_car",
           "lod_color": [
-            170,
-            176,
-            184
+            140,
+            146,
+            154
           ],
           "render": {
-            "layer": "opaque"
+            "layer": "cutout"
           },
           "default_state": "normal",
           "hardness": 1.0,
@@ -17421,20 +17603,58 @@
           "drops": [
             {
               "namespace": "base",
-              "id_name": "elevator_5x5",
+              "id_name": "elevator_car_5x5",
               "count": 1
             }
           ],
-          "elevator": {
+          "elevator_car": {
             "size": 5
+          },
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.125,
+              "d": 1,
+              "textures": {
+                "all": 250,
+                "top": 254
+              }
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0.9375,
+              "y": 0.125,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.8,
+              "d": 1
+            },
+            {
+              "x": 0,
+              "y": 0.125,
+              "z": 0.9375,
+              "w": 1,
+              "h": 0.8,
+              "d": 0.0625
+            }
+          ],
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes"
           }
         },
-        "instance_state": {
-          "energy": {
-            "type": "number",
-            "default": 0
-          }
-        }
+        "instance_state": {}
       }
     },
     {
@@ -17446,7 +17666,11 @@
       "stateless": false,
       "group_tags": [],
       "textures": {
-        "all": 199
+        "all": 250,
+        "north": 255,
+        "south": 255,
+        "east": 255,
+        "west": 255
       },
       "properties": {
         "definition": {

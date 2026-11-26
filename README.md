@@ -306,13 +306,14 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   the source's surface (plus a tank's air pressure) must stand above the nozzle, so feed it from a higher basin or a pressurised tank.
   Every 4 s it checks the farmland within a radius of 4 blocks (its row and two below); when any of it is at moisture 6 of 8 or less it
   sprays (you see the drops), filling the dry farmland back to 8: 1 unit of water per moisture level, 0.3 E a unit. Wet soil: no spray.
-* **Elevator 1x1 / 3x3 / 5x5** + **Elevator Stop**: the elevator block is the motor at the bottom of a shaft; its platform (the size of the
-  block's name, centred on it) lies on it and really moves up the clear shaft, carrying you (it is solid: you stand on it). Floors: the
-  bottom, the top of the shaft (2 free blocks under the first block over the platform, at most 64 up) and every Elevator Stop built into a
-  landing beside the shaft, touching the platform's edge (the platform stops flush with the stop's top). Standing on it: jump = next floor
-  up, sneak = next floor down; right click the motor or a stop to call the platform there. Tip: sink the motor into the floor so the
-  platform is flush with it. Energy: the cabin has a counterweight, so the motor lifts you: 80 kg x gravity x height / 80 % (10 blocks on
-  the surface: 0.76 E), riding down gives half back, plus 0.01 E per block per platform cell. It keeps up to 50 E from the grid (5 E/s).
+* **Elevator** (built like a real traction lift): a straight column of **Guide Rails** up one side of the shaft, an **Elevator Motor** (the
+  hoist, on the grid) on top of the rails, and an **Elevator Car 1x1 / 3x3 / 5x5** placed against the rails at any height: it hangs on the
+  rails from that side (guide shoes, a frame, railings), hangs from a cable to the motor and has a counterweight running down the rails as it
+  rises. Its floor is solid and carries you. Floors: the bottom of the rails, the top (2 blocks under the motor) and each **Elevator Stop**
+  placed beside the rails one block above a landing's floor (a call button). In the car: jump = next floor up, sneak = next floor down; right
+  click a stop to call the car, the motor to send it to the bottom. It will not move into blocks in the shaft. Energy: the counterweight
+  balances the car, so the motor lifts you: 80 kg x gravity x height / 80 % (10 blocks: 0.76 E), going down gives half back, plus 0.01 E per
+  block per car cell; it keeps 50 E from the grid (5 E/s). Breaking the motor gives the car back.
 * **Conveyor Belt** + **Extractor**: items really ride on belts (4 per belt, 1.5 blocks a second, the belt surface moves). Belts shape
   themselves from their neighbours: a belt fed from its side becomes a curve; a belt with a belt one up in front climbs to it; a belt below and
   in front of a belt's end takes the items down. At the end items go onto the next belt or into the chest / machine in front (a furnace input

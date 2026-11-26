@@ -353,158 +353,224 @@ public sealed class SprinklerBehavior : BlockBehavior, IEnergyMachine
 }
 
 /// <summary>
-/// Elevator: a motor block at the bottom of a shaft and a platform that really moves (1x1, 3x3 or 5x5: key "elevator": {"size"}). The
-/// platform lies on the motor block (centred on it) and runs up the clear shaft above it; you stand on it and it carries you. Floors: the
-/// bottom, the top of the shaft (2 free blocks under the first block over the platform, at most 64 up) and every Elevator Stop built into
-/// the landing beside the shaft (touching the platform's edge; the platform stops flush with the stop's top). Standing on it: jump = next
-/// floor up, sneak = next floor down. Right click the motor or a stop: call the platform there. Energy is real: the cabin has a
-/// counterweight, so the motor lifts your 80 kg (x gravity here x height / 80 %; riding down gives half of it back) plus a little friction
-/// for the platform. It keeps up to 50 E from the grid (5 E/s); without energy the platform waits where it is.
+/// Elevator, built like a real traction lift:
+/// <list type="bullet">
+/// <item><b>Guide Rails</b>: a straight vertical column of rail blocks along one side of the shaft;</item>
+/// <item><b>Elevator Motor</b> on top of the rail column (the hoist: a cable drum; it takes energy from the grid);</item>
+/// <item><b>Elevator Car</b> 1x1 / 3x3 / 5x5: placed against the rail column (anywhere along it), it hangs on the rails from that side and is
+/// carried by a cable from the motor; a counterweight runs down the rails as the car goes up.</item>
+/// </list>
+/// The car's floor is solid and carries you. Floors: the bottom of the rails, the top (2 blocks under the motor) and every <b>Elevator Stop</b>
+/// placed beside the rail column one block above a landing's floor (where a call button goes). On the car: jump = next floor up, sneak =
+/// next floor down; right click a stop to call the car there, the motor to send it down. The car stops if something is in the shaft.
+/// Energy is real: the counterweight balances the car, so the motor lifts your 80 kg (x gravity x height / 80 %; going down gives half
+/// back) plus friction. It keeps up to 50 E from the grid (5 E/s); without energy the car waits. Breaking the motor gives the car back.
 /// </summary>
 public sealed class ElevatorBehavior : BlockBehavior, IEnergyMachine
 {
     public const double Buffer = 50, ChargeRate = 5;
     public override void OnPlace(BlockPos p, int id) => Elevator.Add(BlockStates.EntityOrNew(p, id));
-    public override void OnBreak(BlockPos p, int id, int state) => Elevator.Platforms.TryRemove(p.Key, out _);
+    public override void OnBreak(BlockPos p, int id, int state) => Elevator.Cars.TryRemove(p.Key, out _);
+    public override IEnumerable<ItemStack> Harvest(BlockPos p, int id, int state)
+    {
+        var res = new List<ItemStack>(); var it = GameAssets.ItemReg.All.FirstOrDefault(i => i != null && i.PlacesBlockId == id); if (it != null) res.Add(new ItemStack(it.Id, 1));
+        if (BlockStates.entities.TryGetValue(p.Key, out var e) && e.Num("car") > 0) { var car = Elevator.CarItem((int)e.Num("car")); if (car != null) res.Add(new ItemStack(car.Id, 1)); }
+        return res;
+    }
     public override bool Usable => true;
     public override bool OnUse(BlockPos p, int id, int state)
     {
-        var e = BlockStates.EntityOrNew(p, id); if (e == null) return false;
-        Elevator.Add(e); Elevator.Call(e, 0); return true;
+        var e = BlockStates.EntityOrNew(p, id); if (e == null) return false; Elevator.Add(e);
+        if (e.Num("car") <= 0) { UI.Note(Elevator.Rails(e) < 2 ? "Elevator Motor: build a column of Guide Rails under it" : "Elevator Motor: place an Elevator Car against its rails", 2.5); return true; }
+        Elevator.Call(e, Elevator.Floors(e)[0]); return true;
     }
-    /// <summary>The platform's width in blocks (odd: 1, 3, 5).</summary>
-    public static int Size(int id) => Math.Clamp((int)Electric.Key(BEH[id], id, "elevator", "size", 1), 1, 9) | 1;
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p) { Elevator.Add(e); p.StoreIn = Math.Max(0, Math.Min(ChargeRate * dt, Buffer - e.Num("energy"))); }
     public void Settle(BlockEntity e, double dt, double made, double got) => e.SetNum("energy", Math.Min(Buffer, e.Num("energy") + got));
     public override string Describe(BlockEntity e)
     {
-        int s = Size(e.BlockId); var fl = Elevator.Floors(e);
-        string moving = Math.Abs(e.Num("target") - e.Num("h")) > 1e-6 ? $"GOING TO {e.Num("target"):0}" : "STOPPED";
-        return $"ELEVATOR {s}X{s}  PLATFORM AT {e.Num("h"):0.0} ({moving})  FLOORS {string.Join(" ", fl)}  {e.Num("energy"):0} / {Buffer:0} E  (ON IT: JUMP UP, SNEAK DOWN)";
+        int rails = Elevator.Rails(e);
+        if (rails < 2) return "NO GUIDE RAILS: BUILD A COLUMN OF GUIDE RAILS STRAIGHT DOWN FROM THE MOTOR";
+        if (e.Num("car") <= 0) return $"{rails} RAILS, NO CAR: PLACE AN ELEVATOR CAR AGAINST THE RAILS  {e.Num("energy"):0} / {Buffer:0} E";
+        int s = (int)e.Num("car"); var fl = Elevator.Floors(e); int bottom = fl[0];
+        string moving = Math.Abs(e.Num("target") - e.Num("fy")) > 1e-6 ? $"GOING TO {e.Num("target") - bottom:0}" : "STOPPED";
+        return $"CAR {s}X{s} AT {e.Num("fy") - bottom:0.0} ({moving})  FLOORS {string.Join(" ", fl.Select(f => f - bottom))}  {e.Num("energy"):0} / {Buffer:0} E" + (e.Num("blocked") > 0 ? "  SHAFT BLOCKED" : "") + (e.Num("stalled") > 0 ? "  NO ENERGY" : "");
     }
 }
 
-/// <summary>Elevator Stop: built into a landing beside an elevator shaft (touching the platform's edge) it adds a floor there; right click calls
-/// the platform to it.</summary>
+/// <summary>Elevator Car (1x1 / 3x3 / 5x5: key "elevator_car": {"size"}): placed against a guide rail column with a motor on top, it becomes that
+/// motor's car (the block itself goes; the car is drawn and moved by the motor).</summary>
+public sealed class ElevatorCarBehavior : BlockBehavior
+{
+    public static int Size(int id) => Math.Clamp((int)Electric.Key(BEH[id], id, "elevator_car", "size", 1), 1, 9) | 1;
+    public override bool CanPlaceAt(BlockPos at, int id, out string why)
+    {
+        why = "An Elevator Car goes against a column of Guide Rails with an Elevator Motor on top";
+        if (!Elevator.RailBeside(at, out var rail, out _)) return false;
+        var m = Elevator.MotorOver(rail); if (m == null) return false;
+        if (m.Num("car") > 0) { why = "This elevator already has a car (break the motor to take it back)"; return false; }
+        return true;
+    }
+    public override void OnPlace(BlockPos p, int id)
+    {
+        if (!Elevator.RailBeside(p, out var rail, out var dir) || Elevator.MotorOver(rail) is not { } m) return;
+        int s = Size(id); m.SetNum("car", s); m.SetNum("cdx", dir.x); m.SetNum("cdz", dir.z);
+        double fy = Math.Clamp(p.Y - m.Pos.Y, Elevator.Bottom(m), -2); m.SetNum("fy", fy); m.SetNum("target", fy);
+        Elevator.Add(m); p.Set(0); // the car now hangs on the rails (drawn and moved by the motor)
+        UI.Note($"Elevator Car {s}x{s} hung on the rails", 1.5);
+    }
+}
+
+/// <summary>Elevator Stop: beside the guide rail column, one block above a landing's floor (a call button) it adds a floor there; right click calls
+/// the car to it.</summary>
 public sealed class ElevatorStopBehavior : BlockBehavior
 {
     public override bool Usable => true;
     public override bool OnUse(BlockPos p, int id, int state)
     {
         var e = Elevator.ForStop(p);
-        if (e == null) { UI.Note("Elevator Stop: build it into the landing beside an elevator shaft, touching the platform's edge", 2.5); return true; }
-        Elevator.Call(e, p.Y - e.Pos.Y); return true;
+        if (e == null) { UI.Note("Elevator Stop: put it beside an elevator's guide rails, one block above the landing's floor", 2.5); return true; }
+        if (e.Num("car") <= 0) { UI.Note("This elevator has no car yet", 1.5); return true; }
+        Elevator.Call(e, p.Y - 1 - e.Pos.Y); return true;
     }
 }
 
 public static class Elevator
 {
-    public const double PlayerKg = 80, MotorEff = .8, Regen = .5, Speed = 3, Thick = .125, FrictionPerBlock = .01; public const int Reach = 64;
-    public sealed class Lift { public BlockEntity E; public V3 At; public int Half; }
-    /// <summary>Every elevator motor with its platform (filled when placed and by the energy tick, so loaded worlds find theirs).</summary>
-    public static readonly ConcurrentDictionary<long, Lift> Platforms = new();
+    public const double PlayerKg = 80, MotorEff = .8, Regen = .5, Speed = 3, Thick = .125, FrictionPerBlock = .01; public const int MaxRails = 96;
+    public sealed class Car { public BlockEntity E; public V3 At; }
+    /// <summary>Every elevator motor (filled when placed and by the energy tick, so loaded worlds find theirs).</summary>
+    public static readonly ConcurrentDictionary<long, Car> Cars = new();
     public static void Add(BlockEntity e)
     {
         if (e == null || e.Pos.Core || BEH[e.BlockId] is not ElevatorBehavior) return;
-        if (!Platforms.TryGetValue(e.Pos.Key, out var l) || l.E != e) Platforms[e.Pos.Key] = new Lift { E = e, At = e.Pos.Center, Half = ElevatorBehavior.Size(e.BlockId) / 2 };
+        if (!Cars.TryGetValue(e.Pos.Key, out var l) || l.E != e) Cars[e.Pos.Key] = new Car { E = e, At = e.Pos.Center };
     }
     static bool Alive(BlockEntity e) => BlockStates.entities.TryGetValue(e.Pos.Key, out var x) && x == e && BEH[e.BlockId] is ElevatorBehavior;
-    /// <summary>The platform's top, in blocks above the bottom of the motor's cell.</summary>
-    public static double Top(BlockEntity e) => 1 + e.Num("h");
-    static bool Free(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id == 0 || id == Water || SPC[id] != 0; }
-    /// <summary>The highest platform height: 2 free blocks over the platform, under the first block in the shaft (or <see cref="Reach"/>).</summary>
-    public static int TopFloor(BlockEntity e)
+    public static bool IsRail(int id) => id > 0 && DEFS[id]?.IdName == "guide_rail";
+    public static ItemDefinition CarItem(int size)
     {
-        int r = ElevatorBehavior.Size(e.BlockId) / 2;
-        for (int k = 1; k <= Reach + 2; k++)
-            for (int dz = -r; dz <= r; dz++) for (int dx = -r; dx <= r; dx++)
-                    if (!e.Pos.TryOffset(dx, k, dz, out var c) || !Free(c)) return Math.Max(0, k - 3);
-        return Reach;
+        foreach (var b in GameAssets.BlockReg.All) if (b != null && BEH[b.Id] is ElevatorCarBehavior && ElevatorCarBehavior.Size(b.Id) == size) return GameAssets.ItemReg.All.FirstOrDefault(i => i != null && i.PlacesBlockId == b.Id);
+        return null;
     }
-    /// <summary>Is this cell on the ring just outside the platform (touching an edge, not a corner)?</summary>
-    static bool OnRing(BlockEntity e, int dx, int dz) { int r = ElevatorBehavior.Size(e.BlockId) / 2 + 1, ax = Math.Abs(dx), az = Math.Abs(dz); return Math.Max(ax, az) == r && Math.Min(ax, az) < r; }
-    /// <summary>Platform heights it stops at: 0 (bottom), the shaft's top and each stop beside the shaft.</summary>
-    public static List<int> Floors(BlockEntity e)
+    /// <summary>Guide rails in the column straight down from the motor.</summary>
+    public static int Rails(BlockEntity m) { int n = 0; while (n < MaxRails && m.Pos.TryOffset(0, -(n + 1), 0, out var c) && c.Loaded && IsRail(c.Id)) n++; return n; }
+    /// <summary>Lowest car floor (relative to the motor's Y): the bottom of the rails.</summary>
+    public static int Bottom(BlockEntity m) => -Rails(m);
+    static readonly (int x, int y, int z)[] Sides = { (1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1) };
+    /// <summary>A guide rail beside this cell; dir points from the rail to the cell.</summary>
+    public static bool RailBeside(BlockPos at, out BlockPos rail, out (int x, int y, int z) dir)
     {
-        int top = TopFloor(e), r = ElevatorBehavior.Size(e.BlockId) / 2 + 1; var fl = new SortedSet<int> { 0, top };
-        for (int h = 1; h < top; h++)
-            for (int dz = -r; dz <= r; dz++) for (int dx = -r; dx <= r; dx++)
-                    if (OnRing(e, dx, dz) && e.Pos.TryOffset(dx, h, dz, out var c) && c.Loaded && BEH[c.Id] is ElevatorStopBehavior) fl.Add(h);
-        return fl.ToList();
+        foreach (var d in Sides) if (at.TryOffset(-d.x, 0, -d.z, out rail) && rail.Loaded && IsRail(rail.Id)) { dir = d; return true; }
+        rail = default; dir = default; return false;
     }
-    /// <summary>The elevator whose shaft this stop stands beside.</summary>
-    public static BlockEntity ForStop(BlockPos s)
+    /// <summary>The motor at the top of the rail column this rail belongs to.</summary>
+    public static BlockEntity MotorOver(BlockPos rail)
     {
-        foreach (var l in Platforms.Values)
+        for (int k = 1; k <= MaxRails + 1; k++)
         {
-            var e = l.E; if (!Alive(e) || e.Pos.B != s.B || e.Pos.F != s.F) continue;
-            int h = s.Y - e.Pos.Y; if (h >= 1 && h <= Reach && OnRing(e, s.X - e.Pos.X, s.Z - e.Pos.Z)) return e;
+            if (!rail.TryOffset(0, k, 0, out var c) || !c.Loaded) return null;
+            if (IsRail(c.Id)) continue;
+            return BEH[c.Id] is ElevatorBehavior ? BlockStates.EntityOrNew(c, c.Id) : null;
         }
         return null;
     }
-    /// <summary>Sends the platform to height h (clamped to the shaft).</summary>
-    public static void Call(BlockEntity e, int h)
+    static bool Free(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id == 0 || id == Water || SPC[id] != 0; }
+    /// <summary>The car's cells at floor height fy (relative to the motor): N deep away from the rails, N wide.</summary>
+    static IEnumerable<(int dx, int dz)> Footprint(BlockEntity m)
     {
-        h = Math.Clamp(h, 0, TopFloor(e)); e.SetNum("target", h);
-        UI.Note(Math.Abs(h - e.Num("h")) < 1e-6 ? "Elevator: the platform is here" : $"Elevator: platform coming ({e.Num("h"):0} -> {h})", 1.5);
+        int n = (int)m.Num("car"), fx = (int)m.Num("cdx"), fz = (int)m.Num("cdz"), lx = fz, lz = -fx;
+        for (int i = 1; i <= n; i++) for (int j = -n / 2; j <= n / 2; j++) yield return (fx * i + lx * j, fz * i + lz * j);
     }
-    /// <summary>A world point against a platform: inside its footprint (widened by pad) and its height above the platform's top.</summary>
-    static bool Over(Lift l, V3 pt, double pad, out double above)
+    /// <summary>Is the shaft clear for the car (2 blocks over its floor) at every whole floor height between a and b?</summary>
+    static bool ShaftClear(BlockEntity m, double a, double b, out int at)
     {
-        above = 0; var m = l.E.Pos; int bi = P2b(pt.X, pt.Y, pt.Z);
-        if (bi != m.B || PF != m.F) return false;
-        double x = PX + PFX - m.X, z = PZ + PFZ - m.Z; int r = l.Half;
-        if (x < -r - pad || x > r + 1 + pad || z < -r - pad || z > r + 1 + pad) return false;
-        above = PY + PFY - m.Y - Top(l.E); return true;
+        int lo = (int)Math.Floor(Math.Min(a, b)), hi = (int)Math.Ceiling(Math.Max(a, b)); at = 0;
+        for (int y = lo; y <= hi + 1; y++)
+            foreach (var (dx, dz) in Footprint(m))
+                if (!m.Pos.TryOffset(dx, y, dz, out var c) || !Free(c)) { at = y; return false; }
+        return true;
     }
-    /// <summary>Collision: is this world point inside a platform? (Called from the player's hitbox test.)</summary>
+    /// <summary>Car floor heights (relative to the motor) it stops at: the bottom, the top (2 under the motor) and each stop beside the rails.</summary>
+    public static List<int> Floors(BlockEntity m)
+    {
+        int bottom = Bottom(m); var fl = new SortedSet<int> { bottom, Math.Max(bottom, -2) };
+        for (int k = 1; k <= -bottom; k++)
+            foreach (var d in Sides)
+                if (m.Pos.TryOffset(d.x, -k, d.z, out var c) && c.Loaded && BEH[c.Id] is ElevatorStopBehavior) { int f = -k - 1; if (f >= bottom && f <= -2) fl.Add(f); }
+        return fl.ToList();
+    }
+    /// <summary>The elevator whose rails this stop stands beside.</summary>
+    public static BlockEntity ForStop(BlockPos s)
+    {
+        foreach (var d in Sides) if (s.TryOffset(d.x, 0, d.z, out var r) && r.Loaded && IsRail(r.Id)) return MotorOver(r);
+        return null;
+    }
+    /// <summary>Sends the car to floor height f (relative to the motor), if the shaft is clear.</summary>
+    public static void Call(BlockEntity m, int f)
+    {
+        f = Math.Clamp(f, Bottom(m), -2);
+        if (!ShaftClear(m, m.Num("fy"), f, out int at)) { m.SetNum("blocked", 1); UI.Note($"Elevator: something is in the shaft ({at - Bottom(m)} up)", 2); return; }
+        m.SetNum("blocked", 0); m.SetNum("target", f);
+        UI.Note(Math.Abs(f - m.Num("fy")) < 1e-6 ? "Elevator: the car is here" : "Elevator: car coming", 1.5);
+    }
+    /// <summary>A world point against a car: inside its floor area (widened by pad) and its height above the floor.</summary>
+    static bool Over(Car l, V3 pt, double pad, out double above)
+    {
+        above = 0; var m = l.E.Pos; int n = (int)l.E.Num("car"); if (n <= 0) return false;
+        int bi = P2b(pt.X, pt.Y, pt.Z); if (bi != m.B || PF != m.F) return false;
+        double x = PX + PFX - (m.X + .5), z = PZ + PFZ - (m.Z + .5); int fx = (int)l.E.Num("cdx"), fz = (int)l.E.Num("cdz");
+        double u = x * fx + z * fz, v = x * fz - z * fx;
+        if (u < .5 - pad || u > .5 + n + pad || Math.Abs(v) > n / 2.0 + pad) return false;
+        above = PY + PFY - m.Y - l.E.Num("fy"); return true;
+    }
+    /// <summary>Collision: is this world point inside a car's floor? (Called from the player's hitbox test.)</summary>
     public static bool SolidAt(double x, double y, double z)
     {
         V3 pt = new(x, y, z);
-        foreach (var l in Platforms.Values)
+        foreach (var l in Cars.Values)
         {
-            if ((pt - l.At).Len > Reach + 10) continue;
+            if (l.E.Num("car") <= 0 || (pt - l.At).Len > MaxRails + 10) continue;
             if (Over(l, pt, 0, out double above) && above < 0 && above >= -Thick) return true;
         }
         return false;
     }
-    /// <summary>Energy (E) to lift the player h blocks at gravity g (negative h: what riding down gives back).</summary>
+    /// <summary>Energy (E) to lift the player h blocks at gravity g (negative h: what going down gives back).</summary>
     public static double Cost(double h, double g) => h >= 0 ? PlayerKg * g * h / MotorEff / Tank.JoulesPerE : PlayerKg * g * h * Regen / Tank.JoulesPerE;
     static bool lastJump, lastSneak;
-    /// <summary>Moves the platforms (and the player standing on one) and reads jump / sneak on a platform. Called every frame before the
-    /// player's physics; true when the jump was used to ride (the player does not jump).</summary>
+    /// <summary>Moves the cars (and the player standing in one) and reads jump / sneak in a car. Called every frame before the player's
+    /// physics; true when the jump was used to ride (the player does not jump).</summary>
     public static bool Update(double dt, bool jump, bool sneak)
     {
         bool jumpEdge = jump && !lastJump, sneakEdge = sneak && !lastSneak; lastJump = jump; lastSneak = sneak;
-        if (Platforms.IsEmpty) return false;
-        var P = PlayerPhysics.P; Lift on = null; bool eat = false;
-        foreach (var (key, l) in Platforms)
+        if (Cars.IsEmpty) return false;
+        var P = PlayerPhysics.P; Car on = null; bool eat = false;
+        foreach (var (key, l) in Cars)
         {
-            var e = l.E; if (!Alive(e)) { Platforms.TryRemove(key, out _); continue; }
-            if (!e.Pos.Loaded) continue;
-            double h = e.Num("h"), target = e.Num("target"), above = 0;
+            var e = l.E; if (!Alive(e)) { Cars.TryRemove(key, out _); continue; }
+            if (!e.Pos.Loaded || e.Num("car") <= 0) continue;
+            double h = e.Num("fy"), target = e.Num("target"), above = 0;
             bool rider = P.on && !P.fly && !P.core && Over(l, P.p, PlayerPhysics.HW, out above) && above > -.2 && above < .25;
             if (rider) on = l;
             if (Math.Abs(target - h) < 1e-9) continue;
-            double dh = Math.Clamp(target - h, -Speed * dt, Speed * dt);
-            V3 up = M.Nrm(P.p);
+            double dh = Math.Clamp(target - h, -Speed * dt, Speed * dt); V3 up = M.Nrm(P.p);
             if (rider)
             {
                 if (dh > 0 && Collision.Pcol(P.p + up * (dh + Math.Max(0, -above) + .01), PlayerPhysics.HW)) { e.SetNum("target", h); UI.Note("Elevator: no room above you", 1.5); continue; }
             }
-            else if (dh < 0 && P.on && Over(l, P.p, PlayerPhysics.HW, out double ab) && ab < -Thick && ab + 1.8 > dh - Thick) { e.SetNum("target", h); UI.Note("Elevator: stopped (you are under the platform)", 1.5); continue; }
-            double g = WaterMachines.G(e.Pos), cost = FrictionPerBlock * (2 * l.Half + 1) * (2 * l.Half + 1) * Math.Abs(dh) + (rider ? Cost(dh, g) : 0);
+            else if (dh < 0 && P.on && Over(l, P.p, PlayerPhysics.HW, out double ab) && ab < -Thick && ab + 1.8 > dh - Thick) { e.SetNum("target", h); UI.Note("Elevator: stopped (you are under the car)", 1.5); continue; }
+            int n = (int)e.Num("car");
+            double g = WaterMachines.G(e.Pos), cost = FrictionPerBlock * n * n * Math.Abs(dh) + (rider ? Cost(dh, g) : 0);
             if (cost > e.Num("energy")) { e.SetNum("stalled", 1); continue; } // waits for energy from the grid
             e.SetNum("stalled", 0); e.SetNum("energy", Math.Min(ElevatorBehavior.Buffer, e.Num("energy") - cost));
-            e.SetNum("h", Math.Abs(target - h - dh) < 1e-9 ? target : h + dh);
+            e.SetNum("fy", Math.Abs(target - h - dh) < 1e-9 ? target : h + dh);
             if (rider) { P.p = P.p + up * (dh + Math.Max(0, -above)); if (above < .05) { P.vu = 0; P.gnd = true; } eat |= jump; }
         }
-        if (on != null && (jumpEdge || sneakEdge) && Math.Abs(on.E.Num("target") - on.E.Num("h")) < 1e-9)
+        if (on != null && (jumpEdge || sneakEdge) && Math.Abs(on.E.Num("target") - on.E.Num("fy")) < 1e-9)
         {
-            var e = on.E; double h = e.Num("h"); var fl = Floors(e);
+            var e = on.E; double h = e.Num("fy"); var fl = Floors(e);
             int? next = jumpEdge ? fl.Where(f => f > h + .01).Cast<int?>().FirstOrDefault() : fl.Where(f => f < h - .01).Cast<int?>().LastOrDefault();
             if (next == null) UI.Note(jumpEdge ? "Elevator: top floor" : "Elevator: bottom floor", 1.2);
-            else { e.SetNum("target", next.Value); eat |= jumpEdge; }
+            else { Call(e, next.Value); eat |= jumpEdge && e.Num("blocked") == 0; }
         }
         return eat;
     }

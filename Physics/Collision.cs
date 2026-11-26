@@ -14,7 +14,7 @@ public static class Collision
     // solid = inside one of the block's collision boxes (geometry.collision; full block for cubes, nothing for plants and liquids)
     internal static bool SolidAt(double x, double y, double z)
     {
-        if (!Elevator.Platforms.IsEmpty && Elevator.SolidAt(x, y, z)) return true; // moving elevator platforms
+        if (!Elevator.Cars.IsEmpty && Elevator.SolidAt(x, y, z)) return true; // moving elevator cars
         int b = LocalAt(x, y, z, out double lx, out double ly, out double lz);
         if (HASVAR[b] ? (BlockPos.TryAt(x, y, z, out var p) && Collides(b, p.State, lx, ly, lz)) : Collides(b, lx, ly, lz)) return true; // doors, stairs: geometry depends on the state
         if (!AnyTall || ly >= .5) return false;

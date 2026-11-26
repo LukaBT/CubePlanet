@@ -17,6 +17,9 @@ public static class GameAssets
     /// <summary>Item icons: RGBA, layer = item ID (= item texture ID).</summary>
     /// <summary>The conveyor's moving belt surface (block texture "conveyor_belt").</summary>
     public static int BeltTexture;
+    static readonly Dictionary<string, int> blockTexByName = new();
+    /// <summary>A block texture id by its name in block_texture_definitions.txt (0 if missing).</summary>
+    public static int BlockTex(string name) => blockTexByName.TryGetValue(name, out int id) ? id : 0;
     /// <summary>Item pictures are also copied into the block texture array (after the block textures, scaled to the block texture size), so
     /// items can be drawn in the world (on conveyor belts): layer = <see cref="ItemWorldBase"/> + item texture id.</summary>
     public static int ItemWorldBase;
@@ -72,6 +75,7 @@ public static class GameAssets
         ItemLayers = AtlasLoader.LoadLayers(AssetPaths.Get(AssetPaths.ItemAtlas), itdef, out ItemLayerCount);
         AppendItemLayers();
         BeltTexture = tdef.Entries.FirstOrDefault(e => e.name == "conveyor_belt").id;
+        foreach (var en in tdef.Entries) blockTexByName.TryAdd(en.name, en.id);
         Blocks.Build(BlockReg);
     }
 }

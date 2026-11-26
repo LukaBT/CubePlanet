@@ -250,3 +250,9 @@ texture_rows: 128
 247 conveyor_frame 112 240
 248 conveyor_belt 128 240
 249 conveyor_roller 144 240
+250 steel 160 240
+251 steel_dark 176 240
+252 guide_rail 192 240
+253 cable_drum 208 240
+254 cabin_floor 224 240
+255 control_panel 240 240

@@ -3495,7 +3495,7 @@
       "namespace": "base",
       "id_name": "elevator",
       "id": 195,
-      "name": "Elevator 1x1",
+      "name": "Elevator Motor",
       "group_tags": [],
       "properties": {
         "definition": {
@@ -3511,16 +3511,16 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "elevator_3x3",
-      "id": 201,
-      "name": "Elevator 3x3",
+      "id_name": "guide_rail",
+      "id": 204,
+      "name": "Guide Rail",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "elevator_3x3"
+            "id_name": "guide_rail"
           }
         },
         "instance_state": {}
@@ -3529,16 +3529,52 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "elevator_5x5",
-      "id": 202,
-      "name": "Elevator 5x5",
+      "id_name": "elevator_car",
+      "id": 205,
+      "name": "Elevator Car 1x1",
       "group_tags": [],
       "properties": {
         "definition": {
           "stack_size": 64,
           "places_block": {
             "namespace": "base",
-            "id_name": "elevator_5x5"
+            "id_name": "elevator_car"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator_car_3x3",
+      "id": 201,
+      "name": "Elevator Car 3x3",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator_car_3x3"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator_car_5x5",
+      "id": 202,
+      "name": "Elevator Car 5x5",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator_car_5x5"
           }
         },
         "instance_state": {}

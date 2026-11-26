@@ -81,26 +81,30 @@ public static partial class SelfTest
         Farming.SetMoisture(At(1, 7, 1), 2); int m0 = Moist(); Ticks(50); int w1 = Basins(), m1 = Moist();
         Check(wa == wb && ma == 56 && m1 - m0 == wb - w1 && m1 == 64 && E(0, 8, 0).Num("status") == 0,
               $"a pipe-fed sprinkler waits while the soil is wet ({wa - wb} used) and sprays when farmland dries ({m1 - m0} moisture from {wb - w1} units of water)");
-        // ----- elevator: a 3x3 platform, a stop 6 up, a ceiling -> floors 0, 6, 9; it carries the player; energy 80 kg x g x h / 80 %
-        Clear(); Elevator.Platforms.Clear(); Put(0, 4, 0, "elevator_3x3"); Put(0, 10, 2, "elevator_stop"); SetCell(bi, f, x0, y0 + 16, z0, Stone);
-        var lift = E(0, 4, 0); lift.SetNum("energy", 50); var floors = Elevator.Floors(lift);
+        // ----- elevator: 10 guide rails under a motor, a 3x3 car hung on their east side, a stop -> floors 0, 5, 8 (from the bottom);
+        // the car carries the player; energy 80 kg x g x h / 80 %
+        Clear(); Elevator.Cars.Clear(); for (int y = 4; y <= 13; y++) Put(0, y, 0, "guide_rail"); Put(0, 14, 0, "elevator"); var motor = E(0, 14, 0); motor.SetNum("energy", 50);
+        bool noRails = !BEH[Id("elevator_car_3x3")].CanPlaceAt(At(6, 6, 6), Id("elevator_car_3x3"), out _);
+        Put(1, 6, 0, "elevator_car_3x3"); Put(0, 10, -1, "elevator_stop");
+        var floors = Elevator.Floors(motor).Select(f => f - Elevator.Bottom(motor)).ToList(); bool gone = At(1, 6, 0).Id == 0;
         V3 FootAt(int x, int y, int z) { var c = At(x, y, z).Center; return c - M.Nrm(c) * .5; } // the bottom centre of a cell
-        double ge = WaterMachines.G(At(0, 4, 0)), cost = Elevator.Cost(6, ge), back = Elevator.Cost(-6, ge);
-        V3 onTop = FootAt(1, 5, 1) + M.Nrm(FootAt(1, 5, 1)) * -.05, overTop = FootAt(1, 5, 1) + M.Nrm(FootAt(1, 5, 1)) * .05;
-        bool solid = Collision.SolidAt(onTop.X, onTop.Y, onTop.Z) && !Collision.SolidAt(overTop.X, overTop.Y, overTop.Z);
+        double ge = WaterMachines.G(At(0, 14, 0)), cost = Elevator.Cost(3, ge), back = Elevator.Cost(-3, ge);
+        V3 inFloor = FootAt(3, 6, 1) - M.Nrm(FootAt(3, 6, 1)) * .05, overFloor = FootAt(3, 6, 1) + M.Nrm(FootAt(3, 6, 1)) * .05;
+        bool solid = Collision.SolidAt(inFloor.X, inFloor.Y, inFloor.Z) && !Collision.SolidAt(overFloor.X, overFloor.Y, overFloor.Z);
         var P = PlayerPhysics.P; var keepP = P.p; bool keepOn = P.on, keepFly = P.fly, keepCore = P.core;
-        P.p = FootAt(0, 5, 0) + M.Nrm(FootAt(0, 5, 0)) * .001; P.on = true; P.fly = false; P.core = false;
+        P.p = FootAt(2, 6, 0) + M.Nrm(FootAt(2, 6, 0)) * .001; P.on = true; P.fly = false; P.core = false;
         Elevator.Update(.05, false, false); bool ate = Elevator.Update(.05, true, false);
-        for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
-        double upDist = (P.p - FootAt(0, 11, 0)).Len, used = 50 - lift.Num("energy"), friction = Elevator.FrictionPerBlock * 9 * 6;
-        Elevator.Update(.05, false, true); for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
-        double downDist = (P.p - FootAt(0, 5, 0)).Len;
-        P.on = false; BEH[Id("elevator_stop")].OnUse(At(0, 10, 2), Id("elevator_stop"), 0); for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
-        double called = lift.Num("h");
+        for (int i = 0; i < 400 && Math.Abs(motor.Num("fy") - motor.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double upDist = (P.p - FootAt(2, 9, 0)).Len, used = 50 - motor.Num("energy"), friction = Elevator.FrictionPerBlock * 9 * 3;
+        Elevator.Update(.05, false, true); for (int i = 0; i < 400 && Math.Abs(motor.Num("fy") - motor.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double downDist = (P.p - FootAt(2, 4, 0)).Len;
+        P.on = false; BEH[Id("elevator_stop")].OnUse(At(0, 10, -1), Id("elevator_stop"), 0); for (int i = 0; i < 400 && Math.Abs(motor.Num("fy") - motor.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double called = motor.Num("fy") - Elevator.Bottom(motor);
         P.p = keepP; P.on = keepOn; P.fly = keepFly; P.core = keepCore; Elevator.Update(.05, false, false);
-        Check(string.Join(",", floors) == "0,6,9" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 6 && cost > .4 && cost < .5 && back < 0,
-              $"elevator 3x3: floors {string.Join(",", floors)}, the platform is solid, carries the player 6 up for {used:0.00} E (80 kg x {ge:0.00} x 6 / 0.8 + {friction:0.00} friction; off by {upDist:0.000}), back down (off by {downDist:0.000}), a stop calls it ({called})");
-        Elevator.Platforms.Clear();
+        bool carBack = BEH[Id("elevator")].Harvest(At(0, 14, 0), Id("elevator"), 0).Any(s => s.Def?.IdName == "elevator_car_3x3");
+        Check(noRails && gone && string.Join(",", floors) == "0,5,8" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 5 && carBack && back < 0,
+              $"elevator: rails + motor + 3x3 car, floors {string.Join(",", floors)}, the car floor is solid, carries the player 3 up for {used:0.00} E (80 kg x {ge:0.00} x 3 / 0.8 + {friction:0.00} friction; off by {upDist:0.000}), back down (off by {downDist:0.000}), a stop calls it ({called}), breaking the motor gives the car back");
+        Elevator.Cars.Clear();
         // ----- conveyor: chest A (10 iron ore) -> extractor -> belts east, a turn south, a slope up, a flat run, a slope down -> chest B
         Clear(); Put(0, 8, 0, "chest", "north"); E(0, 8, 0).Inv("slots")[0] = new ItemStack(Item("iron_ore"), 10); Put(1, 8, 0, "extractor", "east"); Coal(1, 9, 0);
         Put(2, 8, 0, "conveyor_belt", "east"); Put(3, 8, 0, "conveyor_belt", "east"); Put(4, 8, 0, "conveyor_belt", "south"); Put(4, 8, 1, "conveyor_belt", "south");
@@ -115,7 +119,7 @@ public static partial class SelfTest
         // ----- status lamp: a battery at 80 % on its grid -> green
         Clear(); Put(0, 8, 0, "battery"); E(0, 8, 0).SetNum("energy", BatteryBehavior.Capacity * .8); Put(1, 8, 0, "status_lamp"); Ticks(5);
         Check(E(1, 8, 0).Num("level") == 2 && DEFS[Id("status_lamp")].State.Find("level").Value((uint)At(1, 8, 0).State) == 2, "the grid status lamp turns green at 80 % storage");
-        Console.WriteLine($"UTILITIES miner {mn.Num("mined"):0} blocks; hydrogen {el.Num("made_kg") * 1000:0.0} g; drill {dug}; chainsaw {cut}; elevator 6 blocks {cost:0.00} E");
+        Console.WriteLine($"UTILITIES miner {mn.Num("mined"):0} blocks; hydrogen {el.Num("made_kg") * 1000:0.0} g; drill {dug}; chainsaw {cut}; elevator 3 blocks {cost:0.00} E");
         Clear();
         foreach (var c in made) FreeChunk(c);
     }

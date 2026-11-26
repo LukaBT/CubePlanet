@@ -63,6 +63,7 @@ public abstract class BlockBehavior
         ["sprinkler"] = () => new SprinklerBehavior(),
         ["elevator"] = () => new ElevatorBehavior(),
         ["elevator_stop"] = () => new ElevatorStopBehavior(),
+        ["elevator_car"] = () => new ElevatorCarBehavior(),
         ["extractor"] = () => new ExtractorBehavior(),
         ["conveyor"] = () => new ConveyorBehavior(),
         ["status_lamp"] = () => new StatusLampBehavior(),
