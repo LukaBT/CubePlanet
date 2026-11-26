@@ -198,3 +198,14 @@ texture_rows: 16
 195 insulator 48 192
 196 pylon_steel 64 192
 197 power_line 80 192
+198 lamp_off 96 192
+199 lamp_on 112 192
+200 efurnace_front 128 192
+201 efurnace_front_lit 144 192
+202 efurnace_side 160 192
+203 efurnace_top 176 192
+204 motor_front 192 192
+205 motor_side 208 192
+206 motor_back 224 192
+207 solar_cell 240 192
+208 solar_frame 0 208

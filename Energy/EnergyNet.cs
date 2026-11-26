@@ -150,8 +150,8 @@ public static class EnergyNet
                         if (live) { if (GridCache.IsGridId(id)) GridCache.Note(n, id, st); else { GridCache.Forget(n); continue; } }
                         Kind nk;
                         if (IsTransformer(id)) { var (bk, fr, ok) = Sides(n); if (!ok || (bk.Key != p.Key && fr.Key != p.Key)) continue; nk = Kind.Transformer; }
+                        else if (IsMachine(n)) nk = Kind.Machine; // before cables: a solar panel's main part is both
                         else if (IsCable(id)) nk = Kind.Cable;
-                        else if (IsMachine(n)) nk = Kind.Machine;
                         else if (Wires.IsAnchor(id, st, out _)) nk = Kind.Anchor;
                         else continue;
                         if (b.G.Keys.Count >= 4096) continue; // a network ends after 4096 blocks
@@ -177,7 +177,7 @@ public static class EnergyNet
             Balance(net, dt, b, node.ToArray());
         }
     }
-    static Kind KindOf(BlockPos p, int id) => IsCable(id) ? Kind.Cable : IsMachine(p) ? Kind.Machine : Kind.Anchor;
+    static Kind KindOf(BlockPos p, int id) => IsMachine(p) ? Kind.Machine : IsCable(id) ? Kind.Cable : Kind.Anchor;
     static void MaybeCable(Build b, int i)
     {
         if (b.K[i] == Kind.Cable) { var c = CableSpec(b.Id[i]); b.CapLv[i] = c.Cap; b.LossF[i] = c.Loss; b.Rating[i] = (c.MaxV, c.Upkeep); }

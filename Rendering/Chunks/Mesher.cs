@@ -23,7 +23,8 @@ public static class Mesher
     }
 
     internal static short Q16(double v) => (short)Math.Clamp(Math.Round(v), -32767, 32767);
-    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u and v in 1/16 block (0..16), u also carries 32*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.</summary>
+    /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u and v in 1/16 block (0..16), u also carries 32*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.
+    /// sky carries the block light too: sky + 100 x level (0..15), packed into the top 4 bits of the sky word.</summary>
     internal static unsafe MeshData Pack(ReadOnlySpan<float> v, ReadOnlySpan<uint> ix)
     {
         int nv = v.Length / 10; var vb = new byte[nv * 16];
@@ -33,7 +34,8 @@ public static class Mesher
                 int o = k * 10; short* s = (short*)(pb + k * 16);
                 s[0] = Q16(v[o] * 256); s[1] = Q16(v[o + 1] * 256); s[2] = Q16(v[o + 2] * 256); int lf = (int)v[o + 5]; s[3] = (short)(lf & 0xFFFF);
                 ushort* u = (ushort*)(pb + k * 16 + 8);
-                u[0] = (ushort)Math.Clamp(Math.Round(v[o + 6] * 120), 0, 65535);
+                double sv = v[o + 6]; int blk = Math.Clamp((int)(sv / 100), 0, 15); sv -= blk * 100;
+                u[0] = (ushort)(Math.Clamp((int)Math.Round(sv * 120), 0, 4095) | blk << 12); // bits 0..11 sky (x120, + water flags), 12..15 block light
                 int ui = (int)v[o + 3], ao = 3 - ((ui >> 5) & 3);
                 int fl = (ui >> 7) & 63; // water flow (water faces only; the water pass has no ambient occlusion): replaces the ao bits, 6 bits
                 u[1] = (ushort)((ui & 31) | (((int)v[o + 4] & 31) << 5) | (fl != 0 ? fl << 10 : ao << 10)); // bits: u (5, 1/16 block), v (5), ao (2) or flow (6)
@@ -217,6 +219,46 @@ public static class Mesher
                 if (gi > 0) Tn(i - SY, val); if (gi < LH - 1) Tn(i + SY, val);
             }
         }
+        // ---- block light (lit lamps, BlockLights): level L at the lamp, one less per block through non-opaque cells; only built when a light is
+        // within reach of this chunk (LM = 8 blocks), so the lamp level must stay <= 9
+        byte[] BL = null; bool blDone = false;
+        void BlInit()
+        {
+            blDone = true; if (BlockLights.All.IsEmpty || ch.core) return;
+            int x0b = ch.cx * CS - LM, y0b = ch.cy * CS - LY, z0b = ch.cz * CS - LM; var seeds = new List<(int i, int lv)>();
+            foreach (var l in BlockLights.All.Values)
+            {
+                if (l.B != ch.band || l.F != f) continue;
+                int gx = l.X - x0b, gy = l.Y - y0b, gz = l.Z - z0b;
+                if (gx < 0 || gx >= LW || gz < 0 || gz >= LW || gy < 0 || gy >= LH) continue;
+                seeds.Add(((gy * LW + gz) * LW + gx, Math.Min(15, l.Level)));
+            }
+            if (seeds.Count == 0) return;
+            int N3 = LW * LW * LH; var bl = new byte[N3]; var bo = new byte[N3]; var nb = new Chunk[27]; var q = new int[N3]; int qh = 0, qt = 0;
+            for (int i = 0; i < 27; i++) { chunkMap.TryGetValue(ck(ch.band, f, ch.cx + i % 3 - 1, ch.cy + i / 9 - 1, ch.cz + (i / 3) % 3 - 1), out var c); nb[i] = c != null && c.d != null ? c : null; }
+            for (int gy = 0; gy < LH; gy++) for (int gz = 0; gz < LW; gz++) for (int gx = 0; gx < LW; gx++)
+                    {
+                        int lx = gx - LM, ly = gy - LY, lz = gz - LM, cxo = lx < 0 ? 0 : lx >= CS ? 2 : 1, cyo = ly < 0 ? 0 : ly >= CS ? 2 : 1, czo = lz < 0 ? 0 : lz >= CS ? 2 : 1;
+                        var c = nb[cyo * 9 + czo * 3 + cxo];
+                        bo[(gy * LW + gz) * LW + gx] = c == null ? (byte)1 : OPQ[c.d[(lx & 31) + 32 * ((lz & 31) + 32 * (ly & 31))]];
+                    }
+            foreach (var (i, lv) in seeds) if (bl[i] < lv) { bl[i] = (byte)lv; q[qt++] = i; }
+            int SY = LW * LW;
+            while (qh < qt)
+            {
+                int i = q[qh++], val = bl[i] - 1; if (val <= 0) continue;
+                int gx = i % LW, gz = (i / LW) % LW, gy = i / SY;
+                void T(int j) { if (bo[j] == 0 && bl[j] < val) { bl[j] = (byte)val; q[qt++] = j; } }
+                if (gx > 0) T(i - 1); if (gx < LW - 1) T(i + 1); if (gz > 0) T(i - LW); if (gz < LW - 1) T(i + LW); if (gy > 0) T(i - SY); if (gy < LH - 1) T(i + SY);
+            }
+            BL = bl;
+        }
+        int BlAt(int nx, int ny, int nz)
+        {
+            if (!blDone) BlInit(); if (BL == null) return 0;
+            ny += LY; if (ny < 0 || ny >= LH || nx < -LM || nx >= CS + LM || nz < -LM || nz >= CS + LM) return 0;
+            return BL[(ny * LW + nz + LM) * LW + nx + LM];
+        }
         double LightAt(int nx, int ny, int nz)
         {
             if (LT == null) LightInit();
@@ -267,7 +309,7 @@ public static class Mesher
                     if (edge && OPQ[Gb(nx, ny, nz)] != 0) continue;
                     BoxFace(mb.Box, fc, q, uv); var p = new V3[4];
                     for (int i = 0; i < 4; i++) p[i] = Pw(x + q[i][0], y + q[i][1], z + q[i][2]);
-                    double sky = EMI[id] ? 1 : edge ? LightAt(nx, ny, nz) : LightAt(x, y, z);
+                    double sky = (EMI[id] ? 1 : edge ? LightAt(nx, ny, nz) : LightAt(x, y, z)) + 100 * (edge ? BlAt(nx, ny, nz) : BlAt(x, y, z)); // + block light, see Pack
                     double ax = p[2].X - p[0].X, ay = p[2].Y - p[0].Y, az = p[2].Z - p[0].Z, bx = p[3].X - p[1].X, by = p[3].Y - p[1].Y, bz = p[3].Z - p[1].Z;
                     PQUV(p, LayTex(id, mb.Faces[fc]), sky, M.Nrm(new V3(ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx)), uv);
                 }
@@ -275,7 +317,7 @@ public static class Mesher
         // plants (crossed quads), vines (thin planes on supporting sides) and cocoa pods (small boxes)
         void Special(int id, int x, int y, int z)
         {
-            double sky = LightAt(x, y, z); V3 up = M.Nrm(Pt(x + .5, y + .5, z + .5));
+            double sky = LightAt(x, y, z) + 100 * BlAt(x, y, z); V3 up = M.Nrm(Pt(x + .5, y + .5, z + .5));
             // plants with state (crop stages): the texture of their current state, not the base one
             float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[2]) : Lay(id);
             if (ATT[id] == 1) // vine
@@ -447,6 +489,7 @@ public static class Mesher
                         }
                         else sky = LightAt(nx, ny, nz);
                         if (EMI[id]) sky = 1; // self-lit blocks (lava, magma, sea lanterns)
+                        if (!wt) sky += 100 * BlAt(nx, ny, nz); // block light (lamps), see Pack
                         float lay = HASVAR[id] ? LayTex(id, Variant(id, StAt(x, y, z)).Faces[fc]) : Lay(id, fc);
                         int flow = wt && WaterFlow.Cells.Count > 0 ? FlowBits(x, y, z, fc) : 0;
                         // ambient occlusion: per corner, count the opaque blocks touching it in the layer in front of the face (2 sides + diagonal)

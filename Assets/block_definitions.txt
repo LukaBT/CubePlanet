@@ -14628,6 +14628,1200 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "electric_lamp",
+      "id": 157,
+      "name": "Electric Lamp",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 198
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "lamp",
+          "lod_color": [
+            220,
+            200,
+            140
+          ],
+          "lamp": {
+            "level": 9,
+            "power": 0.5
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "lit": true
+                },
+                "textures": {
+                  "all": 199
+                }
+              }
+            ]
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "electric_lamp",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "lit": {
+            "type": "boolean",
+            "default": false
+          },
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "on": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "electric_furnace",
+      "id": 158,
+      "name": "Electric Furnace",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 200,
+        "side": 202,
+        "top": 203,
+        "bottom": 203
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "electric_furnace"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "electric_furnace",
+          "lod_color": [
+            175,
+            178,
+            184
+          ],
+          "electric_furnace": {
+            "power": 12,
+            "speed": 2
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "lit": true
+                },
+                "textures": {
+                  "north": 201
+                }
+              }
+            ]
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "electric_furnace",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "lit": {
+            "type": "boolean",
+            "default": false
+          },
+          "input": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "electric_motor",
+      "id": 159,
+      "name": "Electric Motor",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 204,
+        "south": 206,
+        "side": 205,
+        "top": 205,
+        "bottom": 205
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "motor",
+          "lod_color": [
+            50,
+            110,
+            160
+          ],
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5,
+                0.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.375,
+                  "y": 0.375,
+                  "z": -0.06,
+                  "w": 0.25,
+                  "h": 0.25,
+                  "d": 0.06,
+                  "textures": {
+                    "all": 178
+                  }
+                }
+              ]
+            }
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "electric_motor",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "drive": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "mode": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "solar_panel_small",
+      "id": 160,
+      "name": "Solar Panel",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 208
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "solar_panel",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            50,
+            70,
+            130
+          ],
+          "solar": {
+            "power": 3,
+            "tilt_max": 60
+          },
+          "cable": {
+            "capacity": 256,
+            "loss": 0,
+            "max_voltage": "LV"
+          },
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                0.5,
+                0.5850000000000001,
+                0.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.04,
+                  "y": 0.55,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                }
+              ]
+            }
+          ],
+          "boxes": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "z": 0.3,
+              "w": 0.4,
+              "h": 0.06,
+              "d": 0.4,
+              "textures": {
+                "all": 208
+              }
+            },
+            {
+              "x": 0.44,
+              "y": 0.06,
+              "z": 0.44,
+              "w": 0.12,
+              "h": 0.49,
+              "d": 0.12,
+              "textures": {
+                "all": 208
+              }
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.62,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.62,
+                "d": 1
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "solar_panel_small",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "light": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "solar_panel_medium",
+      "id": 161,
+      "name": "Medium Solar Panel",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 208
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "solar_panel",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            50,
+            70,
+            130
+          ],
+          "solar": {
+            "power": 14,
+            "tilt_max": 55
+          },
+          "cable": {
+            "capacity": 256,
+            "loss": 0,
+            "max_voltage": "LV"
+          },
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                1.0,
+                0.915,
+                1.0
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.04,
+                  "y": 0.88,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 1.04,
+                  "y": 0.88,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 0.04,
+                  "y": 0.88,
+                  "z": 1.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 1.04,
+                  "y": 0.88,
+                  "z": 1.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                }
+              ]
+            }
+          ],
+          "multiblock": {
+            "parts": [
+              {
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "main"
+                }
+              },
+              {
+                "offset": [
+                  1,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "p1"
+                }
+              },
+              {
+                "offset": [
+                  0,
+                  0,
+                  1
+                ],
+                "state": {
+                  "part": "p2"
+                }
+              },
+              {
+                "offset": [
+                  1,
+                  0,
+                  1
+                ],
+                "state": {
+                  "part": "p3"
+                }
+              }
+            ]
+          },
+          "boxes": [
+            {
+              "x": 0.85,
+              "y": 0,
+              "z": 0.85,
+              "w": 0.15,
+              "h": 0.88,
+              "d": 0.15,
+              "textures": {
+                "all": 208
+              }
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.95,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.95,
+                "d": 1
+              }
+            ],
+            "state_overrides": [
+              {
+                "when": {
+                  "part": "main"
+                },
+                "boxes": [
+                  {
+                    "x": 0.85,
+                    "y": 0,
+                    "z": 0.85,
+                    "w": 0.15,
+                    "h": 0.88,
+                    "d": 0.15,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p1"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.85,
+                    "w": 0.15,
+                    "h": 0.88,
+                    "d": 0.15,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p2"
+                },
+                "boxes": [
+                  {
+                    "x": 0.85,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.15,
+                    "h": 0.88,
+                    "d": 0.15,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p3"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.15,
+                    "h": 0.88,
+                    "d": 0.15,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "solar_panel_medium",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "light": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "part": {
+            "type": "string",
+            "values": [
+              "main",
+              "p1",
+              "p2",
+              "p3"
+            ],
+            "default": "main"
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "solar_panel_large",
+      "id": 162,
+      "name": "Large Solar Panel",
+      "stateless": false,
+      "group_tags": [
+        "energy_cable",
+        "energy"
+      ],
+      "textures": {
+        "all": 208
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "solar_panel",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            50,
+            70,
+            130
+          ],
+          "solar": {
+            "power": 36,
+            "tilt_max": 38
+          },
+          "cable": {
+            "capacity": 256,
+            "loss": 0,
+            "max_voltage": "LV"
+          },
+          "moving_parts": [
+            {
+              "axis": "z",
+              "pivot": [
+                1.5,
+                0.9550000000000001,
+                1.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.04,
+                  "y": 0.92,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 1.04,
+                  "y": 0.92,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 2.04,
+                  "y": 0.92,
+                  "z": 0.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 0.04,
+                  "y": 0.92,
+                  "z": 1.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 1.04,
+                  "y": 0.92,
+                  "z": 1.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 2.04,
+                  "y": 0.92,
+                  "z": 1.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 0.04,
+                  "y": 0.92,
+                  "z": 2.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 1.04,
+                  "y": 0.92,
+                  "z": 2.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                },
+                {
+                  "x": 2.04,
+                  "y": 0.92,
+                  "z": 2.04,
+                  "w": 0.92,
+                  "h": 0.07,
+                  "d": 0.92,
+                  "textures": {
+                    "all": 208,
+                    "top": 207
+                  }
+                }
+              ]
+            }
+          ],
+          "multiblock": {
+            "parts": [
+              {
+                "offset": [
+                  0,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "main"
+                }
+              },
+              {
+                "offset": [
+                  1,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "p1"
+                }
+              },
+              {
+                "offset": [
+                  2,
+                  0,
+                  0
+                ],
+                "state": {
+                  "part": "p2"
+                }
+              },
+              {
+                "offset": [
+                  0,
+                  0,
+                  1
+                ],
+                "state": {
+                  "part": "p3"
+                }
+              },
+              {
+                "offset": [
+                  1,
+                  0,
+                  1
+                ],
+                "state": {
+                  "part": "p4"
+                }
+              },
+              {
+                "offset": [
+                  2,
+                  0,
+                  1
+                ],
+                "state": {
+                  "part": "p5"
+                }
+              },
+              {
+                "offset": [
+                  0,
+                  0,
+                  2
+                ],
+                "state": {
+                  "part": "p6"
+                }
+              },
+              {
+                "offset": [
+                  1,
+                  0,
+                  2
+                ],
+                "state": {
+                  "part": "p7"
+                }
+              },
+              {
+                "offset": [
+                  2,
+                  0,
+                  2
+                ],
+                "state": {
+                  "part": "p8"
+                }
+              }
+            ]
+          },
+          "boxes": [
+            {
+              "x": 0.42,
+              "y": 0,
+              "z": 0.42,
+              "w": 0.16,
+              "h": 0.08,
+              "d": 0.16,
+              "textures": {
+                "all": 208
+              }
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.99,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.99,
+                "d": 1
+              }
+            ],
+            "state_overrides": [
+              {
+                "when": {
+                  "part": "main"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p1"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p2"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p3"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p4"
+                },
+                "boxes": [
+                  {
+                    "x": 0.4,
+                    "y": 0,
+                    "z": 0.4,
+                    "w": 0.2,
+                    "h": 0.92,
+                    "d": 0.2,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p5"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p6"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p7"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "part": "p8"
+                },
+                "boxes": [
+                  {
+                    "x": 0.42,
+                    "y": 0,
+                    "z": 0.42,
+                    "w": 0.16,
+                    "h": 0.08,
+                    "d": 0.16,
+                    "textures": {
+                      "all": 208
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "solar_panel_large",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "light": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "part": {
+            "type": "string",
+            "values": [
+              "main",
+              "p1",
+              "p2",
+              "p3",
+              "p4",
+              "p5",
+              "p6",
+              "p7",
+              "p8"
+            ],
+            "default": "main"
+          }
+        }
+      }
     }
   ]
 }

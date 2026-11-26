@@ -31,7 +31,7 @@ public static class Hud
         var t = TG; if (t == null || t.id == 0) return "";
         var d = DEFS[t.id]; string st = d == null || d.State.Packed.Count == 0 ? "" : " " + d.State.Describe((uint)t.state).ToUpperInvariant();
         string more = "";
-        if (BEH[t.id] != null && BlockStates.entities.TryGetValue(BlockPos.Of(t).Key, out var be)) { string s = BEH[t.id].Describe(be); if (s.Length > 0) more = "\n" + s; }
+        if (BEH[t.id] != null && (BlockStates.entities.TryGetValue(BlockPos.Of(t).Key, out var be) || BlockStates.entities.TryGetValue(Electric.MainPart(BlockPos.Of(t)).Key, out be))) { string s = BEH[t.id].Describe(be); if (s.Length > 0) more = "\n" + s; }
         var tp = BlockPos.Of(t);
         if (Wires.IsAnchor(tp)) more += "\n" + Wires.Describe(tp);
         else if (EnergyNet.IsCable(t.id)) more += "\n" + EnergyNet.DescribeCable(tp);

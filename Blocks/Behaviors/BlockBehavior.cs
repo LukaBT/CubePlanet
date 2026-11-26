@@ -45,6 +45,10 @@ public abstract class BlockBehavior
         ["generator"] = () => new GeneratorBehavior(),
         ["coal_generator"] = () => new CoalGeneratorBehavior(),
         ["transformer"] = () => new TransformerBehavior(),
+        ["lamp"] = () => new LampBehavior(),
+        ["electric_furnace"] = () => new ElectricFurnaceBehavior(),
+        ["motor"] = () => new MotorBehavior(),
+        ["solar_panel"] = () => new SolarPanelBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

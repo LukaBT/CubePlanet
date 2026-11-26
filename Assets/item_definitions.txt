@@ -2960,6 +2960,114 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "electric_lamp",
+      "id": 165,
+      "name": "Electric Lamp",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "electric_lamp"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "electric_furnace",
+      "id": 166,
+      "name": "Electric Furnace",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "electric_furnace"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "electric_motor",
+      "id": 167,
+      "name": "Electric Motor",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "electric_motor"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "solar_panel_small",
+      "id": 168,
+      "name": "Solar Panel",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "solar_panel_small"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "solar_panel_medium",
+      "id": 169,
+      "name": "Medium Solar Panel",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "solar_panel_medium"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "solar_panel_large",
+      "id": 170,
+      "name": "Large Solar Panel",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "solar_panel_large"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

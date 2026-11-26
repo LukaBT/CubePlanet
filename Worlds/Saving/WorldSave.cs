@@ -265,7 +265,7 @@ public static class WorldSave
     {
         WaitPending();
         lock (EditLock) { edits.Clear(); ecount.Clear(); BlockStates.states.Clear(); saved.Clear(); }
-        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Kinetics.Clock = 0; Kinetics.Natural(); Wires.Reset(); GridCache.Reset();
+        BlockStates.entities.Clear(); CoreGrid.coreEd.Clear(); WaterFlow.Clear(); WaterSim.Reservoir = WaterSim.DefaultReservoir; Kinetics.Clock = 0; Kinetics.Natural(); Wires.Reset(); GridCache.Reset(); BlockLights.Reset();
         foreach (var ch in chunks.Values) { ch.d = null; ch.st = null; ch.gst = 0; }
     }
 

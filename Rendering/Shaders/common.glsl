@@ -5,6 +5,7 @@ uniform float uOvc,uStorm,uFlash,uSnow,uWet;
 uniform float uR,uAT,uTime,uFog,uRc0,uRc1,uCov,uShOn,uCsOn;
 uniform sampler3D uN;
 float gAO=1.; // ambient occlusion of the current fragment (1 = open), set by the terrain shader
+float gBl=0.; // block light (lamps) of the current fragment 0..1, set by the terrain shader
 vec3 sunTint(float se){return mix(vec3(1.,.36,.1),vec3(1.,.95,.84),smoothstep(0.,.5,se));}
 vec3 sunCol(float se){return sunTint(se)*smoothstep(-.07,.12,se);}
 vec3 tmap(vec3 c){c*=.9;c=(c*(2.51*c+.03))/(c*(2.43*c+.59)+.14);return pow(clamp(c,0.,1.),vec3(1./2.2));}
@@ -46,7 +47,7 @@ vec3 lightIt(vec3 alb,vec3 n,vec3 up,vec3 wp,float sky,float sh,float dist){
  vec3 ambG=mix(vec3(.03,.035,.06),vec3(.3,.27,.22),dayF);
  vec3 amb=mix(ambG,ambS,dot(n,up)*.5+.5)*mix(.08,1.,sky)*gAO;dir*=.55+.45*gAO;
  vec3 moon=vec3(.12,.16,.3)*max(dot(n,-uS),0.)*(1.-dayF)*sky;
- vec3 lamp=vec3(0.);
+ vec3 lamp=vec3(1.,.78,.52)*1.6*gBl*gBl*gAO; // block light (lamps)
  return alb*(dir+amb*(1.-.3*uOvc)+moon+lamp+uFlash*vec3(.9,.95,1.2)*sky);}
 // sun shadow: up to 3 cascades (uShN), the nearest one that contains the point; 5x5 PCF in the near cascade, 3x3 further out
 float shadowAt(vec3 p,vec3 n){

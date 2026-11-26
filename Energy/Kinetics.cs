@@ -83,6 +83,11 @@ public static class Kinetics
                 double p = wt.Power(e), sg = WindTurbineBehavior.Spin(e); torque += sg * p; turbines++;
                 double w = wt.FreeSpeed(e); if (w > 0) { free += sg * w; turning++; }
             }
+            else if (BEH[e.BlockId] is MotorBehavior)
+            {   // an electric motor drives the line with the energy it got last step
+                double p = e.Num("drive"), sg = MotorBehavior.Spin(e); torque += sg * p; turbines++;
+                if (p > 0) { free += sg * 2.5; turning++; }
+            }
             else if (BEH[e.BlockId] is GeneratorBehavior) gens.Add(e);
         double src = Math.Abs(torque);
         double used = 0;

@@ -238,6 +238,22 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   an MV branch line ~160 blocks to a village (LV-MV, 3 batteries). It then reloads the saved world with no chunks loaded and checks
   that the town and the village still get their power.
 
+## Electric machines, lamps, solar (Energy/Electric.cs)
+* **Electric Lamp** (0.5 E/s): lights up when powered and gives **block light** around it (level 9 at the lamp, one less per block,
+  separate from sky light so it shows at night; Rendering/Chunks/Mesher.cs block light, packed into the top 4 bits of the vertex sky
+  word, `lamp` term in common.glsl). Right click: AUTO (lit at night only, like a street light) / ON / OFF. No power: dark.
+* **Electric Furnace** (12 E/s while working): smelts the furnace recipes without fuel, twice as fast; slower if the grid is short.
+* **Electric Motor**: the reverse of a generator: up to 30 E/s in, 90 % out as rotation at its front (a shaft line, generators or other
+  rotation machines). Right click: 100 % / 50 % / 25 % / OFF.
+* **Solar Panels**: small (1 block, 3 E/s), medium (2 x 2, 14 E/s), large (3 x 3, 36 E/s) in full sun straight on. Output = that x the
+  share of sunlight falling straight on the panel (cos of the angle) with a fade near the horizon; nothing at night. Right click: FIXED
+  (lying flat) or TRACKING: the panel turns about its north-south axis to face the sun (up to 60 / 55 / 38 degrees), more than doubling
+  the output at a low sun; the tracking motor uses 2 % of the panel's power. Every part of a big panel joins cables, so panels side by
+  side form one array; the HUD works on any part.
+* `--demoelectric NAME [--demosecs S]` (no window) builds a world at sunset: a solar farm (fixed and tracking panels of all sizes) into a
+  battery bank with 2 coal generators as night backup, a street of lamps on AUTO, 2 electric furnaces smelting iron ore, and a motor
+  turning a shaft line into a generator.
+
 ## Wind, shafts, generators, coal
 Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:
 * **Wind** is one for the whole world: a speed (0..16 m/s, about 8 on average, gusting) and a direction it comes from, in compass terms of
