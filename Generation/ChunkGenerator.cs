@@ -53,7 +53,7 @@ public static class ChunkGenerator
                 else
                     for (int z = 0; z < CS; z++) for (int x = 0; x < CS; x++) for (int y = 0; y < CS; y++)
                             { int i = x + CS * z; double r = r0 + y + .5; d[x + CS * (z + CS * y)] = (ushort)StoneAt(R + c.h[i] - r, i, r, salt); }
-                ApplyOres(ch, d, c, r0, f); ch.solid = true; Volatile.Write(ref ch.d, d); return;
+                ApplyOres(ch, d, c, r0, f); ch.solid = !ApplyOil(ch, d, c, r0, f); Volatile.Write(ref ch.d, d); return;
             }
         }
         double[] NG = null; (double, double)[] aq = null;
@@ -84,7 +84,7 @@ public static class ChunkGenerator
                     d[x + CS * (z + CS * y)] = (ushort)id;
                 }
             }
-        ApplyOres(ch, d, c, r0, f);
+        ApplyOres(ch, d, c, r0, f); ApplyOil(ch, d, c, r0, f);
         if (fl == null && r0 + CS > R - 24) fl = Feats(ch, B, f);
         if (fl != null && fl.Count > 0) ApplyFeats(ch, d, fl);
         if (r0 + CS > R && r0 <= R + c.hi + 2) Cover(ch, d, c, B, f);

@@ -16,7 +16,7 @@ public static partial class Blocks
     public static int MagmaBlock, Obsidian, PrismarineBricks, SeaLantern, DeadCoralBlock, CherryLog, CherryPlanks, PalmLog, PalmPlanks, CherryLeaves, FloweringAzaleaLeaves;
     public static int AzaleaLeaves, PalmLeaves, SnowySpruceLeaves, TubeCoralBlock, BrainCoralBlock, BubbleCoralBlock, FireCoralBlock, HornCoralBlock, PinkPetals;
     public static int PinkTulip, Bluebell, Lavender, Bamboo, SweetBerryBush, Seagrass, Kelp, SeaPickle, TubeCoralFan, BrainCoralFan, BubbleCoralFan, FireCoralFan;
-    public static int HornCoralFan;
+    public static int HornCoralFan, Oil, OilShale;
 
     // box-model examples (phase 3)
     public static int OakSlab, StoneSlab, CobblestoneSlab, OakStairs, StoneBrickStairs, OakFence;
@@ -55,6 +55,6 @@ public static partial class Blocks
         HornCoralBlock = r.Id("base:horn_coral_block"); PinkPetals = r.Id("base:pink_petals"); PinkTulip = r.Id("base:pink_tulip"); Bluebell = r.Id("base:bluebell");
         Lavender = r.Id("base:lavender"); Bamboo = r.Id("base:bamboo"); SweetBerryBush = r.Id("base:sweet_berry_bush"); Seagrass = r.Id("base:seagrass");
         Kelp = r.Id("base:kelp"); SeaPickle = r.Id("base:sea_pickle"); TubeCoralFan = r.Id("base:tube_coral_fan"); BrainCoralFan = r.Id("base:brain_coral_fan");
-        BubbleCoralFan = r.Id("base:bubble_coral_fan"); FireCoralFan = r.Id("base:fire_coral_fan"); HornCoralFan = r.Id("base:horn_coral_fan");
+        BubbleCoralFan = r.Id("base:bubble_coral_fan"); FireCoralFan = r.Id("base:fire_coral_fan"); HornCoralFan = r.Id("base:horn_coral_fan"); Oil = r.Id("base:oil"); OilShale = r.Id("base:oil_shale");
     }
 }

@@ -38,4 +38,43 @@ public static class Ores
             }
         }
     }
+    // ---- oil reservoirs: flattened lenses of oil in stone, 35..90 blocks below the local surface under a cap of oil shale. One chance per
+    // 96 x 96 block cell of the band's grid (30 %), so they line up across chunks. Plain natural oil: it only moves once something reaches it
+    // (a pump's pipe, a tunnel), like any liquid.
+    const int OilGrid = 96;
+    internal static bool OilSite(int band, int f, int gx, int gz, out double cx, out double cz, out double cd, out double rh, out double rv)
+    {
+        double h = Features.HH(band * 6 + f + 7777, gx, 911, gz); cx = cz = cd = rh = rv = 0;
+        if (h > .3) return false;
+        cx = (gx + .15 + .7 * Features.HH(band * 6 + f, gx, 912, gz)) * OilGrid; cz = (gz + .15 + .7 * Features.HH(band * 6 + f, gx, 913, gz)) * OilGrid;
+        cd = 35 + 55 * Features.HH(band * 6 + f, gx, 914, gz); rh = 5 + 6 * Features.HH(band * 6 + f, gx, 915, gz); rv = 2.5 + 2 * Features.HH(band * 6 + f, gx, 916, gz);
+        return true;
+    }
+    /// <summary>Oil and its oil-shale cap where a reservoir lies in this chunk (only replaces stone, deepslate and ores). True if any was placed.</summary>
+    internal static bool ApplyOil(Chunk ch, ushort[] d, Col c, double r0, int f)
+    {
+        int x0 = ch.cx * CS, z0 = ch.cz * CS; bool any = false;
+        for (int gz = (int)Math.Floor((z0 - 12.0) / OilGrid); gz <= (int)Math.Floor((z0 + CS + 12.0) / OilGrid); gz++)
+            for (int gx = (int)Math.Floor((x0 - 12.0) / OilGrid); gx <= (int)Math.Floor((x0 + CS + 12.0) / OilGrid); gx++)
+            {
+                if (!OilSite(ch.band, f, gx, gz, out double cx, out double cz, out double cd, out double rh, out double rv)) continue;
+                if (cx + rh * 1.4 < x0 || cx - rh * 1.4 > x0 + CS || cz + rh * 1.4 < z0 || cz - rh * 1.4 > z0 + CS) continue;
+                for (int z = 0; z < CS; z++)
+                    for (int x = 0; x < CS; x++)
+                    {
+                        double ux = (x0 + x + .5 - cx) / rh, uz = (z0 + z + .5 - cz) / rh, hq = ux * ux + uz * uz; if (hq > 1.9) continue;
+                        int i = x + CS * z; double surf = R + c.h[i];
+                        for (int y = 0; y < CS; y++)
+                        {
+                            double dp = surf - (r0 + y + .5), uy = (dp - cd) / rv, q = hq + uy * uy; if (q > 1.9) continue;
+                            int j = x + CS * (z + CS * y), b = d[j];
+                            if (b != Stone && b != Deepslate && !IsOre(b)) continue;
+                            if (q < 1) { d[j] = (ushort)Oil; any = true; }
+                            else if (uy < 0) { d[j] = (ushort)OilShale; any = true; } // the cap rock above the oil
+                        }
+                    }
+            }
+        return any;
+    }
+    static bool IsOre(int b) { foreach (var o in ORES) if (b == o.id || b == o.deep) return true; return false; }
 }

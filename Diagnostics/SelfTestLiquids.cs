@@ -51,6 +51,23 @@ public static partial class SelfTest
         for (int i = 0; i < 60; i++) { BlockActions.Tick(.1); if ((i & 1) == 1) WaterSim.WaterStep(); }
         int water = t?.Put(5, Water) ?? -1;
         Check(t != null && t.Holds == Oil && t.Water > 10 && water == 0, $"a pump fills a tank with oil ({t?.Water:0} units of {(t?.Holds > 0 ? DEFS[t.Holds].IdName : "nothing")}); the oil tank takes no water ({water})");
+        // oil reservoirs: generate the ground under the nearest oil site and find its oil and cap rock
+        int oilCells = 0, shale = 0; bool site = false;
+        for (int r = 0; r <= 4 && !site; r++)
+            for (int gz = PZ / 96 - r; gz <= PZ / 96 + r && !site; gz++) for (int gx = PX / 96 - r; gx <= PX / 96 + r && !site; gx++)
+                {
+                    if (!Ores.OilSite(bi, f, gx, gz, out double ocx, out double ocz, out _, out _, out _)) continue;
+                    site = true; int sx = (int)ocx >> 5, sz = (int)ocz >> 5;
+                    for (int cy = (PY - 190) >> 5; cy <= (PY + 40) >> 5; cy++)
+                    {
+                        long k = ck(bi, f, sx, cy, sz); bool mine = false;
+                        if (!chunks.TryGetValue(k, out var c)) { c = new Chunk { key = k, band = bi, face = f, cx = sx, cy = cy, cz = sz }; AddChunk(c); mine = true; }
+                        ChunkGenerator.Ensure(c);
+                        if (c.d != null) foreach (var v in c.d) { if (v == Oil) oilCells++; else if (v == OilShale) shale++; }
+                        if (mine) FreeChunk(c);
+                    }
+                }
+        Check(site && oilCells > 50 && shale > 10, $"oil reservoirs generate underground ({oilCells} oil and {shale} oil shale cells in the column under the nearest site)");
         Clear();
         foreach (var c in made) FreeChunk(c);
     }

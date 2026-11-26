@@ -3720,6 +3720,24 @@
         },
         "instance_state": {}
       }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oil_shale",
+      "id": 208,
+      "name": "Oil Shale",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oil_shale"
+          }
+        },
+        "instance_state": {}
+      }
     }
   ]
 }

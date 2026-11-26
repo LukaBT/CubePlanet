@@ -180,6 +180,8 @@ Performance: the simulation runs on the main thread (it changes the same block d
   oxygen open to the air boils away (about 0.2 units a second per open cell); keep it in a tank. The bucket holds one liquid at a time.
   Pipes, pumps, turbines, valves and tanks work with any liquid (one liquid per tank); energy uses the liquid's density (oil 850 kg/m^3,
   lava 3100, liquid oxygen 1141), so the same drop of oil gives 85 % of water's energy.
+* **Oil reservoirs**: lenses of oil 35..90 blocks below the surface under a cap of **Oil Shale** (about one per 300 x 300 blocks). Dig
+  or drill down to the shale, run a liquid pipe into the oil and pump it up into a tank. The oil only moves once something reaches it.
 * **Liquid Pipe** carries water for turbines and pumps. A pipe opens at its ends only (the side opposite its single connection).
 * **Liquid Turbine**: water flows from its back (intake) to its front (outlet; it faces you when placed, up or down when you look up or
   down). Energy = units x head x 0.1 x 0.8 E, head = the intake's water surface over the outlet's (a pipe from a lake's bottom down to the

@@ -111,6 +111,60 @@
     {
       "type": "block",
       "namespace": "base",
+      "id_name": "oil_shale",
+      "id": 193,
+      "name": "Oil Shale",
+      "stateless": true,
+      "group_tags": [],
+      "textures": {
+        "all": 258
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            70,
+            64,
+            58
+          ],
+          "default_state": "normal",
+          "hardness": 1,
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "width": 1,
+                "height": 1
+              }
+            ],
+            "state_overrides": []
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oil_shale",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
       "id_name": "dirt",
       "id": 3,
       "name": "Dirt",
