@@ -3323,6 +3323,266 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "electric_drill",
+      "id": 186,
+      "name": "Electric Drill",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "behavior": "drill"
+        },
+        "instance_state": {
+          "charge": {
+            "type": "integer",
+            "min": 0,
+            "max": 4000,
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "chainsaw",
+      "id": 187,
+      "name": "Chainsaw",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "behavior": "chainsaw"
+        },
+        "instance_state": {
+          "charge": {
+            "type": "integer",
+            "min": 0,
+            "max": 4000,
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "miner",
+      "id": 188,
+      "name": "Automatic Miner",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "miner"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "electrolyzer",
+      "id": 189,
+      "name": "Electrolyzer",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "electrolyzer"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "hydrogen_tank",
+      "id": 190,
+      "name": "Hydrogen Tank",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "hydrogen_tank"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "fuel_cell",
+      "id": 191,
+      "name": "Fuel Cell",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "fuel_cell"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "charger",
+      "id": 192,
+      "name": "Charger",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "charger"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "grow_light",
+      "id": 193,
+      "name": "Grow Light",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "grow_light"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sprinkler",
+      "id": 194,
+      "name": "Sprinkler",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sprinkler"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator",
+      "id": 195,
+      "name": "Elevator",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "item_pipe",
+      "id": 196,
+      "name": "Item Pipe",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "item_pipe"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "extractor",
+      "id": 197,
+      "name": "Extractor",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "extractor"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "conveyor_belt",
+      "id": 198,
+      "name": "Conveyor Belt",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "conveyor_belt"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "status_lamp",
+      "id": 199,
+      "name": "Grid Status Lamp",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "status_lamp"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

@@ -74,10 +74,11 @@ public sealed class LampBehavior : BlockBehavior, IEnergyMachine
     {
         e.SetNum("on", on ? 1 : 0); Electric.SetBool(e, "lit", on);
         if (on) BlockLights.Set(e.Pos, Level(e.BlockId)); else BlockLights.Remove(e.Pos);
+        if (Electric.Key(this, e.BlockId, "lamp", "grow", 0) > 0) { if (on) GrowLights.Lit[e.Pos.Key] = e.Pos; else GrowLights.Lit.TryRemove(e.Pos.Key, out _); } // grow lights
     }
     // off the grid (no network reached it this step): dark
     public override void OnTick(BlockEntity e, double dt) { if (!EnergyNet.NetOf.ContainsKey(e.Pos.Key) && e.Num("on") > 0) Light(e, false); }
-    public override IEnumerable<ItemStack> Harvest(BlockPos p, int id, int state) { BlockLights.Remove(p); return base.Harvest(p, id, state); }
+    public override IEnumerable<ItemStack> Harvest(BlockPos p, int id, int state) { BlockLights.Remove(p); GrowLights.Lit.TryRemove(p.Key, out _); return base.Harvest(p, id, state); }
     public override string Describe(BlockEntity e) => $"{modes[(int)e.Num("mode") % 3]}  {(e.Num("on") > 0 ? "LIT" : "DARK")}  {Power(e.BlockId):0.0} E/S WHEN LIT";
 }
 

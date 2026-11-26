@@ -43,6 +43,8 @@ public static class BlockEditing
         var T = Raycast(P.on ? 6 : 10);
         if (plc && !sneaking && T != null && BlockActions.CanUse(T.id)) { if (useClick) BlockActions.Use(BlockPos.Of(T)); return; }
         if (held is { IsEmpty: false } && held.Def?.Behavior == "bucket") { BucketUse(held, brk, plc); return; }
+        if (brk && T != null && held is { IsEmpty: false } && held.Def?.Behavior == "drill") { Tools.Drill(held, BlockPos.Of(T), C.f); return; }
+        if (brk && T != null && held is { IsEmpty: false } && held.Def?.Behavior == "chainsaw") { Tools.Chainsaw(held, BlockPos.Of(T)); return; }
         if (plc && held is { IsEmpty: false } && held.Def?.Behavior == "wire_spool") { if (T != null && useClick) Wires.Use(BlockPos.Of(T)); return; }
         if (plc && held is { IsEmpty: false } && held.Def?.Behavior == "hoe") { if (T != null && useClick) { if (!Farming.Till(BlockPos.Of(T))) UI.Note("A hoe tills dirt or grass with air above it", 1.5); } return; }
         if (T == null) return;

@@ -672,6 +672,74 @@
           }
         }
       ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "charger",
+      "id": 9,
+      "name": "Charger",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Charger",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "slot",
+          "name": "Tool",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "storage": {
+            "scope": "block",
+            "key": "slot"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "charge",
+          "position": {
+            "x": 102,
+            "y": 33
+          },
+          "size": {
+            "width": 14,
+            "height": 14
+          },
+          "current_from": "block.charge",
+          "orientation": "vertical",
+          "max_from": "block.charge_max",
+          "color": [
+            80,
+            200,
+            255
+          ]
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
     }
   ]
 }

@@ -16816,6 +16816,888 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "miner",
+      "id": 174,
+      "name": "Automatic Miner",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 230,
+        "bottom": 231,
+        "top": 231
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "miner",
+          "lod_color": [
+            200,
+            160,
+            40
+          ],
+          "miner": {
+            "radius": 4,
+            "depth": 48,
+            "power": 20
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "miner",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "cx": {
+            "type": "number",
+            "default": 0
+          },
+          "cy": {
+            "type": "number",
+            "default": 0
+          },
+          "cz": {
+            "type": "number",
+            "default": 0
+          },
+          "init": {
+            "type": "number",
+            "default": 0
+          },
+          "work": {
+            "type": "number",
+            "default": 0
+          },
+          "mined": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 0
+          },
+          "off": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "electrolyzer",
+      "id": 175,
+      "name": "Electrolyzer",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 232
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "electrolyzer",
+          "lod_color": [
+            90,
+            160,
+            200
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "electrolyzer",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "water": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 0
+          },
+          "made_kg": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "hydrogen_tank",
+      "id": 176,
+      "name": "Hydrogen Tank",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 233
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "hydrogen_tank",
+          "lod_color": [
+            235,
+            235,
+            240
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "hydrogen_tank",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mol": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "fuel_cell",
+      "id": 177,
+      "name": "Fuel Cell",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 234
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "fuel_cell",
+          "lod_color": [
+            70,
+            140,
+            110
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "fuel_cell",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "charger",
+      "id": 178,
+      "name": "Charger",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 235
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "charger"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "charger",
+          "lod_color": [
+            60,
+            60,
+            70
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "charger",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "slot": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "charge": {
+            "type": "number",
+            "default": 0
+          },
+          "charge_max": {
+            "type": "number",
+            "default": 1
+          },
+          "part": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "grow_light",
+      "id": 179,
+      "name": "Grow Light",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 236
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "lamp",
+          "lod_color": [
+            200,
+            120,
+            230
+          ],
+          "lamp": {
+            "level": 7,
+            "power": 1,
+            "grow": 1
+          },
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "lit": true
+                },
+                "textures": {
+                  "all": 237
+                }
+              }
+            ]
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "grow_light",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "lit": {
+            "type": "boolean",
+            "default": false
+          },
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "on": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sprinkler",
+      "id": 180,
+      "name": "Sprinkler",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 238
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "rotation": "all",
+          "behavior": "sprinkler",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            150,
+            154,
+            160
+          ],
+          "boxes": [
+            {
+              "x": 0.3,
+              "y": 0,
+              "z": 0.3,
+              "w": 0.4,
+              "h": 0.5,
+              "d": 0.4
+            },
+            {
+              "x": 0.2,
+              "y": 0.5,
+              "z": 0.2,
+              "w": 0.6,
+              "h": 0.12,
+              "d": 0.6
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.2,
+                "y": 0,
+                "z": 0.2,
+                "w": 0.6,
+                "h": 0.62,
+                "d": 0.6
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.2,
+                "y": 0,
+                "z": 0.2,
+                "w": 0.6,
+                "h": 0.62,
+                "d": 0.6
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sprinkler",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "timer": {
+            "type": "number",
+            "default": 0
+          },
+          "job": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 0
+          },
+          "watered": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "elevator",
+      "id": 181,
+      "name": "Elevator",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 239
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "elevator",
+          "lod_color": [
+            170,
+            176,
+            184
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "elevator",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "energy": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "item_pipe",
+      "id": 182,
+      "name": "Item Pipe",
+      "stateless": false,
+      "group_tags": [
+        "item_pipe"
+      ],
+      "textures": {
+        "all": 240
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "connecting",
+          "connects_to": [
+            "item_pipe"
+          ],
+          "connect_solid": false,
+          "boxes": [
+            {
+              "x": 0.3125,
+              "y": 0.3125,
+              "z": 0.3125,
+              "w": 0.375,
+              "h": 0.375,
+              "d": 0.375
+            }
+          ],
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "north": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.3125,
+                    "z": 0,
+                    "w": 0.375,
+                    "h": 0.375,
+                    "d": 0.3125
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "south": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.3125,
+                    "z": 0.6875,
+                    "w": 0.375,
+                    "h": 0.375,
+                    "d": 0.3125
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "east": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.6875,
+                    "y": 0.3125,
+                    "z": 0.3125,
+                    "w": 0.3125,
+                    "h": 0.375,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "west": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0,
+                    "y": 0.3125,
+                    "z": 0.3125,
+                    "w": 0.3125,
+                    "h": 0.375,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "up": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0.6875,
+                    "z": 0.3125,
+                    "w": 0.375,
+                    "h": 0.3125,
+                    "d": 0.375
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "down": true
+                },
+                "add_boxes": [
+                  {
+                    "x": 0.3125,
+                    "y": 0,
+                    "z": 0.3125,
+                    "w": 0.375,
+                    "h": 0.3125,
+                    "d": 0.375
+                  }
+                ]
+              }
+            ]
+          },
+          "lod_color": [
+            200,
+            150,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "item_pipe",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "north": {
+            "type": "boolean",
+            "default": false
+          },
+          "east": {
+            "type": "boolean",
+            "default": false
+          },
+          "south": {
+            "type": "boolean",
+            "default": false
+          },
+          "west": {
+            "type": "boolean",
+            "default": false
+          },
+          "up": {
+            "type": "boolean",
+            "default": false
+          },
+          "down": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "extractor",
+      "id": 183,
+      "name": "Extractor",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "item_pipe"
+      ],
+      "textures": {
+        "all": 242,
+        "north": 241
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "extractor",
+          "lod_color": [
+            90,
+            94,
+            100
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "extractor",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "acc": {
+            "type": "number",
+            "default": 0
+          },
+          "moved": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "conveyor_belt",
+      "id": 184,
+      "name": "Conveyor Belt",
+      "stateless": false,
+      "group_tags": [
+        "item_pipe"
+      ],
+      "textures": {
+        "all": 242,
+        "top": 243
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "rotation": "horizontal",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            50,
+            50,
+            54
+          ],
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.2,
+              "d": 1
+            }
+          ],
+          "geometry": {
+            "collision": "boxes",
+            "selection": "boxes"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "conveyor_belt",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "status_lamp",
+      "id": 185,
+      "name": "Grid Status Lamp",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 244
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "status_lamp",
+          "lod_color": [
+            220,
+            50,
+            50
+          ],
+          "geometry": {
+            "state_overrides": [
+              {
+                "when": {
+                  "level": 1
+                },
+                "textures": {
+                  "all": 245
+                }
+              },
+              {
+                "when": {
+                  "level": 2
+                },
+                "textures": {
+                  "all": 246
+                }
+              }
+            ]
+          },
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "status_lamp",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "level": {
+            "type": "integer",
+            "min": 0,
+            "max": 2,
+            "default": 0
+          },
+          "on": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }

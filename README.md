@@ -243,7 +243,7 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   (Esc): "Realistic gravity" switches it to 9.81 m/s^2 with a 4.95 m/s jump that still clears a block (1.25 blocks, ~1 s in the
   air). Both scale with the planet's gravity factor. Machines always use real gravity.
 * Gravity where a machine is: g = 9.81 m/s^2 x the planet's gravity factor (full on the surface, falling linearly toward the centre
-  inside the planet, with the square of the distance out in space). 1 block = 1 m, 1 unit = 125 kg of water, 1 E = 125 x 9.81 J.
+  inside the planet, with the square of the distance out in space). 1 block = 1 m, 1 unit = 125 kg of water, 1 E = 12,262 J (a unit falling 10 blocks on the surface).
 * Energy per kg water gains or gives between two ends: g x the height difference + the pressure difference / 1000 (a sealed tank's
   pressure; open water 0). A turbine gets 80 % of what the water gives; with less gravity the same drop gives less, a tank's pressure
   the same anywhere. Heads are shown in blocks at the local gravity (and in J/kg).
@@ -285,6 +285,28 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * `--demotank NAME [--demosecs S]` (no window) builds a pumped-storage plant: a sealed 5 x 5 x 5 tank at 8 bar with windows, a pump
   lifting water from a pool into it with a high-pressure (piston) pump (coal powered), a compressor on its top valve, and a turbine on its low valve sending the water back
   down into the pool and charging batteries; the hotbar has a multimeter.
+
+## Machines that use energy (Energy/Utilities.cs)
+* **Automatic Miner** (20 E/s): digs the 9 x 9 area under it layer by layer (48 deep) into a chest touching it; 2 E + 6 E x hardness
+  a block; leaves machines, water and air alone; stops when the chest is full. Right click: ON / OFF.
+* **Electrolyzer** (100 E/s) + **Hydrogen Tank** + **Fuel Cell**: water (from the electrolyzer's back: a cell, pipe or tank) is split
+  with real numbers (141.8 MJ/kg of hydrogen at 100 %, 70 % efficient, 9 kg of water per kg); a tank holds 1 m^3 up to 30 bar (ideal gas,
+  ~2.5 kg); the fuel cell makes up to 40 E/s on demand (120 MJ/kg, 55 %) and gives the water back to the water cycle. Round trip ~33 %,
+  but it keeps for ever: one full tank = ~133,000 E through the fuel cell.
+* **Charger** + **Electric Drill** / **Chainsaw** (items with a charge, up to 4000 E): the charger fills the tool in its slot (40 E/s,
+  95 %). The drill digs 3 x 3 across the face you look at (2 E + 6 E x hardness a block), the chainsaw fells a whole tree (2 E a block);
+  what they dig goes into your inventory. The HUD shows the charge of the tool in your hand.
+* **Grow Light** (1 E/s): a lamp; while lit, crops within 4 blocks grow twice as fast. **Sprinkler**: waters the farmland within 4 blocks
+  every 4 s from the water at its back (a cell, pipe or tank: the water really leaves), 0.3 E per unit.
+* **Elevator**: elevator blocks in a column, one per floor. Standing on one, jump to ride to the next one above (within 64 blocks, with
+  room to stand on it), sneak to go down. Energy = 80 kg x gravity there x the height / 80 % (10 blocks on the surface: 0.76 E); riding
+  down gives half back. Each keeps up to 50 E from the grid (5 E/s); the ride uses the start's.
+* **Item Pipe**, **Conveyor Belt**, **Extractor** (0.2 E an item, 4 a second): the extractor takes items from the chest / machine output
+  at its back and sends them along pipes and belts to the nearest inventory that takes them (furnace / mill input if it can work them,
+  fuel slots for fuel, chests). Belts are flat pipes (items do not ride on them visibly yet).
+* **Grid Status Lamp**: green above half of the grid's storage, yellow above 10 %, red below (or no storage); glows.
+* `--demoutility NAME [--demosecs S]` (no window) builds a world with all of them on a coal grid; the hotbar has the charged tools.
+* Units: 1 E = 12,262 J (a unit of water falling 10 blocks on the surface), so 1 E/s is about 12 kW.
 
 ## Rotation machines and the multimeter (Energy/Mechanical.cs, Energy/Multimeter.cs)
 * Rotation lines now have **loads** besides generators; a line shares its sources' power between them in proportion to what each wants.
@@ -421,7 +443,7 @@ ignores input, prints FPS + chunk pipeline timings, does not save settings), `--
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
-`--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes on the main thread) and autosave time on the main thread vs in the background.
+`--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes on the main thread) and autosave time on the main thread vs in the background.
 `--bench N --flyspeed V` (window): flies the free camera at V blocks/s and lists every frame over 25 ms with what it spent its time on
 (chunk work, LOD uploads, shadows, scene, update, UI, end frame, GPU wait, time between frames) and the garbage collections in it.
 `--benchfly` / `--benchgen` (no window): the main thread's non-drawing work while flying, block lookups in ungenerated chunks.

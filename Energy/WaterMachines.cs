@@ -30,7 +30,7 @@ public static class WaterMachines
 {
     public const double K = .1;
     // ---- hydraulics with real numbers: water 1000 kg/m^3, 1 unit = 125 kg, gravity g = 9.81 m/s^2 x the planet's gravity factor where the
-    // machine is (full at the surface, less inside the planet and out in space); 1 E = 125 x 9.81 J (one unit dropping one block on the surface)
+    // machine is (full at the surface, less inside the planet and out in space); 1 E = 12,262 J (one unit falling 10 blocks on the surface; one block gives K = 0.1 E)
     public const double Rho = 1000, G0 = 9.81, UnitKg = 125, Patm = 101325, Pvap = 2340, Npshr = 25000;
     public static double G(BlockPos p) => G0 * GravK(p.Center.Len);
     /// <summary>Energy per kg water gains going from src to dst (J/kg): g x the height difference + the pressure difference / density.</summary>

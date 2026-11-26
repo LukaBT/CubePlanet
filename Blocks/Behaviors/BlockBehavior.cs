@@ -55,6 +55,15 @@ public abstract class BlockBehavior
         ["tank_valve"] = () => new TankValveBehavior(),
         ["compressor"] = () => new CompressorBehavior(),
         ["pipe_valve"] = () => new PipeValveBehavior(),
+        ["miner"] = () => new MinerBehavior(),
+        ["electrolyzer"] = () => new ElectrolyzerBehavior(),
+        ["hydrogen_tank"] = () => new HydrogenTankBehavior(),
+        ["fuel_cell"] = () => new FuelCellBehavior(),
+        ["charger"] = () => new ChargerBehavior(),
+        ["sprinkler"] = () => new SprinklerBehavior(),
+        ["elevator"] = () => new ElevatorBehavior(),
+        ["extractor"] = () => new ExtractorBehavior(),
+        ["status_lamp"] = () => new StatusLampBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

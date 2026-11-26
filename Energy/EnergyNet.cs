@@ -327,10 +327,8 @@ public static class EnergyNet
             if (BEH[me.BlockId] is GeneratorBehavior && me.Num("input") >= GeneratorBehavior.MaxIn - 1e-6 && me.Num("line") > me.Num("line_load") + .5) { net.Generators30++; net.LineMore = Math.Max(net.LineMore, me.Num("line") - me.Num("line_load")); }
         }
         net.DemandMet = demW > 0 ? demG / demW : 1;
-        for (int i = 0; i < n; i++)
-        {
-            MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);
-            if (net.Machines[i].Numbers.TryGetValue("energy", out double st) && BEH[net.Machines[i].BlockId] is BatteryBehavior) { net.Stored += st; net.Capacity += BatteryBehavior.Capacity; }
-        }
+        // storage first (machines that look at it, like the grid status lamp, see this step's numbers)
+        for (int i = 0; i < n; i++) if (net.Machines[i].Numbers.TryGetValue("energy", out double st) && BEH[net.Machines[i].BlockId] is BatteryBehavior) { net.Stored += st; net.Capacity += BatteryBehavior.Capacity; }
+        for (int i = 0; i < n; i++) MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);
     }
 }

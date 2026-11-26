@@ -123,7 +123,7 @@ public sealed class CropBehavior : BlockBehavior
     public override void OnTick(BlockEntity e, double dt)
     {
         var p = e.Pos; if (!p.Loaded) return;
-        double t = e.Num("timer") - dt * Farming.Speed; if (t > 0) { e.SetNum("timer", t); return; }
+        double t = e.Num("timer") - dt * Farming.Speed * GrowLights.Boost(p); if (t > 0) { e.SetNum("timer", t); return; } // a lit grow light nearby: twice as fast
         e.SetNum("timer", Farming.Next(Farming.CropMin, Farming.CropMax));
         int id = p.Id; if (BEH[id] is not CropBehavior) return;
         int age = AgeOf(id, p.State), max = MaxAge(id); if (age >= max) return; // ripe: no more water

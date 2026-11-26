@@ -19,4 +19,6 @@ texture_rows: 16
 172 gold_dust 384 320
 173 copper_dust 416 320
 174 multimeter 448 320
+186 electric_drill 320 352
+187 chainsaw 352 352
 200 bucket 256 384
