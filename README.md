@@ -246,9 +246,11 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * **Electric Motor**: the reverse of a generator: up to 30 E/s in, 90 % out as rotation at its front (a shaft line, generators or other
   rotation machines). Right click: 100 % / 50 % / 25 % / OFF.
 * **Solar Panels**: small (1 block, 3 E/s), medium (2 x 2, 14 E/s), large (3 x 3, 36 E/s) in full sun straight on. Output = that x the
-  share of sunlight falling straight on the panel (cos of the angle) with a fade near the horizon; nothing at night. Right click: FIXED
-  (lying flat) or TRACKING: the panel turns about its north-south axis to face the sun (up to 60 / 55 / 38 degrees), more than doubling
-  the output at a low sun; the tracking motor uses 2 % of the panel's power. Every part of a big panel joins cables, so panels side by
+  share of sunlight falling straight on the panel (cos of the angle) with a fade near the horizon; nothing at night. Right click: FIXED (flat) /
+  1-AXIS (turns about its north-south axis to follow the sun east to west, 2 % for its motor) / 2-AXIS (also tilts north-south, so it
+  faces the sun straight on, 4 %). Tilting stops where the panel's corners would touch the ground (a big panel on its short post tilts
+  less). 1-axis more than doubles the output at a low sun in the east or west; 2-axis also wins when the sun stays to the north or south
+  (another x2.4 in the self-test). Every part of a big panel joins cables, so panels side by
   side form one array; the HUD works on any part.
 * **Shade**: every 2 s a panel traces 3 rays (across its surface) toward the sun: through blocks nearby (opaque blocks and leaves block it,
   glass and water do not) and over the terrain further out, up to ~420 blocks, also in unloaded land (mountains, valleys). A shaded part

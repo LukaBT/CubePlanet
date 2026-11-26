@@ -37,10 +37,10 @@ public static partial class DemoWorld
         // solar farm
         // the farm stands on a stone deck 10 up, so a low sun clears the hills around
         const int D = 10; for (int z = 3; z <= 10; z++) for (int x = -2; x <= 26; x++) Cell(x, D - 1, z, stone);
-        void Panel(int x, int z, string block, bool track) { BlockActions.Place(At(x, D, z), Id(block), new V3(0, 0, 1), out _); if (track) E(x, D, z).SetNum("mode", 1); }
-        Panel(0, 6, "solar_panel_large", false); Panel(4, 6, "solar_panel_large", true);
-        Panel(8, 6, "solar_panel_medium", false); Panel(11, 6, "solar_panel_medium", true);
-        for (int x = 14; x <= 19; x++) Panel(x, 6, "solar_panel_small", (x & 1) == 1);
+        void Panel(int x, int z, string block, int mode) { BlockActions.Place(At(x, D, z), Id(block), new V3(0, 0, 1), out _); E(x, D, z).SetNum("mode", mode); } // 0 fixed, 1 / 2 axes
+        Panel(0, 6, "solar_panel_large", 0); Panel(4, 6, "solar_panel_large", 2);
+        Panel(8, 6, "solar_panel_medium", 0); Panel(11, 6, "solar_panel_medium", 1);
+        for (int x = 14; x <= 19; x++) Panel(x, 6, "solar_panel_small", (x - 14) % 3);
         for (int x = 0; x <= 20; x++) Put(x, D, 5, "gold_cable");
         Put(21, D, 5, "battery"); Put(22, D, 5, "battery"); Put(23, D, 5, "battery");
         int coal = GameAssets.ItemReg.Id("coal");
@@ -63,8 +63,8 @@ public static partial class DemoWorld
         double P(int x, int z) => E(x, D, z).Num("power");
         double small = 0; for (int x = 14; x <= 19; x++) small += P(x, 6);
         int lit = 0; foreach (int x in new[] { 0, 6, 12, 18, 24 }) if (E(x, 3, -6).Num("on") > 0) lit++;
-        string report = $"ELECTRICDEMO after {secs:0} s (sun {Math.Asin(M.Dot(Sky.SUN, up)) * 180 / Math.PI:0} deg up, setting): large fixed {P(0, 6):0.0} vs tracking {P(4, 6):0.0} E/s, " +
-                        $"medium fixed {P(8, 6):0.0} vs tracking {P(11, 6):0.0} E/s, 6 small {small:0.0} E/s; lamps lit {lit} of 5; furnaces made {E(27, 0, -7).Inv("output")[0]?.Count ?? 0} + {E(28, 0, -7).Inv("output")[0]?.Count ?? 0} ingots; " +
+        string report = $"ELECTRICDEMO after {secs:0} s (sun {Math.Asin(M.Dot(Sky.SUN, up)) * 180 / Math.PI:0} deg up, setting): large fixed {P(0, 6):0.0} vs 2-axis {P(4, 6):0.0} E/s, " +
+                        $"medium fixed {P(8, 6):0.0} vs 1-axis {P(11, 6):0.0} E/s, 6 small {small:0.0} E/s; lamps lit {lit} of 5; furnaces made {E(27, 0, -7).Inv("output")[0]?.Count ?? 0} + {E(28, 0, -7).Inv("output")[0]?.Count ?? 0} ingots; " +
                         $"motor {E(31, 0, -5).Num("drive"):0.0} E/s rotation, generator {E(36, 0, -5).Num("input"):0.0} E/s; bank {E(21, D, 5).Num("energy") + E(22, D, 5).Num("energy") + E(23, D, 5).Num("energy"):0} E";
         return Finish(folder, name, report, 10, -13, 9, D + 1, 6, false);
     }

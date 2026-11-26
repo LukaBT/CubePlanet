@@ -54,7 +54,8 @@ public sealed class BlockDefinition
     public sealed class Part { public int X, Y, Z; public JsonElement State; }
     /// <summary>A moving part (properties.definition.moving_parts): boxes (they may reach out of the block, e.g. blades) turning around Axis
     /// through Pivot (block-local) at the speed of the block's rotation network (block entity numbers "angle" / "speed") times Speed.</summary>
-    public sealed class MovingPart { public ModelBox[] Boxes; public V3 Axis = new(0, 0, 1), Pivot = new(.5, .5, .5); public double Speed = 1; }
+    /// <summary>Axis2 (optional, "axis2"): a second turn applied first, by the block entity number "angle2" (a sun tracker tilting both ways).</summary>
+    public sealed class MovingPart { public ModelBox[] Boxes; public V3 Axis = new(0, 0, 1), Pivot = new(.5, .5, .5); public V3? Axis2; public double Speed = 1; }
     public MovingPart[] MovingParts = Array.Empty<MovingPart>();
     public Part[] Parts = Array.Empty<Part>();
     public StateSchema State = new();
@@ -136,6 +137,7 @@ public sealed class BlockDefinition
             {
                 var m = new MovingPart { Boxes = Get(mp, "boxes") is { ValueKind: JsonValueKind.Array } mb ? ParseBoxes(mb, true) : Array.Empty<ModelBox>(), Speed = Num(mp, "speed", 1) };
                 m.Axis = Str(mp, "axis", "z") switch { "x" => new V3(1, 0, 0), "y" => new V3(0, 1, 0), _ => new V3(0, 0, 1) };
+                if (Str(mp, "axis2", "") is { Length: > 0 } a2) m.Axis2 = a2 switch { "x" => new V3(1, 0, 0), "y" => new V3(0, 1, 0), _ => new V3(0, 0, 1) };
                 if (Get(mp, "pivot") is { ValueKind: JsonValueKind.Array } pv && pv.GetArrayLength() == 3) { var a = pv.EnumerateArray().Select(v => v.GetDouble()).ToArray(); m.Pivot = new V3(a[0], a[1], a[2]); }
                 foreach (var x in m.Boxes) x.Faces = FacesOf(x.Tex == null ? b.Textures : Merge(b.Textures, x.Tex));
                 return m;

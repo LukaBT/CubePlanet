@@ -147,8 +147,9 @@ public sealed class MotorBehavior : BlockBehavior, IEnergyMachine, IKinetic
 /// Solar panel (key "solar": {"power": E/s in full sun straight on, "pivot_y", "tilt_max": degrees}); sizes are multiblocks (2 x 2, 3 x 3)
 /// whose first part holds the block entity; every part joins cables (group tag energy_cable), so panels side by side form one array.
 /// Power = power x sunlight on the panel: the share of the sun's light falling straight on it (cos of the angle) x a fade near the horizon.
-/// Right click: FIXED (lying flat) / TRACKING: the panel turns about its north-south axis to face the sun (up to tilt_max each way), which
-/// gives much more in the morning and evening; the tracking motor uses 2 % of the panel's power.
+/// Right click: FIXED (lying flat) / 1-AXIS: the panel turns about its north-south axis to follow the sun east to west, which gives much more
+/// in the morning and evening (motor: 2 % of the panel's power) / 2-AXIS: it also tilts north-south, so it faces the sun straight on
+/// (motors: 4 %). Turning is limited so the panel's corners stay above the ground (and by tilt_max).
 /// Shade: every 2 s rays go from 3 points across the panel toward the sun, through blocks nearby (opaque blocks and leaves block it, glass and
 /// water do not) and over the terrain further out (mountains, also in unloaded land, up to ~420 blocks); a shaded part still gets 12 % (sky
 /// light).
@@ -156,6 +157,7 @@ public sealed class MotorBehavior : BlockBehavior, IEnergyMachine, IKinetic
 public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
 {
     public const double TrackCost = .02, TurnRate = .4, Diffuse = .12, ShadeEvery = 2, Near = 48, Far = 420;
+    static readonly string[] modeNames = { "FIXED (FLAT)", "1-AXIS TRACKING", "2-AXIS TRACKING" };
     static bool IsMain(BlockPos p, int id)
     {
         var d = DEFS[id]; var f = d?.State.Find("part"); return d == null || d.Parts.Length == 0 || f == null || f.Index((uint)p.State) == 0;
@@ -165,7 +167,7 @@ public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
     public override bool OnUse(BlockPos p, int id, int state)
     {
         var m = Electric.MainPart(p); if (!BlockStates.entities.TryGetValue(m.Key, out var e)) return false;
-        e.SetNum("mode", e.Num("mode") > 0 ? 0 : 1); UI.Note(e.Num("mode") > 0 ? "Solar panel: TRACKING THE SUN" : "Solar panel: FIXED (FLAT)", 1.5); return true;
+        int m2 = ((int)e.Num("mode") + 1) % 3; e.SetNum("mode", m2); UI.Note("Solar panel: " + modeNames[m2], 1.5); return true;
     }
     double Rated(int id) => Electric.Key(this, id, "solar", "power", 3);
     double TiltMax(int id) => Electric.Key(this, id, "solar", "tilt_max", 60) * Math.PI / 180;
@@ -174,22 +176,38 @@ public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
     {
         var (ax, ay, az) = p.Axes(); V3 s = Sky.SUN; return (new V3(M.Dot(s, ax), M.Dot(s, ay), M.Dot(s, az)), M.Dot(s, ay));
     }
-    /// <summary>Sunlight on the panel 0..1 at tilt angle a (radians, about the north-south axis).</summary>
-    public static double OnPanel(BlockPos p, double a)
+    /// <summary>The panel's normal (block frame) at tilt a about the north-south axis (z) after tilt b about the east-west axis (x).</summary>
+    public static V3 Normal(double a, double b) => new(-Math.Sin(a) * Math.Cos(b), Math.Cos(a) * Math.Cos(b), Math.Sin(b));
+    /// <summary>Sunlight on the panel 0..1 at tilts a (about the north-south axis) and b (about the east-west axis), radians.</summary>
+    public static double OnPanel(BlockPos p, double a, double b = 0)
     {
         var (s, el) = SunLocal(p); if (el <= 0) return 0;
         double fade = Math.Clamp(el / .12, 0, 1); fade = fade * fade * (3 - 2 * fade);
-        return Math.Max(0, -Math.Sin(a) * s.X + Math.Cos(a) * s.Y) * fade;
+        return Math.Max(0, M.Dot(Normal(a, b), s)) * fade;
+    }
+    /// <summary>Do the panel's corners stay above the ground at these tilts? (lowest corner = pivot height - half width x (|sin a| + |sin b| cos a))</summary>
+    static bool Fits(BlockEntity e, double a, double b)
+    {
+        var d = DEFS[e.BlockId]; V3 pv = d.MovingParts.Length > 0 ? d.MovingParts[0].Pivot : new V3(.5, .5, .5);
+        return pv.Y - pv.X * (Math.Abs(Math.Sin(a)) + Math.Abs(Math.Sin(b)) * Math.Cos(a)) >= .04;
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
-        int id = e.BlockId; bool track = e.Num("mode") > 0; var (s, el) = SunLocal(e.Pos);
-        // tracking: turn toward the sun (or back to flat at night / when fixed)
-        double target = track && el > 0 ? Math.Clamp(Math.Atan2(-s.X, s.Y), -TiltMax(id), TiltMax(id)) : 0, a = e.Num("angle");
-        a += Math.Clamp(target - a, -TurnRate * dt, TurnRate * dt); e.SetNum("angle", a); e.SetNum("speed", 0);
+        int id = e.BlockId, mode = (int)e.Num("mode") % 3; bool track = mode > 0; var (s, el) = SunLocal(e.Pos);
+        // tracking: turn toward the sun (or back to flat at night / when fixed); 2-axis also tilts north-south (angle2)
+        double ta = 0, tb = 0;
+        if (track && el > 0)
+        {
+            tb = mode == 2 ? Math.Clamp(Math.Asin(Math.Clamp(s.Z, -1, 1)), -TiltMax(id), TiltMax(id)) : 0;
+            ta = Math.Clamp(Math.Atan2(-s.X, s.Y), -TiltMax(id), TiltMax(id));
+            if (!Fits(e, ta, tb)) { double lo = 0, hi = 1; for (int i = 0; i < 12; i++) { double k = (lo + hi) / 2; if (Fits(e, ta * k, tb * k)) lo = k; else hi = k; } ta *= lo; tb *= lo; }
+        }
+        double a = e.Num("angle"), b = e.Num("angle2");
+        a += Math.Clamp(ta - a, -TurnRate * dt, TurnRate * dt); b += Math.Clamp(tb - b, -TurnRate * dt, TurnRate * dt);
+        e.SetNum("angle", a); e.SetNum("angle2", b); e.SetNum("speed", 0);
         double t = e.Num("shade_t") - dt; if (t <= 0) { t = ShadeEvery; e.SetNum("sunlit", el > 0 ? Sunlit(e) : 1); } e.SetNum("shade_t", t);
         double lit = e.Num("shade_t") > 0 && e.Numbers.ContainsKey("sunlit") ? e.Num("sunlit") : 1;
-        double light = OnPanel(e.Pos, a) * (lit + (1 - lit) * Diffuse), pw = Rated(id) * light - (track && light > 0 ? TrackCost * Rated(id) : 0);
+        double light = OnPanel(e.Pos, a, b) * (lit + (1 - lit) * Diffuse), pw = Rated(id) * light - (track && light > 0 ? TrackCost * mode * Rated(id) : 0);
         e.SetNum("light", light); p.Fixed = Math.Max(0, pw) * dt;
     }
     public void Settle(BlockEntity e, double dt, double made, double got) => WaterMachines.Show(e, "power", made / dt);
@@ -226,6 +244,6 @@ public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
     {
         var (_, el) = SunLocal(e.Pos); double lit = e.Numbers.ContainsKey("sunlit") ? e.Num("sunlit") : 1;
         string shade = el <= 0 ? "" : lit <= 0 ? "  IN SHADE" : lit < 1 ? $"  PARTLY SHADED ({(1 - lit) * 100:0}%)" : "";
-        return $"{(e.Num("mode") > 0 ? "TRACKING" : "FIXED (FLAT)")}  SUN {Math.Asin(Math.Clamp(el, -1, 1)) * 180 / Math.PI:0} DEG UP{shade}  {e.Num("light") * 100:0}% ON THE PANEL  {e.Num("power"):0.0} / {Rated(e.BlockId):0} E/S";
+        return $"{modeNames[(int)e.Num("mode") % 3]}  SUN {Math.Asin(Math.Clamp(el, -1, 1)) * 180 / Math.PI:0} DEG UP{shade}  {e.Num("light") * 100:0}% ON THE PANEL  {e.Num("power"):0.0} / {Rated(e.BlockId):0} E/S";
     }
 }

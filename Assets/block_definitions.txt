@@ -14909,7 +14909,7 @@
           ],
           "solar": {
             "power": 3,
-            "tilt_max": 60
+            "tilt_max": 75
           },
           "cable": {
             "capacity": 256,
@@ -14938,7 +14938,8 @@
                     "top": 207
                   }
                 }
-              ]
+              ],
+              "axis2": "x"
             }
           ],
           "boxes": [
@@ -15020,6 +15021,10 @@
           "power": {
             "type": "number",
             "default": 0
+          },
+          "angle2": {
+            "type": "number",
+            "default": 0
           }
         }
       }
@@ -15053,7 +15058,7 @@
           ],
           "solar": {
             "power": 14,
-            "tilt_max": 55
+            "tilt_max": 75
           },
           "cable": {
             "capacity": 256,
@@ -15118,7 +15123,8 @@
                     "top": 207
                   }
                 }
-              ]
+              ],
+              "axis2": "x"
             }
           ],
           "multiblock": {
@@ -15317,6 +15323,10 @@
               "p3"
             ],
             "default": "main"
+          },
+          "angle2": {
+            "type": "number",
+            "default": 0
           }
         }
       }
@@ -15350,7 +15360,7 @@
           ],
           "solar": {
             "power": 36,
-            "tilt_max": 38
+            "tilt_max": 75
           },
           "cable": {
             "capacity": 256,
@@ -15475,7 +15485,8 @@
                     "top": 207
                   }
                 }
-              ]
+              ],
+              "axis2": "x"
             }
           ],
           "multiblock": {
@@ -15819,6 +15830,10 @@
               "p8"
             ],
             "default": "main"
+          },
+          "angle2": {
+            "type": "number",
+            "default": 0
           }
         }
       }

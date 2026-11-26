@@ -28,12 +28,13 @@ public static partial class SelfTest
         void Coal(int x, int y, int z) { Put(x, y, z, "coal_generator", "north"); E(x, y, z).Inv("fuel")[0] = new ItemStack(coal, 16); }
         // sun positions for this spot: noon, midnight, and a low sun (10..20 degrees up) as far east / west as possible
         double keepA = Sky.SUNA; V3 up = M.Nrm(At(0, 8, 0).Center); var (ax, _, _) = At(0, 8, 0).Axes();
-        double noon = 0, night = 0, low = 0, bestN = -2, bestM = 2, bestL = -1;
+        double noon = 0, night = 0, low = 0, ns = 0, bestN = -2, bestM = 2, bestL = -1, bestS = -1; var (_, _, azv) = At(0, 8, 0).Axes();
         for (int i = 0; i < 720; i++)
         {
             Sky.SUNA = i * Math.PI / 360; Sky.SunVec(); double el = M.Dot(Sky.SUN, up), ew = Math.Abs(M.Dot(Sky.SUN, ax));
             if (el > bestN) { bestN = el; noon = Sky.SUNA; } if (el < bestM) { bestM = el; night = Sky.SUNA; }
             if (el > Math.Sin(10 * Math.PI / 180) && el < Math.Sin(20 * Math.PI / 180) && ew > bestL) { bestL = ew; low = Sky.SUNA; }
+            double nsc = Math.Abs(M.Dot(Sky.SUN, azv)); if (el > .25 && nsc > bestS) { bestS = nsc; ns = Sky.SUNA; } // sun well up and as far north / south as it gets
         }
         void Sun(double a) { Sky.SUNA = a; Sky.SunVec(); }
         Clear();
@@ -94,6 +95,13 @@ public static partial class SelfTest
         V3 oc = Gp(Bw, f, z0 + .5, x0 + .5, Bw.inner + y0 + 8.8);
         Check(wall.Count > 0 && Math.Abs(pShade - pOpen * SolarPanelBehavior.Diffuse) < .05 && hudShade.Contains("IN SHADE") && Math.Abs(pBack - pOpen) < .05 && SolarPanelBehavior.Blocked(oc, up0 * -1) && !SolarPanelBehavior.Blocked(oc, up0),
               $"a wall toward the sun shades a panel: {pOpen:0.00} -> {pShade:0.00} E/s (sky light only; {hudShade}), back to {pBack:0.00} without it");
+        // 2-axis tracking: at noon the sun is to one side (north / south) of the panel's east-west path: 1 axis barely helps, 2 axes face it
+        Sun(ns); sp.SetNum("mode", 0); Ticks(80); double p0 = Pw(10);
+        sp.SetNum("mode", 1); Ticks(80); double p1 = Pw(10);
+        sp.SetNum("mode", 2); Ticks(120); double p2 = Pw(10);
+        Check(p2 > p1 * 1.5 && p1 >= p0 - .01 && p2 > 2.3 && Math.Abs(sp.Num("angle2")) > .2, // (a low sun far to the side: the tilt stops where the corners would touch the ground)
+              $"sun {Math.Asin(bestS) * 180 / Math.PI:0} deg off the east-west line: flat {p0:0.00}, 1-axis {p1:0.00}, 2-axis {p2:0.00} E/s (of 3; tilted {sp.Num("angle") * 180 / Math.PI:0} / {sp.Num("angle2") * 180 / Math.PI:0} deg)");
+        Console.WriteLine($"SOLAR2 sun {Math.Asin(bestS) * 180 / Math.PI:0} deg toward north/south: flat {p0:0.00}, 1-axis {p1:0.00}, 2-axis {p2:0.00} E/s");
         Clear();
         // a 2 x 2 panel: one block entity, the cable on a corner that is not the main part still collects it
         BlockActions.Place(At(0, 8, 0), Id("solar_panel_medium"), new V3(0, 0, 1), out _);

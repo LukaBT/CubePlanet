@@ -23,7 +23,8 @@ public static class MovingParts
             var v = HASVAR[e.BlockId] ? Variant(e.BlockId, p.State) : null;
             var parts = v?.Moving ?? d.MovingParts;
             double ang = e.Num("angle") + e.Num("speed") * since;
-            foreach (var m in parts) foreach (var mb in m.Boxes) { if (quads + 12 > MaxQuads) break; AddBox(p, mb, m, ang * m.Speed, org); quads += 12; }
+            double ang2 = e.Num("angle2");
+            foreach (var m in parts) foreach (var mb in m.Boxes) { if (quads + 12 > MaxQuads) break; AddBox(p, mb, m, ang * m.Speed, org, ang2); quads += 12; }
         }
         quads = AddWires(org, quads);
         if (quads == 0) return;
@@ -51,12 +52,13 @@ public static class MovingParts
         double c = Math.Cos(a), s = Math.Sin(a); V3 k = axis; double d = M.Dot(k, q);
         return q * c + M.Cross(k, q) * s + k * (d * (1 - c));
     }
-    static void AddBox(BlockPos p, BlockDefinition.ModelBox mb, BlockDefinition.MovingPart m, double ang, V3 org)
+    static void AddBox(BlockPos p, BlockDefinition.ModelBox mb, BlockDefinition.MovingPart m, double ang, V3 org, double ang2 = 0)
     {
         var b = mb.Box; V3 ax = WorldAxis(m.Axis);
         V3 C8(int i)
         {
             var q = new V3((i & 1) != 0 ? b.X1 : b.X0, (i & 2) != 0 ? b.Y1 : b.Y0, (i & 4) != 0 ? b.Z1 : b.Z0) - m.Pivot;
+            if (m.Axis2 is V3 a2 && ang2 != 0) q = Rot(q, WorldAxis(a2), ang2); // the second turn first (a 2-axis tracker's tilt)
             q = Rot(q, ax, ang) + m.Pivot; return World(p, q.X, q.Y, q.Z, org);
         }
         var pts = new V3[8]; for (int i = 0; i < 8; i++) pts[i] = C8(i);
