@@ -64,6 +64,7 @@ public abstract class BlockBehavior
         ["elevator"] = () => new ElevatorBehavior(),
         ["elevator_stop"] = () => new ElevatorStopBehavior(),
         ["extractor"] = () => new ExtractorBehavior(),
+        ["conveyor"] = () => new ConveyorBehavior(),
         ["status_lamp"] = () => new StatusLampBehavior(),
         ["crop"] = () => new CropBehavior(),
     };

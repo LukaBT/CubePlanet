@@ -313,9 +313,12 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   up, sneak = next floor down; right click the motor or a stop to call the platform there. Tip: sink the motor into the floor so the
   platform is flush with it. Energy: the cabin has a counterweight, so the motor lifts you: 80 kg x gravity x height / 80 % (10 blocks on
   the surface: 0.76 E), riding down gives half back, plus 0.01 E per block per platform cell. It keeps up to 50 E from the grid (5 E/s).
-* **Item Pipe**, **Conveyor Belt**, **Extractor** (0.2 E an item, 4 a second): the extractor takes items from the chest / machine output
-  at its back and sends them along pipes and belts to the nearest inventory that takes them (furnace / mill input if it can work them,
-  fuel slots for fuel, chests). Belts are flat pipes (items do not ride on them visibly yet).
+* **Conveyor Belt** + **Extractor**: items really ride on belts (4 per belt, 1.5 blocks a second, the belt surface moves). Belts shape
+  themselves from their neighbours: a belt fed from its side becomes a curve; a belt with a belt one up in front climbs to it; a belt below and
+  in front of a belt's end takes the items down. At the end items go onto the next belt or into the chest / machine in front (a furnace input
+  if it can smelt them, fuel slots for fuel), else they wait. The extractor (0.2 E an item, 4 a second) takes items from the chest / machine
+  output at its back and puts them on the belt (or into the inventory) in front. Right click a belt with an item to put it on, with an empty
+  hand to take its items. Standing on a flat belt carries you.
 * **Grid Status Lamp**: green above half of the grid's storage, yellow above 10 %, red below (or no storage); glows.
 * `--demoutility NAME [--demosecs S]` (no window) builds a world with all of them on a coal grid; the hotbar has the charged tools.
 * Units: 1 E = 12,262 J (a unit of water falling 10 blocks on the surface), so 1 E/s is about 12 kW.

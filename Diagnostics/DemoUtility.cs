@@ -5,8 +5,8 @@ public static partial class DemoWorld
     // ---------- --demoutility NAME [--demosecs S]: the machines that use energy ----------
     // A coal plant (11 generators) and a battery bank with a grid status lamp feed a gold cable along z -11. On it: a charger with a drill;
     // an electrolyzer (water from a basin) filling a hydrogen tank, a fuel cell on the tank powering an oxygen generator; a greenhouse (wheat on
-    // farmland, a sprinkler fed by a pipe from a raised basin, two grow lights); an automatic miner with a chest, an extractor sending what it digs along item
-    // pipes to an electric furnace (and a chest for the rest); a 3x3 elevator to a landing 11 up. The hotbar has the tools (charged) and blocks.
+    // farmland, a sprinkler fed by a pipe from a raised basin, two grow lights); an automatic miner with a chest, an extractor putting what it digs on conveyor
+    // belts to an electric furnace; a 3x3 elevator to a landing 11 up. The hotbar has the tools (charged) and blocks.
     public static int RunUtility(string name, double secs)
     {
         string folder = WorldSave.FolderFor(name);
@@ -40,7 +40,7 @@ public static partial class DemoWorld
         foreach (int x in new[] { 17, 23 }) { Column(x, -10, 2); for (int y = 1; y <= 3; y++) Put(x, y, 2, "gold_cable"); Put(x, 4, 2, "grow_light"); E(x, 4, 2).SetNum("mode", 1); }
         // miner and the item line
         Column(30, -10, 4); Put(30, 0, 5, "miner"); Put(31, 0, 5, "chest", "north");
-        Put(32, 0, 5, "extractor", "east"); Put(31, 0, 4, "gold_cable"); Put(32, 0, 4, "gold_cable"); Put(33, 0, 5, "item_pipe"); Put(34, 0, 5, "conveyor_belt", "north"); Put(35, 0, 5, "item_pipe");
+        Put(32, 0, 5, "extractor", "east"); Put(31, 0, 4, "gold_cable"); Put(32, 0, 4, "gold_cable"); Put(33, 0, 5, "conveyor_belt", "east"); Put(34, 0, 5, "conveyor_belt", "east"); Put(35, 0, 5, "conveyor_belt", "east");
         Put(36, 0, 5, "electric_furnace", "north"); Put(35, 0, 6, "chest", "north"); for (int z = -10; z <= 4; z++) Put(36, 0, z, "gold_cable");
         // elevator tower: a 3x3 platform (its motor in the floor, so the platform is flush with it) up to a landing 11 up with a stop in its
         // edge, a roof over the shaft
@@ -51,7 +51,7 @@ public static partial class DemoWorld
         var drillItem = new ItemStack(GameAssets.ItemReg.Id("electric_drill"), 1); Tools.SetCharge(drillItem, 4000);
         var sawItem = new ItemStack(GameAssets.ItemReg.Id("chainsaw"), 1); Tools.SetCharge(sawItem, 4000);
         PlayerInventory.Hotbar[0] = drillItem; PlayerInventory.Hotbar[1] = sawItem;
-        string[] give = { "multimeter", "miner", "elevator_3x3", "item_pipe", "extractor", "electrolyzer", "hydrogen_tank" };
+        string[] give = { "multimeter", "miner", "elevator_3x3", "conveyor_belt", "extractor", "electrolyzer", "hydrogen_tank" };
         for (int i = 0; i < give.Length; i++) PlayerInventory.Hotbar[i + 2] = new ItemStack(GameAssets.ItemReg.Id(give[i]), give[i] == "multimeter" ? 1 : 64);
         PlayerInventory.Selected = 0; WaterSim.WAct.Clear(); WaterSim.wactQ.Clear();
         int ticks = (int)(secs * 10);

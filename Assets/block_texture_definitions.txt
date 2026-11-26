@@ -247,3 +247,6 @@ texture_rows: 128
 244 status_red 64 240
 245 status_yellow 80 240
 246 status_green 96 240
+247 conveyor_frame 112 240
+248 conveyor_belt 128 240
+249 conveyor_roller 144 240

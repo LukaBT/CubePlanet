@@ -30,6 +30,7 @@ public static class MovingParts
         quads = AddTanks(org, quads);
         quads = AddPlatforms(org, quads);
         quads = AddSprays(org, quads);
+        quads = AddBelts(org, quads);
         if (quads == 0) return;
         var md = Mesher.Pack(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(vs), ReadOnlySpan<uint>.Empty);
         if (quadIx == null)
@@ -84,6 +85,82 @@ public static class MovingParts
                 vs.Add((float)q.X); vs.Add((float)q.Y); vs.Add((float)q.Z); vs.Add(cu[k] * 16); vs.Add(cv[k] * 16); vs.Add(lay); vs.Add(.9f);
                 vs.Add((float)(n.X * sg)); vs.Add((float)(n.Y * sg)); vs.Add((float)(n.Z * sg));
             }
+    }
+
+    // a quad with its own texture coordinates (in texels, 16 = one texture; they repeat): a -> (u0, v0), bb -> (u0, v1), c -> (u1, v1), dd -> (u1, v0)
+    static void QuadUV(V3 a, V3 bb, V3 c, V3 dd, V3 n, float lay, float u0, float v0, float u1, float v1)
+    {
+        float[] us = { u0, u0, u1, u1 }, vv = { v0, v1, v1, v0 };
+        for (int side = 0; side < 2; side++)
+            for (int kk = 0; kk < 4; kk++)
+            {
+                int k = side == 0 ? kk : 3 - kk; V3 q = k == 0 ? a : k == 1 ? bb : k == 2 ? c : dd; double sg = side == 0 ? 1 : -1;
+                vs.Add((float)q.X); vs.Add((float)q.Y); vs.Add((float)q.Z); vs.Add(us[k]); vs.Add(vv[k]); vs.Add(lay); vs.Add(.9f);
+                vs.Add((float)(n.X * sg)); vs.Add((float)(n.Y * sg)); vs.Add((float)(n.Z * sg));
+            }
+    }
+    /// <summary>A box in cell a's block-local coordinates with a texture per face (+x, -x, +y, -y, +z, -z).</summary>
+    static void LocalBoxFaces(BlockPos a, double x0, double y0, double z0, double x1, double y1, double z1, float[] lays, V3 org)
+    {
+        V3[] c = new V3[8];
+        for (int i = 0; i < 8; i++) c[i] = World(a, (i & 1) != 0 ? x1 : x0, (i & 2) != 0 ? y1 : y0, (i & 4) != 0 ? z1 : z0, org);
+        for (int fc = 0; fc < 6; fc++) { var f = BoxFaces[fc]; V3 q0 = c[f[0]], q1 = c[f[1]], q2 = c[f[2]], q3 = c[f[3]]; Quad(q0, q1, q2, q3, M.Nrm(M.Cross(q2 - q0, q3 - q1)), lays[fc]); }
+    }
+
+    /// <summary>Conveyor belts (<see cref="Conveyor"/>): the belt surface moving along the belt's path (its texture scrolls) and the items riding on it.</summary>
+    static int AddBelts(V3 org, int quads)
+    {
+        V3 cam = new(C.x, C.y, C.z); double time = Kinetics.Time, since = Kinetics.SinceTick;
+        foreach (var e in BlockStates.entities.Values)
+        {
+            if (!Conveyor.IsBelt(e.BlockId) || e.Pos.Core || !e.Pos.Loaded || (e.Pos.Center - cam).Len > Range) continue;
+            if (quads + 80 > MaxQuads) return quads;
+            var p = e.Pos; if (p.Id != e.BlockId) continue;
+            string facing = Conveyor.Facing(p), slope = Conveyor.Slope(p), shape = slope == "flat" ? Conveyor.Shape(p) : "straight";
+            float lay = LayTex(e.BlockId, GameAssets.BeltTexture); double scroll = time * ConveyorBehavior.Speed % 1;
+            V3 Wp(double x, double y, double z) { var q = Conveyor.Turn(facing, x, y, z); return World(p, q.X, q.Y, q.Z, org); }
+            double y0 = ConveyorBehavior.Top + .002;
+            if (shape == "left" || shape == "right")
+            {
+                const int N = 6; double len = Math.PI / 4;
+                for (int k = 0; k < N; k++)
+                {
+                    double a0 = k * Math.PI / 2 / N, a1 = (k + 1) * Math.PI / 2 / N;
+                    V3 P(double r, double a) => shape == "left" ? Wp(r * Math.Sin(a), y0, r * Math.Cos(a)) : Wp(1 - r * Math.Sin(a), y0, r * Math.Cos(a));
+                    float v0 = (float)((k / (double)N * len - scroll) * 16), v1 = (float)(((k + 1) / (double)N * len - scroll) * 16);
+                    V3 i0 = P(.0625, a0), i1 = P(.0625, a1), o1 = P(.9375, a1), o0 = P(.9375, a0);
+                    QuadUV(i0, i1, o1, o0, M.Nrm(i0 + org), lay, 0, -v0, 16, -v1); quads += 2;
+                }
+            }
+            else
+            {
+                double ya = y0, yb = y0, len = 1; if (slope == "up") yb += 1; else if (slope == "down") ya += 1;
+                if (slope != "flat") len = Math.Sqrt(2);
+                V3 a = Wp(.0625, ya, 1), b = Wp(.0625, yb, 0), c = Wp(.9375, yb, 0), d = Wp(.9375, ya, 1);
+                float v0 = (float)(-scroll * 16), v1 = (float)((len - scroll) * 16);
+                QuadUV(a, b, c, d, M.Nrm(a + org), lay, 0, -v0, 16, -v1); quads += 2;
+            }
+            // the items riding on it
+            var inv = e.Inv("belt"); if (inv == null) continue;
+            for (int i = 0; i < inv.Length; i++)
+            {
+                var s = inv[i]; if (s == null || s.IsEmpty) continue;
+                double t = Math.Min(1, e.Num("p" + i) + (e.Num("m" + i) > 0 ? ConveyorBehavior.Speed * since : 0));
+                var c = Conveyor.Path(shape, slope, facing, t); int bid = s.Def?.PlacesBlockId ?? 0;
+                if (bid > 0)
+                {   // a block item: a small cube with the block's faces
+                    const double h = .14; var lays = new float[6]; for (int f = 0; f < 6; f++) lays[f] = LayTex(bid, TEXF[bid * 6 + f]);
+                    LocalBoxFaces(p, c.X - h, c.Y + .003, c.Z - h, c.X + h, c.Y + .003 + 2 * h, c.Z + h, lays, org);
+                }
+                else
+                {   // another item: its picture as a thin tile lying on the belt
+                    const double h = .19; float il = GameAssets.ItemWorldLayer(s.Item); var lays = new float[] { il, il, il, il, il, il };
+                    LocalBoxFaces(p, c.X - h, c.Y + .003, c.Z - h, c.X + h, c.Y + .03, c.Z + h, lays, org);
+                }
+                quads += 12;
+            }
+        }
+        return quads;
     }
 
     static readonly int[][] BoxFaces = { new[] { 1, 3, 7, 5 }, new[] { 4, 6, 2, 0 }, new[] { 2, 6, 7, 3 }, new[] { 4, 0, 1, 5 }, new[] { 5, 7, 6, 4 }, new[] { 0, 2, 3, 1 } };

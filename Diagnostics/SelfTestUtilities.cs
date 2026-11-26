@@ -2,7 +2,7 @@ namespace CubePlanet;
 
 public static partial class SelfTest
 {
-    // miner, hydrogen (electrolyzer, tank, fuel cell), charger + drill + chainsaw, grow light, sprinkler, elevator, item pipes, status lamp
+    // miner, hydrogen (electrolyzer, tank, fuel cell), charger + drill + chainsaw, grow light, sprinkler, elevator, conveyor belts, status lamp
     static void Utilities()
     {
         int Id(string n) => GameAssets.BlockReg.Id(n); int Item(string n) => GameAssets.ItemReg.Id(n);
@@ -101,11 +101,17 @@ public static partial class SelfTest
         Check(string.Join(",", floors) == "0,6,9" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 6 && cost > .4 && cost < .5 && back < 0,
               $"elevator 3x3: floors {string.Join(",", floors)}, the platform is solid, carries the player 6 up for {used:0.00} E (80 kg x {ge:0.00} x 6 / 0.8 + {friction:0.00} friction; off by {upDist:0.000}), back down (off by {downDist:0.000}), a stop calls it ({called})");
         Elevator.Platforms.Clear();
-        // ----- item pipes: chest A (10 iron ore) -> extractor -> pipes and a belt -> chest B
-        Clear(); Put(0, 8, 0, "chest", "north"); E(0, 8, 0).Inv("slots")[0] = new ItemStack(Item("iron_ore"), 10);
-        Put(1, 8, 0, "extractor", "east"); Put(2, 8, 0, "item_pipe"); Put(3, 8, 0, "conveyor_belt", "north"); Put(4, 8, 0, "item_pipe"); Put(5, 8, 0, "chest", "north");
-        Coal(1, 9, 0); Ticks(40);
-        Check(CountIn(E(5, 8, 0).Inv("slots"), Item("iron_ore")) == 10 && CountIn(E(0, 8, 0).Inv("slots"), Item("iron_ore")) == 0, $"an extractor sends 10 iron ore along item pipes and a belt to another chest ({CountIn(E(5, 8, 0).Inv("slots"), Item("iron_ore"))} arrived)");
+        // ----- conveyor: chest A (10 iron ore) -> extractor -> belts east, a turn south, a slope up, a flat run, a slope down -> chest B
+        Clear(); Put(0, 8, 0, "chest", "north"); E(0, 8, 0).Inv("slots")[0] = new ItemStack(Item("iron_ore"), 10); Put(1, 8, 0, "extractor", "east"); Coal(1, 9, 0);
+        Put(2, 8, 0, "conveyor_belt", "east"); Put(3, 8, 0, "conveyor_belt", "east"); Put(4, 8, 0, "conveyor_belt", "south"); Put(4, 8, 1, "conveyor_belt", "south");
+        Put(4, 8, 2, "conveyor_belt", "south"); Put(4, 9, 3, "conveyor_belt", "south"); Put(4, 9, 4, "conveyor_belt", "south"); Put(4, 8, 5, "conveyor_belt", "south");
+        Put(4, 8, 6, "conveyor_belt", "south"); Put(4, 8, 7, "chest", "north");
+        string turn = Conveyor.Shape(At(4, 8, 0)), up = Conveyor.Shape(At(4, 8, 2)), down = Conveyor.Shape(At(4, 8, 5)), flat = Conveyor.Shape(At(4, 9, 4));
+        Ticks(20); int riding = 0; for (int x = 2; x <= 4; x++) for (int y = 8; y <= 9; y++) for (int z = 0; z <= 6; z++) if (BlockStates.entities.TryGetValue(At(x, y, z).Key, out var be) && Conveyor.IsBelt(be.BlockId)) riding += be.Inv("belt").Count(s => s != null && !s.IsEmpty);
+        Ticks(160);
+        int arrived = CountIn(E(4, 8, 7).Inv("slots"), Item("iron_ore"));
+        Check(turn == "right" && up == "slope up" && down == "slope down" && flat == "straight" && riding > 0 && arrived == 10 && CountIn(E(0, 8, 0).Inv("slots"), Item("iron_ore")) == 0,
+              $"conveyor: shapes {turn} / {up} / {flat} / {down}; {riding} items riding after 2 s; {arrived} of 10 iron ore arrived over a turn, up and down");
         // ----- status lamp: a battery at 80 % on its grid -> green
         Clear(); Put(0, 8, 0, "battery"); E(0, 8, 0).SetNum("energy", BatteryBehavior.Capacity * .8); Put(1, 8, 0, "status_lamp"); Ticks(5);
         Check(E(1, 8, 0).Num("level") == 2 && DEFS[Id("status_lamp")].State.Find("level").Value((uint)At(1, 8, 0).State) == 2, "the grid status lamp turns green at 80 % storage");

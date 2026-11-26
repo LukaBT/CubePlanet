@@ -3565,24 +3565,6 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "item_pipe",
-      "id": 196,
-      "name": "Item Pipe",
-      "group_tags": [],
-      "properties": {
-        "definition": {
-          "stack_size": 64,
-          "places_block": {
-            "namespace": "base",
-            "id_name": "item_pipe"
-          }
-        },
-        "instance_state": {}
-      }
-    },
-    {
-      "type": "item",
-      "namespace": "base",
       "id_name": "extractor",
       "id": 197,
       "name": "Extractor",

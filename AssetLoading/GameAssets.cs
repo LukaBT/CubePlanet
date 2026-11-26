@@ -15,6 +15,33 @@ public static class GameAssets
     /// <summary>Block texture array: RGBA, layer-major, row 0 = bottom of the face.</summary>
     public static byte[] BlockLayers; public static int BlockLayerCount, BlockTexW, BlockTexH;
     /// <summary>Item icons: RGBA, layer = item ID (= item texture ID).</summary>
+    /// <summary>The conveyor's moving belt surface (block texture "conveyor_belt").</summary>
+    public static int BeltTexture;
+    /// <summary>Item pictures are also copied into the block texture array (after the block textures, scaled to the block texture size), so
+    /// items can be drawn in the world (on conveyor belts): layer = <see cref="ItemWorldBase"/> + item texture id.</summary>
+    public static int ItemWorldBase;
+    public static float ItemWorldLayer(int item) => item > 0 && item < ItemLayerCount ? ItemWorldBase + item : 0;
+    static void AppendItemLayers()
+    {
+        int bw = BlockTexW, iw = ItemTexW, n = ItemLayerCount; if (bw <= 0 || iw <= 0 || iw % bw != 0 || BlockTexH != bw || ItemTexH != iw) return;
+        int f = iw / bw; var res = new byte[BlockLayers.Length + n * bw * bw * 4]; Buffer.BlockCopy(BlockLayers, 0, res, 0, BlockLayers.Length);
+        ItemWorldBase = BlockLayerCount;
+        for (int l = 0; l < n; l++)
+            for (int y = 0; y < bw; y++)
+                for (int x = 0; x < bw; x++)
+                {
+                    int r = 0, g = 0, b = 0, a = 0;
+                    for (int sy = 0; sy < f; sy++) for (int sx = 0; sx < f; sx++)
+                        {
+                            int s = ((l * iw + y * f + sy) * iw + x * f + sx) * 4; int al = ItemLayers[s + 3];
+                            r += ItemLayers[s] * al; g += ItemLayers[s + 1] * al; b += ItemLayers[s + 2] * al; a += al;
+                        }
+                    int o = BlockLayers.Length + ((l * bw + y) * bw + x) * 4;
+                    if (a > 0) { res[o] = (byte)(r / a); res[o + 1] = (byte)(g / a); res[o + 2] = (byte)(b / a); }
+                    res[o + 3] = (byte)(a / (f * f) >= 128 ? 255 : 0); // cut-out like the block textures
+                }
+        BlockLayers = res; BlockLayerCount += n;
+    }
     public static byte[] ItemLayers; public static int ItemLayerCount, ItemTexW, ItemTexH;
 
     public static void Load()
@@ -43,6 +70,8 @@ public static class GameAssets
         var itdef = TextureDefinitionFile.Load(AssetPaths.Get(AssetPaths.ItemTextureDefinitions));
         ItemTexW = itdef.Width; ItemTexH = itdef.Height;
         ItemLayers = AtlasLoader.LoadLayers(AssetPaths.Get(AssetPaths.ItemAtlas), itdef, out ItemLayerCount);
+        AppendItemLayers();
+        BeltTexture = tdef.Entries.FirstOrDefault(e => e.name == "conveyor_belt").id;
         Blocks.Build(BlockReg);
     }
 }

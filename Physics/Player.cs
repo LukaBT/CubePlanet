@@ -122,6 +122,7 @@ public static class PlayerPhysics
         if (Elevator.Update(dt, jump, sneak)) jump = false; // elevator platforms move (carrying the player); jump on one = ride up
         int n = Math.Max(1, (int)Math.Ceiling(dt / .017)); double h = dt / n;
         for (int i = 0; i < n; i++) PStep(h, fw, sd, jump, sneak, ctrl);
+        Conveyor.CarryPlayer(dt); // standing on a conveyor belt carries the player
         stepLag *= Math.Exp(-dt * 14); if (stepLag < 1e-3) stepLag = 0;
         SyncCam();
     }

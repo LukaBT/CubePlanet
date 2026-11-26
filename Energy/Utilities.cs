@@ -511,57 +511,46 @@ public static class Elevator
 }
 
 /// <summary>
-/// Item transport: item pipes and conveyor belts (group tag "item_pipe") join an extractor's front to inventories (chests, machines) along
-/// them. The extractor takes items from the inventory at its back (a machine's output or a chest) and sends them to the nearest inventory
-/// on its pipes that takes them (a furnace / mill input if it can work them, fuel slots for fuel, chests), 4 items a second, 0.2 E each.
+/// Extractor: takes items out of the inventory at its back (a machine's output or a chest) and puts them onto the conveyor belt at its front
+/// (at the belt's start, when there is room), or straight into a chest / machine in front. 4 items a second, 0.2 E each.
 /// </summary>
 public sealed class ExtractorBehavior : BlockBehavior, IEnergyMachine
 {
     public const double PerItem = .2, ItemsPerSecond = 4;
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
-    public static bool IsItemPipe(int id) => DEFS[id]?.HasTag("item_pipe") ?? false;
-    BlockEntity Source(BlockEntity e) { var (dx, dy, dz) = WaterMachines.Dir(e); return e.Pos.TryOffset(-dx, -dy, -dz, out var b) && BlockStates.entities.TryGetValue(b.Key, out var s) && ItemsUtil.OutputOf(s) != null ? s : null; }
-    /// <summary>Inventories along the pipes from the front, nearest first.</summary>
-    List<BlockEntity> Targets(BlockEntity e, BlockEntity src)
+    static BlockEntity Source(BlockEntity e) { var (dx, dy, dz) = WaterMachines.Dir(e); return e.Pos.TryOffset(-dx, -dy, -dz, out var b) && BlockStates.entities.TryGetValue(b.Key, out var s) && !Conveyor.IsBelt(s.BlockId) && ItemsUtil.OutputOf(s) != null ? s : null; }
+    static BlockEntity Front(BlockEntity e) { var (dx, dy, dz) = WaterMachines.Dir(e); return e.Pos.TryOffset(dx, dy, dz, out var f) && f.Loaded && BlockStates.entities.TryGetValue(f.Key, out var t) ? t : null; }
+    static bool Give(BlockEntity front, ItemStack s, bool really)
     {
-        var res = new List<BlockEntity>(); var (dx, dy, dz) = WaterMachines.Dir(e);
-        if (!e.Pos.TryOffset(dx, dy, dz, out var f) || !f.Loaded) return res;
-        if (BlockStates.entities.TryGetValue(f.Key, out var direct) && direct != src && direct.Inventories.Count > 0) { res.Add(direct); return res; }
-        if (!IsItemPipe(f.Id)) return res;
-        var seen = new HashSet<long> { f.Key, e.Pos.Key }; var q = new Queue<BlockPos>(); q.Enqueue(f); var added = new HashSet<long>();
-        while (q.Count > 0 && seen.Count < 2048)
-        {
-            var p = q.Dequeue();
-            foreach (var (ox, oy, oz) in ItemsUtil.N6)
-            {
-                if (!p.TryOffset(ox, oy, oz, out var n) || !n.Loaded || seen.Contains(n.Key)) continue;
-                if (IsItemPipe(n.Id)) { seen.Add(n.Key); q.Enqueue(n); continue; }
-                if (BlockStates.entities.TryGetValue(n.Key, out var t) && t != src && t.Inventories.Count > 0 && added.Add(n.Key)) res.Add(t);
-            }
-        }
-        return res;
+        if (front == null) return false;
+        if (Conveyor.IsBelt(front.BlockId)) return Conveyor.CanTake(front) && (!really || Conveyor.Put(front, s, 0));
+        if (!ItemsUtil.Accepts(front, s)) return false;
+        return !really || ItemsUtil.Insert(ItemsUtil.InputFor(front, s), new ItemStack(s.Item, 1, s.State)) == 1;
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         var src = Source(e); var outInv = src == null ? null : ItemsUtil.OutputOf(src);
         if (outInv == null || outInv.All(s => s == null || s.IsEmpty)) { e.SetNum("status", src == null ? 1 : 2); return; }
+        var s0 = outInv.First(s => s != null && !s.IsEmpty);
+        if (!Give(Front(e), s0, false)) { e.SetNum("status", Front(e) == null ? 4 : 3); return; }
         e.SetNum("status", 0); p.Demand = PerItem * ItemsPerSecond * dt;
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
         if (got <= 0) return; double acc = e.Num("acc") + got / PerItem; int n = (int)acc; e.SetNum("acc", Math.Min(acc - n, 1));
-        var src = Source(e); if (src == null) return; var outInv = ItemsUtil.OutputOf(src); var targets = Targets(e, src);
+        var src = Source(e); if (src == null) return; var outInv = ItemsUtil.OutputOf(src); var front = Front(e);
         for (int k = 0; k < n; k++)
         {
             int si = Array.FindIndex(outInv, s => s != null && !s.IsEmpty); if (si < 0) break; var s = outInv[si];
-            var t = targets.FirstOrDefault(x => ItemsUtil.Accepts(x, s)); if (t == null) { e.SetNum("status", 3); break; }
-            ItemsUtil.Insert(ItemsUtil.InputFor(t, s), new ItemStack(s.Item, 1, s.State)); if (--s.Count <= 0) outInv[si] = null;
+            if (!Give(front, s, true)) break;
+            if (--s.Count <= 0) outInv[si] = null;
             e.SetNum("moved", e.Num("moved") + 1);
         }
     }
     public override string Describe(BlockEntity e) => (int)e.Num("status") switch
     {
-        1 => "NOTHING TO TAKE FROM: ITS BACK MUST TOUCH A CHEST OR A MACHINE", 2 => "SOURCE EMPTY", 3 => "NO INVENTORY ON ITS PIPES TAKES IT",
+        1 => "NOTHING TO TAKE FROM: ITS BACK MUST TOUCH A CHEST OR A MACHINE", 2 => "SOURCE EMPTY", 3 => "THE BELT / INVENTORY IN FRONT IS FULL",
+        4 => "NOTHING IN FRONT: PUT A CONVEYOR BELT OR A CHEST THERE",
         _ => $"MOVED {e.Num("moved"):0} ITEMS  (4 A SECOND, 0.2 E EACH)"
     };
 }

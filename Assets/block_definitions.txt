@@ -17479,190 +17479,12 @@
     {
       "type": "block",
       "namespace": "base",
-      "id_name": "item_pipe",
-      "id": 182,
-      "name": "Item Pipe",
-      "stateless": false,
-      "group_tags": [
-        "item_pipe"
-      ],
-      "textures": {
-        "all": 240
-      },
-      "properties": {
-        "definition": {
-          "model": "boxes",
-          "behavior": "connecting",
-          "connects_to": [
-            "item_pipe"
-          ],
-          "connect_solid": false,
-          "boxes": [
-            {
-              "x": 0.3125,
-              "y": 0.3125,
-              "z": 0.3125,
-              "w": 0.375,
-              "h": 0.375,
-              "d": 0.375
-            }
-          ],
-          "render": {
-            "layer": "cutout"
-          },
-          "random_offset": false,
-          "geometry": {
-            "collision": "boxes",
-            "selection": "boxes",
-            "state_overrides": [
-              {
-                "when": {
-                  "north": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0.3125,
-                    "y": 0.3125,
-                    "z": 0,
-                    "w": 0.375,
-                    "h": 0.375,
-                    "d": 0.3125
-                  }
-                ]
-              },
-              {
-                "when": {
-                  "south": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0.3125,
-                    "y": 0.3125,
-                    "z": 0.6875,
-                    "w": 0.375,
-                    "h": 0.375,
-                    "d": 0.3125
-                  }
-                ]
-              },
-              {
-                "when": {
-                  "east": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0.6875,
-                    "y": 0.3125,
-                    "z": 0.3125,
-                    "w": 0.3125,
-                    "h": 0.375,
-                    "d": 0.375
-                  }
-                ]
-              },
-              {
-                "when": {
-                  "west": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0,
-                    "y": 0.3125,
-                    "z": 0.3125,
-                    "w": 0.3125,
-                    "h": 0.375,
-                    "d": 0.375
-                  }
-                ]
-              },
-              {
-                "when": {
-                  "up": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0.3125,
-                    "y": 0.6875,
-                    "z": 0.3125,
-                    "w": 0.375,
-                    "h": 0.3125,
-                    "d": 0.375
-                  }
-                ]
-              },
-              {
-                "when": {
-                  "down": true
-                },
-                "add_boxes": [
-                  {
-                    "x": 0.3125,
-                    "y": 0,
-                    "z": 0.3125,
-                    "w": 0.375,
-                    "h": 0.3125,
-                    "d": 0.375
-                  }
-                ]
-              }
-            ]
-          },
-          "lod_color": [
-            200,
-            150,
-            60
-          ],
-          "default_state": "normal",
-          "hardness": 1.0,
-          "sounds": {
-            "break": "stone_break"
-          },
-          "drops": [
-            {
-              "namespace": "base",
-              "id_name": "item_pipe",
-              "count": 1
-            }
-          ]
-        },
-        "instance_state": {
-          "north": {
-            "type": "boolean",
-            "default": false
-          },
-          "east": {
-            "type": "boolean",
-            "default": false
-          },
-          "south": {
-            "type": "boolean",
-            "default": false
-          },
-          "west": {
-            "type": "boolean",
-            "default": false
-          },
-          "up": {
-            "type": "boolean",
-            "default": false
-          },
-          "down": {
-            "type": "boolean",
-            "default": false
-          }
-        }
-      }
-    },
-    {
-      "type": "block",
-      "namespace": "base",
       "id_name": "extractor",
       "id": 183,
       "name": "Extractor",
       "stateless": false,
       "group_tags": [
-        "energy",
-        "item_pipe"
+        "energy"
       ],
       "textures": {
         "all": 242,
@@ -17717,12 +17539,9 @@
       "id": 184,
       "name": "Conveyor Belt",
       "stateless": false,
-      "group_tags": [
-        "item_pipe"
-      ],
+      "group_tags": [],
       "textures": {
-        "all": 242,
-        "top": 243
+        "all": 247
       },
       "properties": {
         "definition": {
@@ -17742,14 +17561,351 @@
               "x": 0,
               "y": 0,
               "z": 0,
-              "w": 1,
-              "h": 0.2,
+              "w": 0.0625,
+              "h": 0.3125,
               "d": 1
+            },
+            {
+              "x": 0.9375,
+              "y": 0,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.3125,
+              "d": 1
+            },
+            {
+              "x": 0.0625,
+              "y": 0,
+              "z": 0,
+              "w": 0.875,
+              "h": 0.125,
+              "d": 1,
+              "textures": {
+                "top": 249
+              }
             }
           ],
           "geometry": {
             "collision": "boxes",
-            "selection": "boxes"
+            "selection": "boxes",
+            "state_overrides": [
+              {
+                "when": {
+                  "slope": "flat",
+                  "shape": "left"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.125,
+                    "d": 1,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.0625,
+                    "h": 0.3125,
+                    "d": 1
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.9375,
+                    "w": 0.9375,
+                    "h": 0.3125,
+                    "d": 0.0625
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.0625,
+                    "h": 0.3125,
+                    "d": 0.0625
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "slope": "flat",
+                  "shape": "right"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 1,
+                    "h": 0.125,
+                    "d": 1,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.0625,
+                    "h": 0.3125,
+                    "d": 1
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.9375,
+                    "w": 0.9375,
+                    "h": 0.3125,
+                    "d": 0.0625
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0,
+                    "w": 0.0625,
+                    "h": 0.3125,
+                    "d": 0.0625
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "slope": "up"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.0625,
+                    "h": 0.4375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.0625,
+                    "h": 0.4375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.875,
+                    "h": 0.25,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.0625,
+                    "h": 0.6875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.0625,
+                    "h": 0.6875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.875,
+                    "h": 0.5,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.0625,
+                    "h": 0.9375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.0625,
+                    "h": 0.9375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.875,
+                    "h": 0.75,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.0625,
+                    "h": 1.1875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.0625,
+                    "h": 1.1875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.875,
+                    "h": 1.0,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  }
+                ]
+              },
+              {
+                "when": {
+                  "slope": "down"
+                },
+                "boxes": [
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.0625,
+                    "h": 0.4375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.0625,
+                    "h": 0.4375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.0,
+                    "w": 0.875,
+                    "h": 0.25,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.0625,
+                    "h": 0.6875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.0625,
+                    "h": 0.6875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.25,
+                    "w": 0.875,
+                    "h": 0.5,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.0625,
+                    "h": 0.9375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.0625,
+                    "h": 0.9375,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.5,
+                    "w": 0.875,
+                    "h": 0.75,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.0625,
+                    "h": 1.1875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.9375,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.0625,
+                    "h": 1.1875,
+                    "d": 0.25
+                  },
+                  {
+                    "x": 0.0625,
+                    "y": 0,
+                    "z": 0.75,
+                    "w": 0.875,
+                    "h": 1.0,
+                    "d": 0.25,
+                    "textures": {
+                      "top": 249
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "default_state": "normal",
           "hardness": 1.0,
@@ -17762,9 +17918,33 @@
               "id_name": "conveyor_belt",
               "count": 1
             }
-          ]
+          ],
+          "behavior": "conveyor"
         },
-        "instance_state": {}
+        "instance_state": {
+          "shape": {
+            "type": "string",
+            "values": [
+              "straight",
+              "left",
+              "right"
+            ],
+            "default": "straight"
+          },
+          "slope": {
+            "type": "string",
+            "values": [
+              "flat",
+              "up",
+              "down"
+            ],
+            "default": "flat"
+          },
+          "belt": {
+            "type": "inventory",
+            "slots": 4
+          }
+        }
       }
     },
     {
