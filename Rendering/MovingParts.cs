@@ -28,6 +28,8 @@ public static class MovingParts
         }
         quads = AddWires(org, quads);
         quads = AddTanks(org, quads);
+        quads = AddPlatforms(org, quads);
+        quads = AddSprays(org, quads);
         if (quads == 0) return;
         var md = Mesher.Pack(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(vs), ReadOnlySpan<uint>.Empty);
         if (quadIx == null)
@@ -82,6 +84,52 @@ public static class MovingParts
                 vs.Add((float)q.X); vs.Add((float)q.Y); vs.Add((float)q.Z); vs.Add(cu[k] * 16); vs.Add(cv[k] * 16); vs.Add(lay); vs.Add(.9f);
                 vs.Add((float)(n.X * sg)); vs.Add((float)(n.Y * sg)); vs.Add((float)(n.Z * sg));
             }
+    }
+
+    static readonly int[][] BoxFaces = { new[] { 1, 3, 7, 5 }, new[] { 4, 6, 2, 0 }, new[] { 2, 6, 7, 3 }, new[] { 4, 0, 1, 5 }, new[] { 5, 7, 6, 4 }, new[] { 0, 2, 3, 1 } };
+    /// <summary>A box in the block-local coordinates of cell a (12 quads).</summary>
+    static void LocalBox(BlockPos a, double x0, double y0, double z0, double x1, double y1, double z1, float lay, V3 org)
+    {
+        V3[] c = new V3[8];
+        for (int i = 0; i < 8; i++) c[i] = World(a, (i & 1) != 0 ? x1 : x0, (i & 2) != 0 ? y1 : y0, (i & 4) != 0 ? z1 : z0, org);
+        foreach (var f in BoxFaces) { V3 q0 = c[f[0]], q1 = c[f[1]], q2 = c[f[2]], q3 = c[f[3]]; Quad(q0, q1, q2, q3, M.Nrm(M.Cross(q2 - q0, q3 - q1)), lay); }
+    }
+
+    /// <summary>Elevator platforms (<see cref="Elevator"/>): one thin box per cell of the platform, at its current height.</summary>
+    static int AddPlatforms(V3 org, int quads)
+    {
+        if (Elevator.Platforms.IsEmpty) return quads;
+        V3 cam = new(C.x, C.y, C.z);
+        foreach (var l in Elevator.Platforms.Values)
+        {
+            var a = l.E.Pos; if (!a.Loaded || (l.At - cam).Len > Range * 2) continue;
+            double top = Elevator.Top(l.E) + .003, bot = top - Elevator.Thick; float lay = LayTex(l.E.BlockId, TEXF[l.E.BlockId * 6 + 2]);
+            for (int dz = -l.Half; dz <= l.Half; dz++) for (int dx = -l.Half; dx <= l.Half; dx++)
+                {
+                    if (quads + 12 > MaxQuads) return quads;
+                    LocalBox(a, dx + .001, bot, dz + .001, dx + .999, top, dz + .999, lay, org); quads += 12;
+                }
+        }
+        return quads;
+    }
+
+    /// <summary>Sprinklers that just sprayed (<see cref="SprinklerBehavior"/>): water drops flying out in turning arcs to the edge of its reach.</summary>
+    static int AddSprays(V3 org, int quads)
+    {
+        V3 cam = new(C.x, C.y, C.z); double t = Environment.TickCount64 / 1000.0; float lay = LayTex(Water, TEXF[Water * 6 + 2]);
+        foreach (var e in BlockStates.entities.Values)
+        {
+            if (e.Num("spray") <= 0 || BEH[e.BlockId] is not SprinklerBehavior || e.Pos.Core || !e.Pos.Loaded || (e.Pos.Center - cam).Len > Range) continue;
+            const int N = 40;
+            for (int i = 0; i < N; i++)
+            {
+                if (quads + 12 > MaxQuads) return quads;
+                double ph = (t * .8 + i * .618) % 1, ang = i * (2 * PI / N) * 3 + t * 1.3, d = ph * SprinklerBehavior.Reach;
+                double x = .5 + Math.Cos(ang) * d, z = .5 + Math.Sin(ang) * d, y = .65 + 2.6 * ph - 3.2 * ph * ph, s = .035;
+                LocalBox(e.Pos, x - s, y - s, z - s, x + s, y + s, z + s, lay, org); quads += 12;
+            }
+        }
+        return quads;
     }
 
     /// <summary>The water inside tanks (seen through tank windows): a box of the room's footprint up to the water's depth.</summary>

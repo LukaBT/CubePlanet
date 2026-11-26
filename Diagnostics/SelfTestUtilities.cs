@@ -60,25 +60,47 @@ public static partial class SelfTest
         // ----- grow light: lit and powered, crops within 4 blocks grow twice as fast
         Clear(); Coal(-1, 8, 0); Put(0, 8, 0, "grow_light"); E(0, 8, 0).SetNum("mode", 1); Ticks(5);
         Check(GrowLights.Boost(At(3, 8, 2)) == 2 && GrowLights.Boost(At(6, 8, 0)) == 1, "a lit grow light makes crops within 4 blocks grow twice as fast");
-        // ----- sprinkler: water from below, 3x3... 8 farmland around it on its row
-        Clear(); SetCell(bi, f, x0, y0 + 6, z0, Stone); SetCell(bi, f, x0, y0 + 7, z0, Water, 8); SetCell(bi, f, x0, y0 + 5, z0, Stone);
-        for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) { if (x == 0 && z == 0) continue; SetCell(bi, f, x0 + x, y0 + 7, z0 + z, Dirt); Farming.Till(At(x, 7, z)); }
-        SetCell(bi, f, x0, y0 + 6, z0, Water, 8);
-        Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0);
+        // ----- sprinkler: only from a pipe, with pressure; sprays only when farmland within 4 needs water
+        void Basin(int x, int y, int z) { SetCell(bi, f, x0 + x, y0 + y, z0 + z, Water, 8); foreach (var (ax, az) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }) if (At(x + ax, y, z + az).Id == 0) SetCell(bi, f, x0 + x + ax, y0 + y, z0 + z + az, Stone); }
+        void Farm() { for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) { if (x == 0 && z == 0) continue; SetCell(bi, f, x0 + x, y0 + 7, z0 + z, Dirt); Farming.Till(At(x, 7, z)); } }
         int Moist() { int n = 0; for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) if (!(x == 0 && z == 0)) n += Farming.MoistureAt(At(x, 7, z)); return n; }
-        int w0 = Wl(Wcell(bi, f, x0, y0 + 7, z0)) + Wl(Wcell(bi, f, x0, y0 + 6, z0)), m0 = Moist(); Ticks(50);
-        int w1 = Wl(Wcell(bi, f, x0, y0 + 7, z0)) + Wl(Wcell(bi, f, x0, y0 + 6, z0)), m1 = Moist();
-        Check(m1 > m0 && (w0 - w1) == (m1 - m0), $"a sprinkler waters the farmland around it ({m1 - m0} moisture from {w0 - w1} units of water)");
-        // ----- elevator: two elevators 10 blocks apart; the ride costs 80 kg x g x 10 / 80 %
-        Clear(); Put(0, 4, 0, "elevator"); Put(0, 14, 0, "elevator"); var nextUp = Elevator.Next(At(0, 4, 0), 1); var nextDn = Elevator.Next(At(0, 14, 0), -1);
-        double ge = WaterMachines.G(At(0, 4, 0)), cost = Elevator.Cost(10, ge), back = Elevator.Cost(-10, ge); // gravity where the ride starts
-        var P = PlayerPhysics.P; var keepP = P.p; bool keepOn = P.on, keepFly = P.fly;
-        E(0, 4, 0).SetNum("energy", 50); var top = At(0, 4, 0).Center; P.p = top + M.Nrm(top) * .5; P.on = true; P.fly = false;
-        bool started = Elevator.Ride(.05, true, false); for (int i = 0; i < 100 && Elevator.Riding; i++) Elevator.Ride(.05, false, false);
-        double arrived = (P.p - (At(0, 14, 0).Center + M.Nrm(At(0, 14, 0).Center) * .5)).Len, used = 50 - E(0, 4, 0).Num("energy");
-        P.p = keepP; P.on = keepOn; P.fly = keepFly; Elevator.Ride(.05, false, false);
-        Check(nextUp?.Key == At(0, 14, 0).Key && nextDn?.Key == At(0, 4, 0).Key && started && arrived < .01 && Math.Abs(used - cost) < 1e-6 && back < 0 && cost > .7 && cost < .8,
-              $"elevator: rides 10 blocks up for {used:0.00} E (80 kg x {ge:0.00} x 10 / 0.8), riding down gives {-back:0.00} back");
+        // a water cell right behind it (no pipe): no water
+        Clear(); Farm(); SetCell(bi, f, x0, y0 + 6, z0, Stone); SetCell(bi, f, x0, y0 + 7, z0, Water, 8); Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0); Ticks(50);
+        Check(E(0, 8, 0).Num("watered") == 0 && E(0, 8, 0).Num("status") == 1, $"a sprinkler takes no water straight from a water cell, only from a pipe (status {E(0, 8, 0).Num("status")})");
+        // a pipe to a basin lower than the nozzle: no pressure
+        Clear(); Farm(); Put(0, 7, 0, "water_pipe"); Put(0, 6, 0, "water_pipe"); Put(1, 6, 0, "water_pipe"); Basin(2, 6, 0); SetCell(bi, f, x0 + 2, y0 + 5, z0, Stone);
+        Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0); Ticks(50);
+        Check(E(0, 8, 0).Num("watered") == 0 && E(0, 8, 0).Num("status") == 3, $"a sprinkler fed from a basin below its nozzle has no pressure (status {E(0, 8, 0).Num("status")})");
+        // a pipe up to a raised basin (3 cells deep): wet soil -> no spray; dry soil -> spray, water used = moisture added
+        Clear(); Farm(); Put(0, 7, 0, "water_pipe"); Put(0, 6, 0, "water_pipe"); for (int x = 1; x <= 3; x++) Put(x, 6, 0, "water_pipe"); for (int y = 7; y <= 9; y++) Put(3, y, 0, "water_pipe");
+        for (int y = 10; y <= 12; y++) Basin(3, y, 0);
+        Put(0, 8, 0, "sprinkler", "up"); Coal(-1, 8, 0);
+        int Basins() { int n = 0; for (int y = 10; y <= 12; y++) n += Wl(Wcell(bi, f, x0 + 3, y0 + y, z0)); return n; }
+        for (int z = -1; z <= 1; z++) for (int x = -1; x <= 1; x++) if (!(x == 0 && z == 0)) Farming.SetMoisture(At(x, 7, z), 7);
+        int wa = Basins(); Ticks(50); int wb = Basins(), ma = Moist();
+        Farming.SetMoisture(At(1, 7, 1), 2); int m0 = Moist(); Ticks(50); int w1 = Basins(), m1 = Moist();
+        Check(wa == wb && ma == 56 && m1 - m0 == wb - w1 && m1 == 64 && E(0, 8, 0).Num("status") == 0,
+              $"a pipe-fed sprinkler waits while the soil is wet ({wa - wb} used) and sprays when farmland dries ({m1 - m0} moisture from {wb - w1} units of water)");
+        // ----- elevator: a 3x3 platform, a stop 6 up, a ceiling -> floors 0, 6, 9; it carries the player; energy 80 kg x g x h / 80 %
+        Clear(); Elevator.Platforms.Clear(); Put(0, 4, 0, "elevator_3x3"); Put(0, 10, 2, "elevator_stop"); SetCell(bi, f, x0, y0 + 16, z0, Stone);
+        var lift = E(0, 4, 0); lift.SetNum("energy", 50); var floors = Elevator.Floors(lift);
+        V3 FootAt(int x, int y, int z) { var c = At(x, y, z).Center; return c - M.Nrm(c) * .5; } // the bottom centre of a cell
+        double ge = WaterMachines.G(At(0, 4, 0)), cost = Elevator.Cost(6, ge), back = Elevator.Cost(-6, ge);
+        V3 onTop = FootAt(1, 5, 1) + M.Nrm(FootAt(1, 5, 1)) * -.05, overTop = FootAt(1, 5, 1) + M.Nrm(FootAt(1, 5, 1)) * .05;
+        bool solid = Collision.SolidAt(onTop.X, onTop.Y, onTop.Z) && !Collision.SolidAt(overTop.X, overTop.Y, overTop.Z);
+        var P = PlayerPhysics.P; var keepP = P.p; bool keepOn = P.on, keepFly = P.fly, keepCore = P.core;
+        P.p = FootAt(0, 5, 0) + M.Nrm(FootAt(0, 5, 0)) * .001; P.on = true; P.fly = false; P.core = false;
+        Elevator.Update(.05, false, false); bool ate = Elevator.Update(.05, true, false);
+        for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double upDist = (P.p - FootAt(0, 11, 0)).Len, used = 50 - lift.Num("energy"), friction = Elevator.FrictionPerBlock * 9 * 6;
+        Elevator.Update(.05, false, true); for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double downDist = (P.p - FootAt(0, 5, 0)).Len;
+        P.on = false; BEH[Id("elevator_stop")].OnUse(At(0, 10, 2), Id("elevator_stop"), 0); for (int i = 0; i < 400 && Math.Abs(lift.Num("h") - lift.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
+        double called = lift.Num("h");
+        P.p = keepP; P.on = keepOn; P.fly = keepFly; P.core = keepCore; Elevator.Update(.05, false, false);
+        Check(string.Join(",", floors) == "0,6,9" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 6 && cost > .4 && cost < .5 && back < 0,
+              $"elevator 3x3: floors {string.Join(",", floors)}, the platform is solid, carries the player 6 up for {used:0.00} E (80 kg x {ge:0.00} x 6 / 0.8 + {friction:0.00} friction; off by {upDist:0.000}), back down (off by {downDist:0.000}), a stop calls it ({called})");
+        Elevator.Platforms.Clear();
         // ----- item pipes: chest A (10 iron ore) -> extractor -> pipes and a belt -> chest B
         Clear(); Put(0, 8, 0, "chest", "north"); E(0, 8, 0).Inv("slots")[0] = new ItemStack(Item("iron_ore"), 10);
         Put(1, 8, 0, "extractor", "east"); Put(2, 8, 0, "item_pipe"); Put(3, 8, 0, "conveyor_belt", "north"); Put(4, 8, 0, "item_pipe"); Put(5, 8, 0, "chest", "north");
@@ -87,7 +109,7 @@ public static partial class SelfTest
         // ----- status lamp: a battery at 80 % on its grid -> green
         Clear(); Put(0, 8, 0, "battery"); E(0, 8, 0).SetNum("energy", BatteryBehavior.Capacity * .8); Put(1, 8, 0, "status_lamp"); Ticks(5);
         Check(E(1, 8, 0).Num("level") == 2 && DEFS[Id("status_lamp")].State.Find("level").Value((uint)At(1, 8, 0).State) == 2, "the grid status lamp turns green at 80 % storage");
-        Console.WriteLine($"UTILITIES miner {mn.Num("mined"):0} blocks; hydrogen {el.Num("made_kg") * 1000:0.0} g; drill {dug}; chainsaw {cut}; elevator 10 blocks {cost:0.00} E");
+        Console.WriteLine($"UTILITIES miner {mn.Num("mined"):0} blocks; hydrogen {el.Num("made_kg") * 1000:0.0} g; drill {dug}; chainsaw {cut}; elevator 6 blocks {cost:0.00} E");
         Clear();
         foreach (var c in made) FreeChunk(c);
     }

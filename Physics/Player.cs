@@ -119,7 +119,7 @@ public static class PlayerPhysics
     }
     public static void PlayerUpdate(double dt, double fw, double sd, bool jump, bool sneak, bool ctrl)
     {
-        if (Elevator.Ride(dt, jump, sneak)) { SyncCam(); return; } // riding an elevator: it moves the player
+        if (Elevator.Update(dt, jump, sneak)) jump = false; // elevator platforms move (carrying the player); jump on one = ride up
         int n = Math.Max(1, (int)Math.Ceiling(dt / .017)); double h = dt / n;
         for (int i = 0; i < n; i++) PStep(h, fw, sd, jump, sneak, ctrl);
         stepLag *= Math.Exp(-dt * 14); if (stepLag < 1e-3) stepLag = 0;

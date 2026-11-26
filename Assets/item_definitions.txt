@@ -3495,7 +3495,7 @@
       "namespace": "base",
       "id_name": "elevator",
       "id": 195,
-      "name": "Elevator",
+      "name": "Elevator 1x1",
       "group_tags": [],
       "properties": {
         "definition": {
@@ -3503,6 +3503,60 @@
           "places_block": {
             "namespace": "base",
             "id_name": "elevator"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator_3x3",
+      "id": 201,
+      "name": "Elevator 3x3",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator_3x3"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator_5x5",
+      "id": 202,
+      "name": "Elevator 5x5",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator_5x5"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "elevator_stop",
+      "id": 203,
+      "name": "Elevator Stop",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "elevator_stop"
           }
         },
         "instance_state": {}

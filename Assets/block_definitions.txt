@@ -17295,7 +17295,7 @@
       "namespace": "base",
       "id_name": "elevator",
       "id": 181,
-      "name": "Elevator",
+      "name": "Elevator 1x1",
       "stateless": false,
       "group_tags": [
         "energy"
@@ -17326,7 +17326,10 @@
               "id_name": "elevator",
               "count": 1
             }
-          ]
+          ],
+          "elevator": {
+            "size": 1
+          }
         },
         "instance_state": {
           "energy": {
@@ -17334,6 +17337,143 @@
             "default": 0
           }
         }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "elevator_3x3",
+      "id": 186,
+      "name": "Elevator 3x3",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 239
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "elevator",
+          "lod_color": [
+            170,
+            176,
+            184
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "elevator_3x3",
+              "count": 1
+            }
+          ],
+          "elevator": {
+            "size": 3
+          }
+        },
+        "instance_state": {
+          "energy": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "elevator_5x5",
+      "id": 187,
+      "name": "Elevator 5x5",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 239
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "elevator",
+          "lod_color": [
+            170,
+            176,
+            184
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "elevator_5x5",
+              "count": 1
+            }
+          ],
+          "elevator": {
+            "size": 5
+          }
+        },
+        "instance_state": {
+          "energy": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "elevator_stop",
+      "id": 188,
+      "name": "Elevator Stop",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 199
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "elevator_stop",
+          "lod_color": [
+            220,
+            200,
+            120
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "elevator_stop",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
       }
     },
     {

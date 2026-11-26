@@ -289,94 +289,224 @@ public static class GrowLights
 }
 
 /// <summary>
-/// Sprinkler: every 4 s waters the farmland within 4 blocks (its own row and one below), 1 unit of water per moisture level, taken from
-/// its back (a water cell, a pipe or a tank: the water really leaves). Uses 0.3 E per unit (pressure for the spray).
+/// Sprinkler: takes water only from a water pipe at its back (the pipe's far end in water or at a tank valve; the water really leaves).
+/// The water needs pressure to spray: the source's surface (plus a tank's air pressure) must stand above the nozzle, so feed it from a
+/// higher basin or a pressurised tank (a pump can fill those). Every 4 s it looks at the farmland within a radius of 4 blocks (its own row and
+/// two below): when any of it needs water (moisture 6 of 8 or less) it sprays, filling the dry farmland back to 8, 1 unit of water per
+/// moisture level (at most 24 a spray), 0.3 E a unit for the valve. Wet farmland: no spray, no water used.
 /// </summary>
 public sealed class SprinklerBehavior : BlockBehavior, IEnergyMachine
 {
-    public const double EPerUnit = .3, Every = 4; public const int Reach = 4, MaxPerCycle = 24;
+    public const double EPerUnit = .3, Every = 4, RadiusSq = 4.5 * 4.5, SprayShow = 2.5; public const int Reach = 4, MaxPerCycle = 24, NeedsAt = 6;
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     IEnumerable<BlockPos> Thirsty(BlockEntity e)
     {
         for (int dy = -2; dy <= 0; dy++) for (int dz = -Reach; dz <= Reach; dz++) for (int dx = -Reach; dx <= Reach; dx++)
-                    if (e.Pos.TryOffset(dx, dy, dz, out var c) && c.Loaded && Farming.IsFarmland(c.Id) && Farming.MoistureAt(c) < 8) yield return c;
+                    if (dx * dx + dz * dz <= RadiusSq && e.Pos.TryOffset(dx, dy, dz, out var c) && c.Loaded && Farming.IsFarmland(c.Id) && Farming.MoistureAt(c) < 8) yield return c;
+    }
+    /// <summary>A pipe proper (water pipe, large pipe, pipe valve): not a tank valve, pump or machine that also joins pipes.</summary>
+    public static bool IsPlainPipe(int id) => id > 0 && DEFS[id]?.IdName is "water_pipe" or "large_pipe" or "pipe_valve";
+    /// <summary>Water from the pipe at its back, with enough pressure to reach the nozzle (status 1: no pipe, 2: no water on it, 3: too little pressure).</summary>
+    static WaterEnd Source(BlockEntity e, out int status)
+    {
+        var (dx, dy, dz) = WaterMachines.Dir(e); status = 1;
+        if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded || !IsPlainPipe(b.Id)) return default;
+        var src = WaterMachines.IntakeEnd(e); status = 2; if (!src.Ok || src.Available < 1) return default;
+        double g = Math.Max(WaterMachines.G(e.Pos), 1e-6), head = src.SourceSurface + src.Gauge / (WaterMachines.Rho * g);
+        status = 3; if (head < e.Pos.Y + 1) return default;
+        status = 0; return src;
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
-        e.SetNum("job", 0); if (!e.Pos.Loaded) return;
+        e.SetNum("spray", Math.Max(0, e.Num("spray") - dt)); if (!e.Pos.Loaded) return;
+        if (e.Num("job") > 0)
+        {   // a spray still going: the rest of its water as the valve gets energy
+            Source(e, out int st); e.SetNum("status", st); if (st != 0) { e.SetNum("job", 0); return; }
+            p.Demand = e.Num("job") * EPerUnit; return;
+        }
         double t = e.Num("timer") - dt; if (t > 0) { e.SetNum("timer", t); return; } e.SetNum("timer", Every);
-        int need = 0; foreach (var c in Thirsty(e)) need += 8 - Farming.MoistureAt(c); need = Math.Min(need, MaxPerCycle);
-        var src = WaterMachines.IntakeEnd(e); if (!src.Ok) { e.SetNum("status", 1); return; }
-        need = Math.Min(need, src.Available); if (need <= 0) { e.SetNum("status", 0); return; }
-        e.SetNum("job", need); e.SetNum("status", 0); p.Demand = need * EPerUnit;
+        var src = Source(e, out int status); e.SetNum("status", status); if (status != 0) return;
+        bool needs = false; int need = 0;
+        foreach (var c in Thirsty(e)) { int m = Farming.MoistureAt(c); need += 8 - m; needs |= m <= NeedsAt; }
+        if (!needs) return; // the soil is still wet enough
+        need = Math.Min(Math.Min(need, MaxPerCycle), src.Available); if (need <= 0) return;
+        e.SetNum("job", need); p.Demand = need * EPerUnit;
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
     {
         int n = (int)Math.Min(e.Num("job"), Math.Floor(got / EPerUnit + 1e-9)); if (n <= 0) return;
-        var src = WaterMachines.IntakeEnd(e); if (!src.Ok) return;
-        int took = src.Tank != null ? src.Tank.Take(n) : TakeWater(src.Cell, n);
+        var src = Source(e, out int status); if (status != 0) return;
+        int took = src.Tank != null ? src.Tank.Take(n) : TakeWater(src.Cell, n), used = took;
         foreach (var c in Thirsty(e).OrderBy(c => Farming.MoistureAt(c)).ToList())
         {
             if (took <= 0) break; int m = Farming.MoistureAt(c), add = Math.Min(8 - m, took); Farming.SetMoisture(c, m + add); took -= add;
         }
         if (took > 0) WaterSim.Reservoir += took; // (never happens: it only takes what the soil needs)
-        e.SetNum("watered", e.Num("watered") + n);
+        e.SetNum("job", Math.Max(0, e.Num("job") - n)); e.SetNum("watered", e.Num("watered") + used); e.SetNum("spray", SprayShow);
     }
-    public override string Describe(BlockEntity e) => e.Num("status") > 0 ? "NO WATER: A WATER CELL, PIPE OR TANK BELOW IT" : $"WATERED {e.Num("watered"):0} UNITS SO FAR  (REACH {Reach} BLOCKS)";
+    public override string Describe(BlockEntity e) => (int)e.Num("status") switch
+    {
+        1 => "NO PIPE: CONNECT A WATER PIPE TO ITS BACK", 2 => "NO WATER ON ITS PIPE",
+        3 => "NOT ENOUGH PRESSURE: THE WATER SOURCE MUST BE HIGHER THAN THE NOZZLE (OR A PRESSURISED TANK)",
+        _ => $"{(e.Num("spray") > 0 ? "SPRAYING" : "WAITING FOR DRY SOIL")}  WATERED {e.Num("watered"):0} UNITS SO FAR  (RADIUS {Reach}, SPRAYS AT MOISTURE {NeedsAt} OR LESS)"
+    };
 }
 
 /// <summary>
-/// Elevator: elevator blocks in a column, one per floor. Standing on one, jump to ride up to the next elevator above (within 64 blocks,
-/// with room to stand on it), sneak to ride down. Energy is real: 80 kg x gravity here x the height / 80 % motor; riding down gives half
-/// of it back (regenerative braking). Each elevator keeps up to 50 E from the grid (charging at 5 E/s); the ride uses the start's.
+/// Elevator: a motor block at the bottom of a shaft and a platform that really moves (1x1, 3x3 or 5x5: key "elevator": {"size"}). The
+/// platform lies on the motor block (centred on it) and runs up the clear shaft above it; you stand on it and it carries you. Floors: the
+/// bottom, the top of the shaft (2 free blocks under the first block over the platform, at most 64 up) and every Elevator Stop built into
+/// the landing beside the shaft (touching the platform's edge; the platform stops flush with the stop's top). Standing on it: jump = next
+/// floor up, sneak = next floor down. Right click the motor or a stop: call the platform there. Energy is real: the cabin has a
+/// counterweight, so the motor lifts your 80 kg (x gravity here x height / 80 %; riding down gives half of it back) plus a little friction
+/// for the platform. It keeps up to 50 E from the grid (5 E/s); without energy the platform waits where it is.
 /// </summary>
 public sealed class ElevatorBehavior : BlockBehavior, IEnergyMachine
 {
     public const double Buffer = 50, ChargeRate = 5;
-    public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
-    public void Plan(BlockEntity e, double dt, ref EnergyPlan p) => p.StoreIn = Math.Max(0, Math.Min(ChargeRate * dt, Buffer - e.Num("energy")));
+    public override void OnPlace(BlockPos p, int id) => Elevator.Add(BlockStates.EntityOrNew(p, id));
+    public override void OnBreak(BlockPos p, int id, int state) => Elevator.Platforms.TryRemove(p.Key, out _);
+    public override bool Usable => true;
+    public override bool OnUse(BlockPos p, int id, int state)
+    {
+        var e = BlockStates.EntityOrNew(p, id); if (e == null) return false;
+        Elevator.Add(e); Elevator.Call(e, 0); return true;
+    }
+    /// <summary>The platform's width in blocks (odd: 1, 3, 5).</summary>
+    public static int Size(int id) => Math.Clamp((int)Electric.Key(BEH[id], id, "elevator", "size", 1), 1, 9) | 1;
+    public void Plan(BlockEntity e, double dt, ref EnergyPlan p) { Elevator.Add(e); p.StoreIn = Math.Max(0, Math.Min(ChargeRate * dt, Buffer - e.Num("energy"))); }
     public void Settle(BlockEntity e, double dt, double made, double got) => e.SetNum("energy", Math.Min(Buffer, e.Num("energy") + got));
-    public override string Describe(BlockEntity e) => $"ELEVATOR  {e.Num("energy"):0} / {Buffer:0} E  (JUMP: UP, SNEAK: DOWN)";
+    public override string Describe(BlockEntity e)
+    {
+        int s = Size(e.BlockId); var fl = Elevator.Floors(e);
+        string moving = Math.Abs(e.Num("target") - e.Num("h")) > 1e-6 ? $"GOING TO {e.Num("target"):0}" : "STOPPED";
+        return $"ELEVATOR {s}X{s}  PLATFORM AT {e.Num("h"):0.0} ({moving})  FLOORS {string.Join(" ", fl)}  {e.Num("energy"):0} / {Buffer:0} E  (ON IT: JUMP UP, SNEAK DOWN)";
+    }
+}
+
+/// <summary>Elevator Stop: built into a landing beside an elevator shaft (touching the platform's edge) it adds a floor there; right click calls
+/// the platform to it.</summary>
+public sealed class ElevatorStopBehavior : BlockBehavior
+{
+    public override bool Usable => true;
+    public override bool OnUse(BlockPos p, int id, int state)
+    {
+        var e = Elevator.ForStop(p);
+        if (e == null) { UI.Note("Elevator Stop: build it into the landing beside an elevator shaft, touching the platform's edge", 2.5); return true; }
+        Elevator.Call(e, p.Y - e.Pos.Y); return true;
+    }
 }
 
 public static class Elevator
 {
-    public const double PlayerKg = 80, MotorEff = .8, Regen = .5, Speed = 4, Reach = 64;
-    static bool riding; static V3 target; static bool lastJump, lastSneak;
-    public static bool Riding => riding;
-    static bool IsElevator(BlockPos p) => p.Loaded && BEH[p.Id] is ElevatorBehavior;
-    /// <summary>The next elevator above (dir 1) or below (dir -1) in the column, with two free cells on top of it.</summary>
-    public static BlockPos? Next(BlockPos from, int dir)
+    public const double PlayerKg = 80, MotorEff = .8, Regen = .5, Speed = 3, Thick = .125, FrictionPerBlock = .01; public const int Reach = 64;
+    public sealed class Lift { public BlockEntity E; public V3 At; public int Half; }
+    /// <summary>Every elevator motor with its platform (filled when placed and by the energy tick, so loaded worlds find theirs).</summary>
+    public static readonly ConcurrentDictionary<long, Lift> Platforms = new();
+    public static void Add(BlockEntity e)
     {
-        for (int k = 1; k <= Reach; k++)
+        if (e == null || e.Pos.Core || BEH[e.BlockId] is not ElevatorBehavior) return;
+        if (!Platforms.TryGetValue(e.Pos.Key, out var l) || l.E != e) Platforms[e.Pos.Key] = new Lift { E = e, At = e.Pos.Center, Half = ElevatorBehavior.Size(e.BlockId) / 2 };
+    }
+    static bool Alive(BlockEntity e) => BlockStates.entities.TryGetValue(e.Pos.Key, out var x) && x == e && BEH[e.BlockId] is ElevatorBehavior;
+    /// <summary>The platform's top, in blocks above the bottom of the motor's cell.</summary>
+    public static double Top(BlockEntity e) => 1 + e.Num("h");
+    static bool Free(BlockPos c) { if (!c.Loaded) return false; int id = c.Id; return id == 0 || id == Water || SPC[id] != 0; }
+    /// <summary>The highest platform height: 2 free blocks over the platform, under the first block in the shaft (or <see cref="Reach"/>).</summary>
+    public static int TopFloor(BlockEntity e)
+    {
+        int r = ElevatorBehavior.Size(e.BlockId) / 2;
+        for (int k = 1; k <= Reach + 2; k++)
+            for (int dz = -r; dz <= r; dz++) for (int dx = -r; dx <= r; dx++)
+                    if (!e.Pos.TryOffset(dx, k, dz, out var c) || !Free(c)) return Math.Max(0, k - 3);
+        return Reach;
+    }
+    /// <summary>Is this cell on the ring just outside the platform (touching an edge, not a corner)?</summary>
+    static bool OnRing(BlockEntity e, int dx, int dz) { int r = ElevatorBehavior.Size(e.BlockId) / 2 + 1, ax = Math.Abs(dx), az = Math.Abs(dz); return Math.Max(ax, az) == r && Math.Min(ax, az) < r; }
+    /// <summary>Platform heights it stops at: 0 (bottom), the shaft's top and each stop beside the shaft.</summary>
+    public static List<int> Floors(BlockEntity e)
+    {
+        int top = TopFloor(e), r = ElevatorBehavior.Size(e.BlockId) / 2 + 1; var fl = new SortedSet<int> { 0, top };
+        for (int h = 1; h < top; h++)
+            for (int dz = -r; dz <= r; dz++) for (int dx = -r; dx <= r; dx++)
+                    if (OnRing(e, dx, dz) && e.Pos.TryOffset(dx, h, dz, out var c) && c.Loaded && BEH[c.Id] is ElevatorStopBehavior) fl.Add(h);
+        return fl.ToList();
+    }
+    /// <summary>The elevator whose shaft this stop stands beside.</summary>
+    public static BlockEntity ForStop(BlockPos s)
+    {
+        foreach (var l in Platforms.Values)
         {
-            if (!from.TryOffset(0, dir * k, 0, out var c) || !c.Loaded) return null;
-            if (!IsElevator(c)) continue;
-            if (c.TryOffset(0, 1, 0, out var a1) && c.TryOffset(0, 2, 0, out var a2) && (a1.Id == 0 || SPC[a1.Id] != 0) && (a2.Id == 0 || SPC[a2.Id] != 0)) return c;
+            var e = l.E; if (!Alive(e) || e.Pos.B != s.B || e.Pos.F != s.F) continue;
+            int h = s.Y - e.Pos.Y; if (h >= 1 && h <= Reach && OnRing(e, s.X - e.Pos.X, s.Z - e.Pos.Z)) return e;
         }
         return null;
     }
+    /// <summary>Sends the platform to height h (clamped to the shaft).</summary>
+    public static void Call(BlockEntity e, int h)
+    {
+        h = Math.Clamp(h, 0, TopFloor(e)); e.SetNum("target", h);
+        UI.Note(Math.Abs(h - e.Num("h")) < 1e-6 ? "Elevator: the platform is here" : $"Elevator: platform coming ({e.Num("h"):0} -> {h})", 1.5);
+    }
+    /// <summary>A world point against a platform: inside its footprint (widened by pad) and its height above the platform's top.</summary>
+    static bool Over(Lift l, V3 pt, double pad, out double above)
+    {
+        above = 0; var m = l.E.Pos; int bi = P2b(pt.X, pt.Y, pt.Z);
+        if (bi != m.B || PF != m.F) return false;
+        double x = PX + PFX - m.X, z = PZ + PFZ - m.Z; int r = l.Half;
+        if (x < -r - pad || x > r + 1 + pad || z < -r - pad || z > r + 1 + pad) return false;
+        above = PY + PFY - m.Y - Top(l.E); return true;
+    }
+    /// <summary>Collision: is this world point inside a platform? (Called from the player's hitbox test.)</summary>
+    public static bool SolidAt(double x, double y, double z)
+    {
+        V3 pt = new(x, y, z);
+        foreach (var l in Platforms.Values)
+        {
+            if ((pt - l.At).Len > Reach + 10) continue;
+            if (Over(l, pt, 0, out double above) && above < 0 && above >= -Thick) return true;
+        }
+        return false;
+    }
     /// <summary>Energy (E) to lift the player h blocks at gravity g (negative h: what riding down gives back).</summary>
     public static double Cost(double h, double g) => h >= 0 ? PlayerKg * g * h / MotorEff / Tank.JoulesPerE : PlayerKg * g * h * Regen / Tank.JoulesPerE;
-    /// <summary>Called every frame before the player's physics; true while riding (the physics are skipped).</summary>
-    public static bool Ride(double dt, bool jump, bool sneak)
+    static bool lastJump, lastSneak;
+    /// <summary>Moves the platforms (and the player standing on one) and reads jump / sneak on a platform. Called every frame before the
+    /// player's physics; true when the jump was used to ride (the player does not jump).</summary>
+    public static bool Update(double dt, bool jump, bool sneak)
     {
         bool jumpEdge = jump && !lastJump, sneakEdge = sneak && !lastSneak; lastJump = jump; lastSneak = sneak;
-        var P = PlayerPhysics.P;
-        if (riding)
+        if (Platforms.IsEmpty) return false;
+        var P = PlayerPhysics.P; Lift on = null; bool eat = false;
+        foreach (var (key, l) in Platforms)
         {
-            V3 d = target - P.p; double len = d.Len, step = Speed * dt;
-            if (len <= step) { P.p = target; riding = false; P.vu = 0; P.vh = new V3(); return false; }
-            P.p = P.p + d * (step / len); P.vu = 0; P.vh = new V3(); return true;
+            var e = l.E; if (!Alive(e)) { Platforms.TryRemove(key, out _); continue; }
+            if (!e.Pos.Loaded) continue;
+            double h = e.Num("h"), target = e.Num("target"), above = 0;
+            bool rider = P.on && !P.fly && !P.core && Over(l, P.p, PlayerPhysics.HW, out above) && above > -.2 && above < .25;
+            if (rider) on = l;
+            if (Math.Abs(target - h) < 1e-9) continue;
+            double dh = Math.Clamp(target - h, -Speed * dt, Speed * dt);
+            V3 up = M.Nrm(P.p);
+            if (rider)
+            {
+                if (dh > 0 && Collision.Pcol(P.p + up * (dh + Math.Max(0, -above) + .01), PlayerPhysics.HW)) { e.SetNum("target", h); UI.Note("Elevator: no room above you", 1.5); continue; }
+            }
+            else if (dh < 0 && P.on && Over(l, P.p, PlayerPhysics.HW, out double ab) && ab < -Thick && ab + 1.8 > dh - Thick) { e.SetNum("target", h); UI.Note("Elevator: stopped (you are under the platform)", 1.5); continue; }
+            double g = WaterMachines.G(e.Pos), cost = FrictionPerBlock * (2 * l.Half + 1) * (2 * l.Half + 1) * Math.Abs(dh) + (rider ? Cost(dh, g) : 0);
+            if (cost > e.Num("energy")) { e.SetNum("stalled", 1); continue; } // waits for energy from the grid
+            e.SetNum("stalled", 0); e.SetNum("energy", Math.Min(ElevatorBehavior.Buffer, e.Num("energy") - cost));
+            e.SetNum("h", Math.Abs(target - h - dh) < 1e-9 ? target : h + dh);
+            if (rider) { P.p = P.p + up * (dh + Math.Max(0, -above)); if (above < .05) { P.vu = 0; P.gnd = true; } eat |= jump; }
         }
-        if (!P.on || P.fly || !(jumpEdge || sneakEdge)) return false;
-        V3 up = M.Nrm(P.p); if (!BlockPos.TryAt(P.p.X - up.X * .2, P.p.Y - up.Y * .2, P.p.Z - up.Z * .2, out var under) || !IsElevator(under)) return false;
-        int dir = jumpEdge ? 1 : -1; var next = Next(under, dir); if (next == null) { UI.Note(dir > 0 ? "No elevator above" : "No elevator below", 1.5); return false; }
-        var src = BlockStates.entities.TryGetValue(under.Key, out var se) ? se : null;
-        double h = next.Value.Y - under.Y, g = WaterMachines.G(under), cost = Cost(h, g);
-        if (src == null || src.Num("energy") < cost) { UI.Note($"Elevator: needs {cost:0.0} E, has {src?.Num("energy") ?? 0:0.0} (connect it to the grid)", 2); return false; }
-        src.SetNum("energy", Math.Min(ElevatorBehavior.Buffer, src.Num("energy") - cost));
-        V3 c = next.Value.Center; target = c + M.Nrm(c) * .5; riding = true; return true;
+        if (on != null && (jumpEdge || sneakEdge) && Math.Abs(on.E.Num("target") - on.E.Num("h")) < 1e-9)
+        {
+            var e = on.E; double h = e.Num("h"); var fl = Floors(e);
+            int? next = jumpEdge ? fl.Where(f => f > h + .01).Cast<int?>().FirstOrDefault() : fl.Where(f => f < h - .01).Cast<int?>().LastOrDefault();
+            if (next == null) UI.Note(jumpEdge ? "Elevator: top floor" : "Elevator: bottom floor", 1.2);
+            else { e.SetNum("target", next.Value); eat |= jumpEdge; }
+        }
+        return eat;
     }
 }
 

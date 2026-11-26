@@ -301,11 +301,18 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * **Charger** + **Electric Drill** / **Chainsaw** (items with a charge, up to 4000 E): the charger fills the tool in its slot (40 E/s,
   95 %). The drill digs 3 x 3 across the face you look at (2 E + 6 E x hardness a block), the chainsaw fells a whole tree (2 E a block);
   what they dig goes into your inventory. The HUD shows the charge of the tool in your hand.
-* **Grow Light** (1 E/s): a lamp; while lit, crops within 4 blocks grow twice as fast. **Sprinkler**: waters the farmland within 4 blocks
-  every 4 s from the water at its back (a cell, pipe or tank: the water really leaves), 0.3 E per unit.
-* **Elevator**: elevator blocks in a column, one per floor. Standing on one, jump to ride to the next one above (within 64 blocks, with
-  room to stand on it), sneak to go down. Energy = 80 kg x gravity there x the height / 80 % (10 blocks on the surface: 0.76 E); riding
-  down gives half back. Each keeps up to 50 E from the grid (5 E/s); the ride uses the start's.
+* **Grow Light** (1 E/s): a lamp; while lit, crops within 4 blocks grow twice as fast.
+* **Sprinkler**: takes water only from a water pipe at its back (the pipe's far end in water or at a tank valve). The water needs pressure:
+  the source's surface (plus a tank's air pressure) must stand above the nozzle, so feed it from a higher basin or a pressurised tank.
+  Every 4 s it checks the farmland within a radius of 4 blocks (its row and two below); when any of it is at moisture 6 of 8 or less it
+  sprays (you see the drops), filling the dry farmland back to 8: 1 unit of water per moisture level, 0.3 E a unit. Wet soil: no spray.
+* **Elevator 1x1 / 3x3 / 5x5** + **Elevator Stop**: the elevator block is the motor at the bottom of a shaft; its platform (the size of the
+  block's name, centred on it) lies on it and really moves up the clear shaft, carrying you (it is solid: you stand on it). Floors: the
+  bottom, the top of the shaft (2 free blocks under the first block over the platform, at most 64 up) and every Elevator Stop built into a
+  landing beside the shaft, touching the platform's edge (the platform stops flush with the stop's top). Standing on it: jump = next floor
+  up, sneak = next floor down; right click the motor or a stop to call the platform there. Tip: sink the motor into the floor so the
+  platform is flush with it. Energy: the cabin has a counterweight, so the motor lifts you: 80 kg x gravity x height / 80 % (10 blocks on
+  the surface: 0.76 E), riding down gives half back, plus 0.01 E per block per platform cell. It keeps up to 50 E from the grid (5 E/s).
 * **Item Pipe**, **Conveyor Belt**, **Extractor** (0.2 E an item, 4 a second): the extractor takes items from the chest / machine output
   at its back and sends them along pipes and belts to the nearest inventory that takes them (furnace / mill input if it can work them,
   fuel slots for fuel, chests). Belts are flat pipes (items do not ride on them visibly yet).
