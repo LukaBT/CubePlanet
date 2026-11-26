@@ -232,6 +232,11 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * `--demogrid NAME [--demosecs S]` (no window) builds a world with a wind farm stepping up to MV, wires over 3 pylons to a town 80 blocks
   away (transformer back to LV, batteries, an oxygen generator), and beside it 4 coal generators feeding 110 blocks of plain LV copper:
   the MV line loses almost nothing, the LV line a third of what it carries.
+* `--demogrid2 NAME [--demosecs S]` (no window) builds a world with every level and a very long line: a plant (4 large wind turbines,
+  8 coal generators, a diamond LV bus) with an LV-MV-HV substation; an HV line on pylons standing on the real ground (stone foundations
+  in water) up to ~1000 blocks long; a town substation HV-MV-LV with 10 batteries and 2 oxygen generators; and from the town's MV bus
+  an MV branch line ~160 blocks to a village (LV-MV, 3 batteries). It then reloads the saved world with no chunks loaded and checks
+  that the town and the village still get their power.
 
 ## Wind, shafts, generators, coal
 Rotation is its own network (Energy/Kinetics.cs), turned into energy by a generator:

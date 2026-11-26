@@ -130,7 +130,7 @@ public static class EnergyNet
                     foreach (var end in new[] { l.A, l.B })
                     {
                         if (!Wires.IsAnchor(end)) continue;
-                        if (!b.G.Index.TryGetValue(end.Key, out int ei)) { if (b.G.Keys.Count >= 4096) continue; var (eid, _) = GridCache.At(end); ei = b.Add(end.Key, KindOf(end, eid), end, eid); q.Enqueue(ei); MaybeCable(b, ei); }
+                        if (!b.G.Index.TryGetValue(end.Key, out int ei)) { if (b.G.Keys.Count >= 4096) continue; var (eid, est) = GridCache.At(end); if (end.Loaded) GridCache.Note(end, eid, est); ei = b.Add(end.Key, KindOf(end, eid), end, eid); q.Enqueue(ei); MaybeCable(b, ei); }
                         b.G.Edges.Add((pi, ei));
                     }
                     continue;
