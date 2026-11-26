@@ -250,7 +250,10 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   (lying flat) or TRACKING: the panel turns about its north-south axis to face the sun (up to 60 / 55 / 38 degrees), more than doubling
   the output at a low sun; the tracking motor uses 2 % of the panel's power. Every part of a big panel joins cables, so panels side by
   side form one array; the HUD works on any part.
-* `--demoelectric NAME [--demosecs S]` (no window) builds a world at sunset: a solar farm (fixed and tracking panels of all sizes) into a
+* **Shade**: every 2 s a panel traces 3 rays (across its surface) toward the sun: through blocks nearby (opaque blocks and leaves block it,
+  glass and water do not) and over the terrain further out, up to ~420 blocks, also in unloaded land (mountains, valleys). A shaded part
+  still gets 12 % (sky light); the HUD says IN SHADE / PARTLY SHADED. At a low sun even a tree 40 blocks away or a lamp post shades.
+* `--demoelectric NAME [--demosecs S]` (no window) builds a world at sunset: a solar farm on a deck 10 up, clear of hills and trees (fixed and tracking panels of all sizes) into a
   battery bank with 2 coal generators as night backup, a street of lamps on AUTO, 2 electric furnaces smelting iron ore, and a motor
   turning a shaft line into a generator.
 

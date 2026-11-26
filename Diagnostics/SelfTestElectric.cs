@@ -79,6 +79,21 @@ public static partial class SelfTest
         sp.SetNum("mode", 1); Ticks(60); double pTrack = Pw(20);
         Check(Math.Abs(pNoon - 3 * sinNoon) < .1 && pNight == 0 && pTrack > pFixed * 2 && Math.Abs(sp.Num("angle")) > .5,
               $"small solar panel: noon {pNoon:0.00} E/s (sun {Math.Asin(sinNoon) * 180 / Math.PI:0} deg up), night {pNight:0.00}, low sun flat {pFixed:0.00} vs tracking {pTrack:0.00} E/s (tilted {sp.Num("angle") * 180 / Math.PI:0} deg)");
+        // shade: a stone wall across the line to the noon sun (1.5 .. 6 blocks away) leaves only sky light (12 %); taking it away brings the sun back
+        sp.SetNum("mode", 0); Sun(noon); Ticks(40); double pOpen = Pw(10);
+        var wall = new List<BlockPos>(); V3 up0 = M.Nrm(At(0, 8, 0).Center); Band Bw = bands[bi];
+        foreach (double ox in new[] { -.35, 0, .35 })
+        {
+            V3 o = Gp(Bw, f, z0 + .5, x0 + .5 + ox, Bw.inner + y0 + 8 + .55) + up0 * .25;
+            for (double t = 1.5; t <= 6; t += .25)
+                if (BlockPos.TryAt(o.X + Sky.SUN.X * t, o.Y + Sky.SUN.Y * t, o.Z + Sky.SUN.Z * t, out var c) && c.Id == 0) { c.Set(Stone); wall.Add(c); }
+        }
+        Ticks(25); double pShade = Pw(10); string hudShade = BEH[Id("solar_panel_small")].Describe(sp);
+        foreach (var c in wall) c.Set(0);
+        Ticks(25); double pBack = Pw(10);
+        V3 oc = Gp(Bw, f, z0 + .5, x0 + .5, Bw.inner + y0 + 8.8);
+        Check(wall.Count > 0 && Math.Abs(pShade - pOpen * SolarPanelBehavior.Diffuse) < .05 && hudShade.Contains("IN SHADE") && Math.Abs(pBack - pOpen) < .05 && SolarPanelBehavior.Blocked(oc, up0 * -1) && !SolarPanelBehavior.Blocked(oc, up0),
+              $"a wall toward the sun shades a panel: {pOpen:0.00} -> {pShade:0.00} E/s (sky light only; {hudShade}), back to {pBack:0.00} without it");
         Clear();
         // a 2 x 2 panel: one block entity, the cable on a corner that is not the main part still collects it
         BlockActions.Place(At(0, 8, 0), Id("solar_panel_medium"), new V3(0, 0, 1), out _);

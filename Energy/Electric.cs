@@ -149,10 +149,13 @@ public sealed class MotorBehavior : BlockBehavior, IEnergyMachine, IKinetic
 /// Power = power x sunlight on the panel: the share of the sun's light falling straight on it (cos of the angle) x a fade near the horizon.
 /// Right click: FIXED (lying flat) / TRACKING: the panel turns about its north-south axis to face the sun (up to tilt_max each way), which
 /// gives much more in the morning and evening; the tracking motor uses 2 % of the panel's power.
+/// Shade: every 2 s rays go from 3 points across the panel toward the sun, through blocks nearby (opaque blocks and leaves block it, glass and
+/// water do not) and over the terrain further out (mountains, also in unloaded land, up to ~420 blocks); a shaded part still gets 12 % (sky
+/// light).
 /// </summary>
 public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
 {
-    public const double TrackCost = .02, TurnRate = .4;
+    public const double TrackCost = .02, TurnRate = .4, Diffuse = .12, ShadeEvery = 2, Near = 48, Far = 420;
     static bool IsMain(BlockPos p, int id)
     {
         var d = DEFS[id]; var f = d?.State.Find("part"); return d == null || d.Parts.Length == 0 || f == null || f.Index((uint)p.State) == 0;
@@ -184,13 +187,45 @@ public sealed class SolarPanelBehavior : BlockBehavior, IEnergyMachine
         // tracking: turn toward the sun (or back to flat at night / when fixed)
         double target = track && el > 0 ? Math.Clamp(Math.Atan2(-s.X, s.Y), -TiltMax(id), TiltMax(id)) : 0, a = e.Num("angle");
         a += Math.Clamp(target - a, -TurnRate * dt, TurnRate * dt); e.SetNum("angle", a); e.SetNum("speed", 0);
-        double light = OnPanel(e.Pos, a), pw = Rated(id) * light - (track && light > 0 ? TrackCost * Rated(id) : 0);
+        double t = e.Num("shade_t") - dt; if (t <= 0) { t = ShadeEvery; e.SetNum("sunlit", el > 0 ? Sunlit(e) : 1); } e.SetNum("shade_t", t);
+        double lit = e.Num("shade_t") > 0 && e.Numbers.ContainsKey("sunlit") ? e.Num("sunlit") : 1;
+        double light = OnPanel(e.Pos, a) * (lit + (1 - lit) * Diffuse), pw = Rated(id) * light - (track && light > 0 ? TrackCost * Rated(id) : 0);
         e.SetNum("light", light); p.Fixed = Math.Max(0, pw) * dt;
     }
     public void Settle(BlockEntity e, double dt, double made, double got) => WaterMachines.Show(e, "power", made / dt);
+    /// <summary>Share of the panel (3 sample points across it) with a clear line to the sun.</summary>
+    public static double Sunlit(BlockEntity e)
+    {
+        var d = DEFS[e.BlockId]; var p = e.Pos; if (p.Core) return 1;
+        V3 pv = d.MovingParts.Length > 0 ? d.MovingParts[0].Pivot : new V3(.5, .5, .5); double half = Math.Max(.5, pv.X) * .7;
+        Band B = bands[p.B]; V3 up = M.Nrm(p.Center); int clear = 0;
+        foreach (double ox in new[] { -half, 0, half })
+        {
+            V3 o = Gp(B, p.F, p.Z + pv.Z, p.X + pv.X + ox, B.inner + p.Y + pv.Y) + up * .25;
+            if (!Blocked(o, Sky.SUN)) clear++;
+        }
+        return clear / 3.0;
+    }
+    /// <summary>Does anything stand between a world point and the sun? Blocks where loaded (Near), the terrain surface elsewhere.</summary>
+    public static bool Blocked(V3 o, V3 dir)
+    {
+        double maxR = R + 320;
+        for (double t = .5; t < Far; t += t < Near ? .5 : 2)
+        {
+            V3 q = o + dir * t; double r = q.Len;
+            if (r > maxR) return false; // above every mountain
+            if (!BlockPos.TryAt(q.X, q.Y, q.Z, out var c)) return false;
+            if (c.Core) return true;
+            if (t < Near && c.Loaded) { int id = c.Id; if (id != 0 && (OPQ[id] != 0 || LEAFS[id])) return true; continue; }
+            var col = ColsOf(bands[c.B], c.F, c.X >> 5, c.Z >> 5);
+            if (bands[c.B].inner + c.Y < R + col.h[(c.X & 31) + 32 * (c.Z & 31)]) return true; // under the ground surface (a hill / mountain)
+        }
+        return false;
+    }
     public override string Describe(BlockEntity e)
     {
-        var (_, el) = SunLocal(e.Pos);
-        return $"{(e.Num("mode") > 0 ? "TRACKING" : "FIXED (FLAT)")}  SUN {Math.Asin(Math.Clamp(el, -1, 1)) * 180 / Math.PI:0} DEG UP  {e.Num("light") * 100:0}% ON THE PANEL  {e.Num("power"):0.0} / {Rated(e.BlockId):0} E/S";
+        var (_, el) = SunLocal(e.Pos); double lit = e.Numbers.ContainsKey("sunlit") ? e.Num("sunlit") : 1;
+        string shade = el <= 0 ? "" : lit <= 0 ? "  IN SHADE" : lit < 1 ? $"  PARTLY SHADED ({(1 - lit) * 100:0}%)" : "";
+        return $"{(e.Num("mode") > 0 ? "TRACKING" : "FIXED (FLAT)")}  SUN {Math.Asin(Math.Clamp(el, -1, 1)) * 180 / Math.PI:0} DEG UP{shade}  {e.Num("light") * 100:0}% ON THE PANEL  {e.Num("power"):0.0} / {Rated(e.BlockId):0} E/S";
     }
 }
