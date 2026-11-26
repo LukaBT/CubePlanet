@@ -16313,6 +16313,184 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tank_wall",
+      "id": 167,
+      "name": "Tank Wall",
+      "stateless": true,
+      "group_tags": [
+        "tank_wall"
+      ],
+      "textures": {
+        "all": 218
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "lod_color": [
+            120,
+            130,
+            140
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.5,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tank_wall",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tank_window",
+      "id": 168,
+      "name": "Tank Window",
+      "stateless": true,
+      "group_tags": [
+        "tank_wall"
+      ],
+      "textures": {
+        "all": 219
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "render": {
+            "layer": "cutout"
+          },
+          "lod_color": [
+            150,
+            170,
+            190
+          ],
+          "default_state": "normal",
+          "hardness": 1.5,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tank_window",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "tank_valve",
+      "id": 169,
+      "name": "Tank Valve",
+      "stateless": false,
+      "group_tags": [
+        "tank_wall",
+        "water_pipe"
+      ],
+      "textures": {
+        "all": 220
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "tank_valve",
+          "lod_color": [
+            120,
+            130,
+            140
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.5,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "tank_valve",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "form_t": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "compressor",
+      "id": 170,
+      "name": "Compressor",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "all": 221,
+        "top": 222
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "compressor",
+          "lod_color": [
+            70,
+            120,
+            90
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.5,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "compressor",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "mode": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }

@@ -52,6 +52,8 @@ public abstract class BlockBehavior
         ["gearbox"] = () => new GearboxBehavior(),
         ["processor"] = () => new ProcessorBehavior(),
         ["mechanical_pump"] = () => new MechanicalPumpBehavior(),
+        ["tank_valve"] = () => new TankValveBehavior(),
+        ["compressor"] = () => new CompressorBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

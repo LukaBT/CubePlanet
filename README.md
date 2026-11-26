@@ -238,6 +238,25 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   an MV branch line ~160 blocks to a village (LV-MV, 3 batteries). It then reloads the saved world with no chunks loaded and checks
   that the town and the village still get their power.
 
+## Water tanks, pressure and the compressor (Energy/Tanks.cs)
+* **A tank** is a cuboid room up to 12 x 12 x 12 whose six faces are tank blocks (**Tank Wall**, **Tank Window**, **Tank Valve**); edges and
+  corners do not matter. A valve forms it (right after placing, then every second; water already inside is taken in). 1 block = 1 m^3 =
+  8 units (1 unit = 125 l). Pipes and machines connect at valves (a valve right behind / in front of a turbine or pump, or at the end of
+  its pipes). The water is drawn inside, seen through windows; the HUD on a valve shows the tank.
+* **Real physics**: a sealed tank holds water and an air cushion following Boyle's law (p x V_air = constant at one temperature), so
+  pumping water into it squeezes the air and raises the pressure (half full from empty at 1 bar = 2 bar). Water itself barely
+  compresses (bulk modulus 2.2 GPa: half a unit more in a full 27 m^3 tank = 52 bar), so **pressure stores energy, not water**: every
+  bar over the outside air is 10.2 blocks of head for a turbine taking from it, and the same lift for a pump pushing into it.
+* A **safety valve** lets air out above 20 bar (the tank's rating); a sealed tank can only be filled until then. Right click a valve:
+  **VENTED** (open to the air, 1 bar, fills to the brim) / **SEALED**.
+* **Compressor** (touching a tank valve): pumps up to 0.5 m^3 of free air a second into the sealed tank, up to its target (right click:
+  10 / 20 bar / OFF / 2 / 5), using energy for the isothermal compression work p0 V ln(p) at 70 % (about 13 E/s at 10 bar). The air
+  gives that energy back as head: water leaving the tank lets the air expand, the pressure falls.
+* Breaking a face (or putting a block inside) **bursts** the tank: its water spills into the room.
+* `--demotank NAME [--demosecs S]` (no window) builds a pumped-storage plant: a sealed 5 x 5 x 5 tank at 8 bar with windows, a pump
+  lifting water from a pool into it (coal powered), a compressor on its top valve, and a turbine on its low valve sending the water back
+  down into the pool and charging batteries; the hotbar has a multimeter.
+
 ## Rotation machines and the multimeter (Energy/Mechanical.cs, Energy/Multimeter.cs)
 * Rotation lines now have **loads** besides generators; a line shares its sources' power between them in proportion to what each wants.
 * **Gearbox**: joins shafts on all six sides (a turbine's horizontal shaft can turn down a tower, or split to several machines).

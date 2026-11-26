@@ -13,7 +13,7 @@ public static class MovingParts
 
     public static void Draw()
     {
-        if ((BlockStates.entities.Count == 0 && Wires.Links.Count == 0) || C.orbit) return;
+        if ((BlockStates.entities.Count == 0 && Wires.Links.Count == 0 && Tanks.All.Count == 0) || C.orbit) return;
         vs.Clear(); int quads = 0;
         V3 org = new(Math.Floor(C.x), Math.Floor(C.y), Math.Floor(C.z)); double since = Kinetics.SinceTick;
         foreach (var e in BlockStates.entities.Values)
@@ -27,6 +27,7 @@ public static class MovingParts
             foreach (var m in parts) foreach (var mb in m.Boxes) { if (quads + 12 > MaxQuads) break; AddBox(p, mb, m, ang * m.Speed, org, ang2); quads += 12; }
         }
         quads = AddWires(org, quads);
+        quads = AddTanks(org, quads);
         if (quads == 0) return;
         var md = Mesher.Pack(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(vs), ReadOnlySpan<uint>.Empty);
         if (quadIx == null)
@@ -81,6 +82,25 @@ public static class MovingParts
                 vs.Add((float)q.X); vs.Add((float)q.Y); vs.Add((float)q.Z); vs.Add(cu[k] * 16); vs.Add(cv[k] * 16); vs.Add(lay); vs.Add(.9f);
                 vs.Add((float)(n.X * sg)); vs.Add((float)(n.Y * sg)); vs.Add((float)(n.Z * sg));
             }
+    }
+
+    /// <summary>The water inside tanks (seen through tank windows): a box of the room's footprint up to the water's depth.</summary>
+    static int AddTanks(V3 org, int quads)
+    {
+        if (Tanks.All.Count == 0) return quads;
+        V3 cam = new(C.x, C.y, C.z); float lay = TEXF[Water * 6 + 2];
+        foreach (var t in Tanks.All.Values)
+        {
+            if (t.Water < 1 || quads + 12 > MaxQuads) continue;
+            var a = t.Anchor; if (!a.Loaded || (a.Center - cam).Len > Range * 2) continue;
+            double h = Math.Max(.02, t.Depth - .02), w = t.W - .02, d = t.D - .02;
+            V3 P(double x, double y, double z) => World(a, .01 + x, y, .01 + z, org);
+            V3[] c = { P(0, 0, 0), P(w, 0, 0), P(0, h, 0), P(w, h, 0), P(0, 0, d), P(w, 0, d), P(0, h, d), P(w, h, d) };
+            int[][] F = { new[] { 1, 3, 7, 5 }, new[] { 4, 6, 2, 0 }, new[] { 2, 6, 7, 3 }, new[] { 4, 0, 1, 5 }, new[] { 5, 7, 6, 4 }, new[] { 0, 2, 3, 1 } };
+            foreach (var f in F) { V3 q0 = c[f[0]], q1 = c[f[1]], q2 = c[f[2]], q3 = c[f[3]]; Quad(q0, q1, q2, q3, M.Nrm(M.Cross(q2 - q0, q3 - q1)), lay); }
+            quads += 12;
+        }
+        return quads;
     }
 
     /// <summary>Power line wires (<see cref="Wires"/>): a sagging line between the two attach points, as two crossed thin ribbons in 16 pieces.</summary>

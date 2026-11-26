@@ -107,7 +107,7 @@ public sealed class MechanicalPumpBehavior : BlockBehavior, IKinetic, IRotationL
     }
     public double Wants(BlockEntity e)
     {
-        if (e.Num("off") > 0 || !PumpBehavior.Job(e, .1, out _, out _, out double cost, out double units)) return 0;
+        if (e.Num("off") > 0 || !PumpBehavior.Job(e, .1, out WaterEnd _, out WaterEnd _, out double cost, out double units)) return 0;
         return Math.Min(MaxIn, units * cost / .1);
     }
     public void Work(BlockEntity e, double power, double dt)

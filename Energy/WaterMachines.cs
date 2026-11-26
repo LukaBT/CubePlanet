@@ -7,6 +7,21 @@ namespace CubePlanet;
 /// a lake), the outlet uses the highest open end (a pipe column lifting water up to a tank).
 /// Energy: one unit of water (1/8 block) dropping one block = <see cref="K"/> E.
 /// </summary>
+/// <summary>Where a machine takes water from / puts it: a water (or air) cell, or a tank (through its valve).</summary>
+public readonly struct WaterEnd
+{
+    public readonly WC Cell; public readonly Tank Tank;
+    public WaterEnd(WC c) { Cell = c; Tank = null; }
+    public WaterEnd(Tank t) { Cell = default; Tank = t; }
+    public bool Ok => Tank != null || Cell.ok;
+    /// <summary>Surface height as a source (a tank: its water surface + its pressure's head).</summary>
+    public double SourceLevel => Tank?.Level ?? Surface(Cell);
+    /// <summary>Height water must reach to get in (a tank: its level; an air cell: its floor).</summary>
+    public double OutletLevel => Tank?.Level ?? WaterMachines.OutletLevel(Cell);
+    public int Available => Tank != null ? (int)Math.Floor(Tank.Water + 1e-9) : WaterMachines.Column(Cell);
+    public int Room => Tank?.Room() ?? WaterMachines.Room(Cell);
+}
+
 public static class WaterMachines
 {
     public const double K = .1;
@@ -65,6 +80,7 @@ public static class WaterMachines
             foreach (var o in N6)
             {
                 if (!p.TryOffset(o[0], o[1], o[2], out var n) || !n.Loaded || !IsPipe(n.Id)) continue; // pipes and pipe machines (tag water_pipe)
+                if (Tanks.IsValve(n.Id) && n.Key != machine.Key) { yield return (p, n); continue; } // a pipe into a tank valve: the tank
                 links++; lx = o[0]; ly = o[1]; lz = o[2];
                 if (!seen.Contains(n.Key) && !BlockStates.entities.ContainsKey(n.Key)) { seen.Add(n.Key); q.Enqueue(n); }
             }
@@ -72,6 +88,56 @@ public static class WaterMachines
         }
     }
 
+    static bool ValveAt(BlockPos p, out Tank t) { t = null; if (!p.Loaded || !Tanks.IsValve(p.Id)) return false; t = Tanks.Of(p); return t != null; }
+    /// <summary>Like Intake, but a tank behind the machine (its valve) or at the end of its pipes counts too: the highest source wins.</summary>
+    public static WaterEnd IntakeEnd(BlockEntity e)
+    {
+        var (dx, dy, dz) = Dir(e);
+        if (!e.Pos.TryOffset(-dx, -dy, -dz, out var b) || !b.Loaded) return default;
+        if (ValveAt(b, out var tb)) return new WaterEnd(tb);
+        int id = b.Id;
+        if (id == Water) return new WaterEnd(Cell(b));
+        if (!IsPipe(id)) return default;
+        WaterEnd best = default; double bestH = double.NegativeInfinity;
+        foreach (var (pipe, n) in PipeEnds(b, e.Pos))
+        {
+            WaterEnd c = ValveAt(n, out var t) ? (t.Water >= 1 ? new WaterEnd(t) : default) : new WaterEnd(Cell(n));
+            if (!c.Ok || (c.Tank == null && c.Cell.id != Water)) continue;
+            double h = c.SourceLevel; if (h > bestH) { bestH = h; best = c; }
+        }
+        return best;
+    }
+    /// <summary>Like Outlet, but a tank in front (its valve) or at the end of its pipes counts too (the highest open end wins).</summary>
+    public static WaterEnd OutletEnd(BlockEntity e)
+    {
+        var (dx, dy, dz) = Dir(e);
+        if (!e.Pos.TryOffset(dx, dy, dz, out var f) || !f.Loaded) return default;
+        if (ValveAt(f, out var tf)) return new WaterEnd(tf);
+        int id = f.Id;
+        if (id == Water || Wfree(id)) return new WaterEnd(Cell(f));
+        if (!IsPipe(id)) return default;
+        WaterEnd best = default; double bestH = double.NegativeInfinity;
+        foreach (var (pipe, n) in PipeEnds(f, e.Pos))
+        {
+            WaterEnd c = ValveAt(n, out var t) ? new WaterEnd(t) : new WaterEnd(Cell(n));
+            if (!c.Ok || (c.Tank == null && c.Cell.id != Water && !Wfree(c.Cell.id))) continue;
+            if (n.Y > bestH) { bestH = n.Y; best = c; }
+        }
+        return best;
+    }
+    /// <summary>Move between water ends (cells or tanks); returns the units that arrived (the rest goes back).</summary>
+    public static int Move(WaterEnd from, WaterEnd to, int n, (int x, int y, int z) dir)
+    {
+        if (n <= 0 || !from.Ok || !to.Ok) return 0;
+        if (from.Tank == null && to.Tank == null) return Move(from.Cell, to.Cell, n, dir);
+        int took = from.Tank != null ? from.Tank.Take(n) : TakeWater(from.Cell, n); if (took == 0) return 0;
+        int put;
+        if (to.Tank != null) put = to.Tank.Put(took);
+        else { var t2 = Wcell(to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z); put = StackAdd(t2, took); if (put < took) put += SpreadAdd(t2, took - put); if (put > 0) WaterFlow.AddCell(to.Cell.k, to.Cell.b, to.Cell.F, to.Cell.X, to.Cell.Y, to.Cell.Z, dir.x, dir.y, dir.z, put); }
+        if (put < took) { if (from.Tank != null) from.Tank.Water += took - put; else AddWater(Wcell(from.Cell.b, from.Cell.F, from.Cell.X, from.Cell.Y, from.Cell.Z), took - put); }
+        if (put > 0 && from.Tank == null) WaterFlow.AddCell(from.Cell.k, from.Cell.b, from.Cell.F, from.Cell.X, from.Cell.Y, from.Cell.Z, dir.x, dir.y, dir.z, put);
+        return put;
+    }
     /// <summary>Moves up to n units from 'from' to 'to'; returns the units that arrived (the rest goes back).</summary>
     public static int Move(WC from, WC to, int n, (int x, int y, int z) dir)
     {
@@ -180,17 +246,17 @@ public sealed class TurbineBehavior : BlockBehavior, IEnergyMachine
     public override bool OnUse(BlockPos p, int id, int state) => WaterMachines.CycleMode(BlockStates.EntityOrNew(p, id));
 
     // what this step can do (set in Plan, used in Settle)
-    static readonly Dictionary<long, (WC src, WC dst, double head)> pending = new();
+    static readonly Dictionary<long, (WaterEnd src, WaterEnd dst, double head)> pending = new();
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         pending.Remove(e.Pos.Key);
         if (!e.Pos.Loaded) return; // water only moves in loaded land
         int mode = (int)e.Num("mode"); if (mode == 2) { e.SetNum("head", 0); return; }
-        var src = WaterMachines.Intake(e); var dst = WaterMachines.Outlet(e);
-        if (!src.ok || !dst.ok) { e.SetNum("head", 0); return; }
-        double head = Surface(src) - WaterMachines.OutletLevel(dst); e.SetNum("head", head);
+        var src = WaterMachines.IntakeEnd(e); var dst = WaterMachines.OutletEnd(e);
+        if (!src.Ok || !dst.Ok) { e.SetNum("head", 0); return; }
+        double head = src.SourceLevel - dst.OutletLevel; e.SetNum("head", head); // a pressurized tank adds 10.2 blocks per bar
         if (head < .5) return;
-        double units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(WaterMachines.Column(src), WaterMachines.Room(dst)));
+        double units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
         double energy = Math.Max(0, units) * head * WaterMachines.K * Efficiency;
         if (mode == 1) p.Fixed = energy; else p.Dispatch = energy;
         pending[e.Pos.Key] = (src, dst, head);
@@ -221,17 +287,18 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
     public override bool Usable => true;
     public override bool OnUse(BlockPos p, int id, int state) => WaterMachines.CycleMode(BlockStates.EntityOrNew(p, id));
 
-    static readonly Dictionary<long, (WC src, WC dst, double cost)> pending = new();
-    /// <summary>What a pump at e can do this step: water from src to dst at cost E per unit, at most units.</summary>
-    public static bool Job(BlockEntity e, double dt, out WC src, out WC dst, out double cost, out double units)
+    static readonly Dictionary<long, (WaterEnd src, WaterEnd dst, double cost)> pending = new();
+    /// <summary>What a pump at e can do this step: water from src to dst at cost E per unit, at most units (into a pressurized tank the
+    /// lift includes the pressure's head: pushing against 10 bar is like lifting 102 blocks).</summary>
+    public static bool Job(BlockEntity e, double dt, out WaterEnd src, out WaterEnd dst, out double cost, out double units)
     {
         src = dst = default; cost = units = 0;
         if (!e.Pos.Loaded) return false; // water only moves in loaded land
-        src = WaterMachines.Intake(e); dst = WaterMachines.Outlet(e);
-        if (!src.ok || !dst.ok) return false;
-        double lift = Math.Max(0, WaterMachines.OutletLevel(dst) - Surface(src)); e.SetNum("lift", lift);
+        src = WaterMachines.IntakeEnd(e); dst = WaterMachines.OutletEnd(e);
+        if (!src.Ok || !dst.Ok) return false;
+        double lift = Math.Max(0, dst.OutletLevel - src.SourceLevel); e.SetNum("lift", lift);
         cost = (lift * WaterMachines.K + BaseCost) / Efficiency;
-        units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(WaterMachines.Column(src), WaterMachines.Room(dst)));
+        units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(src.Available, dst.Room));
         return units > 0;
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
@@ -239,12 +306,7 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
         pending.Remove(e.Pos.Key);
         if (!e.Pos.Loaded) return; // water only moves in loaded land
         int mode = (int)e.Num("mode"); if (mode == 2) return;
-        var src = WaterMachines.Intake(e); var dst = WaterMachines.Outlet(e);
-        if (!src.ok || !dst.ok) return;
-        double lift = Math.Max(0, WaterMachines.OutletLevel(dst) - Surface(src)); e.SetNum("lift", lift);
-        double cost = (lift * WaterMachines.K + BaseCost) / Efficiency;
-        double units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(WaterMachines.Column(src), WaterMachines.Room(dst)));
-        if (units <= 0) return;
+        if (!Job(e, dt, out var src, out var dst, out double cost, out double units)) return;
         if (mode == 1) p.Demand = units * cost; else p.Flexible = units * cost;
         pending[e.Pos.Key] = (src, dst, cost);
     }
