@@ -44,6 +44,14 @@ public static partial class SelfTest
         // water barely compresses: full, no air, 1 unit more -> ~52 bar (bulk modulus 2.2 GPa)
         t.Vent = true; t.Water = 216; t.Settle(); t.Vent = false; t.Air = 0; t.Water = 216.5; double pOver = t.Pressure; t.Water = 216;
         Check(pOver > 45 && pOver < 60 && t.Room() == 0, $"water barely compresses: half a unit (62 l) more in a full 27 m3 tank = {pOver:0} bar");
+        // full to the brim (vented), then sealed and air pumped in up to 20 bar: the water compresses a little, the pressure stays sane, the
+        // water stays where it is (a nearly full tank used to send the pressure solver back and forth between huge and tiny values)
+        t.Vent = true; t.Water = 216; t.Settle(); t.Vent = false;
+        for (int i = 0; i < 400; i++) { double p = t.Pressure; if (p >= 20) break; t.Air += CompressorBehavior.FreeAir * .1; t.Settle(); }
+        double pFull = t.Pressure, depthFull = t.Depth, airFull = t.Air;
+        Check(pFull > 15 && pFull <= 20.001 && depthFull > 2.99 && t.Water == 216 && t.Room() == 0,
+              $"a brim-full tank sealed and pumped with air to 20 bar: {pFull:0.00} bar, water depth {depthFull:0.000} of 3, {airFull:0.000} m3 of free air got in (the water compressed)");
+        t.Water = 216; t.Air = 0;
         // a pump fills the sealed tank through a pipe from a pool below; the pressure rises (and so does the lift); no water is created or lost
         t.Water = 0; t.Air = 27; t.Vent = false;
         for (int z = 0; z <= 4; z++) for (int x = 0; x <= 4; x++) SetCell(bi, f, x0 + x, y0 + 4, z0 + z, Stone);

@@ -34,9 +34,15 @@ public sealed class Tank
         {
             if (Vent) return 1;
             if (Air <= 1e-9) { double over = Water * Unit / Volume - 1; return over > 0 ? 1 + over * BulkModulus / P0 : 1; }
-            double p = Air / Math.Max(1e-9, Volume - Water * Unit);
-            for (int i = 0; i < 4; i++) p = Air / Math.Max(1e-9, Volume - WaterVol(p));
-            return Math.Max(p, 0);
+            // p x V_air(p) = Air, where V_air = Volume - water volume (which shrinks a little as p rises): the left side only grows with p,
+            // so bisect (on a log scale). A plain fixed-point iteration swings between huge and tiny values when the tank is nearly full.
+            double lo = 1e-6, hi = 1e7;
+            for (int i = 0; i < 100; i++)
+            {
+                double mid = Math.Sqrt(lo * hi);
+                if (mid * Math.Max(0, Volume - WaterVol(mid)) < Air) lo = mid; else hi = mid;
+            }
+            return Math.Sqrt(lo * hi);
         }
     }
     /// <summary>The water surface's height in the tank (blocks above its floor).</summary>
