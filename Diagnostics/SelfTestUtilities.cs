@@ -103,7 +103,7 @@ public static partial class SelfTest
         // the car carries the player; energy 80 kg x g x h / 80 %
         Clear(); Elevator.Cars.Clear(); for (int y = 4; y <= 13; y++) Put(0, y, 0, "guide_rail"); Put(0, 14, 0, "elevator"); var motor = E(0, 14, 0); motor.SetNum("energy", 50);
         bool noRails = !BEH[Id("elevator_car_3x3")].CanPlaceAt(At(6, 6, 6), Id("elevator_car_3x3"), out _);
-        Put(1, 6, 0, "elevator_car_3x3"); Put(0, 10, -1, "elevator_stop");
+        Put(1, 6, 0, "elevator_car_3x3"); Put(0, 10, -1, "elevator_stop"); SetCell(bi, f, x0 + 4, y0 + 10, z0, Stone); Put(4, 11, 0, "elevator_stop");
         var floors = Elevator.Floors(motor).Select(f => f - Elevator.Bottom(motor)).ToList(); bool gone = At(1, 6, 0).Id == 0;
         V3 FootAt(int x, int y, int z) { var c = At(x, y, z).Center; return c - M.Nrm(c) * .5; } // the bottom centre of a cell
         double ge = WaterMachines.G(At(0, 14, 0)), cost = Elevator.Cost(3, ge), back = Elevator.Cost(-3, ge);
@@ -111,7 +111,7 @@ public static partial class SelfTest
         bool solid = Collision.SolidAt(inFloor.X, inFloor.Y, inFloor.Z) && !Collision.SolidAt(overFloor.X, overFloor.Y, overFloor.Z);
         var P = PlayerPhysics.P; var keepP = P.p; bool keepOn = P.on, keepFly = P.fly, keepCore = P.core;
         P.p = FootAt(2, 6, 0) + M.Nrm(FootAt(2, 6, 0)) * .001; P.on = true; P.fly = false; P.core = false;
-        Elevator.Update(.05, false, false); bool ate = Elevator.Update(.05, true, false);
+        Elevator.Update(.05, false, false); bool ate = Elevator.Update(.05, true, false) != 0;
         for (int i = 0; i < 400 && Math.Abs(motor.Num("fy") - motor.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
         double upDist = (P.p - FootAt(2, 9, 0)).Len, used = 50 - motor.Num("energy"), friction = Elevator.FrictionPerBlock * 9 * 3;
         Elevator.Update(.05, false, true); for (int i = 0; i < 400 && Math.Abs(motor.Num("fy") - motor.Num("target")) > 1e-9; i++) Elevator.Update(.05, false, false);
@@ -120,9 +120,45 @@ public static partial class SelfTest
         double called = motor.Num("fy") - Elevator.Bottom(motor);
         P.p = keepP; P.on = keepOn; P.fly = keepFly; P.core = keepCore; Elevator.Update(.05, false, false);
         bool carBack = BEH[Id("elevator")].Harvest(At(0, 14, 0), Id("elevator"), 0).Any(s => s.Def?.IdName == "elevator_car_3x3");
-        Check(noRails && gone && string.Join(",", floors) == "0,5,8" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 5 && carBack && back < 0,
+        Check(noRails && gone && string.Join(",", floors) == "0,5,7,8" && solid && ate && upDist < .02 && Math.Abs(used - cost - friction) < 1e-6 && downDist < .02 && called == 5 && carBack && back < 0,
               $"elevator: rails + motor + 3x3 car, floors {string.Join(",", floors)}, the car floor is solid, carries the player 3 up for {used:0.00} E (80 kg x {ge:0.00} x 3 / 0.8 + {friction:0.00} friction; off by {upDist:0.000}), back down (off by {downDist:0.000}), a stop calls it ({called}), breaking the motor gives the car back");
         Elevator.Cars.Clear();
+        // ----- elevator end to end, as in the game: blocks placed by BlockActions.Place, power from a coal generator through a cable, the player
+        // standing in the car with real physics pressing jump / sneak, a stop clicked through BlockActions.Use
+        {
+            Clear(); Elevator.Cars.Clear(); for (int z = -3; z <= 4; z++) for (int x = -3; x <= 5; x++) SetCell(bi, f, x0 + x, y0 + 3, z0 + z, Stone);
+            V3 look = At(0, 4, 0).Axes().z;
+            for (int y = 4; y <= 13; y++) BlockActions.Place(At(0, y, 0), Id("guide_rail"), look, out _);
+            BlockActions.Place(At(0, 14, 0), Id("elevator"), look, out _); BlockActions.Place(At(-1, 14, 0), Id("copper_cable"), look, out _);
+            for (int y = 4; y <= 13; y++) BlockActions.Place(At(-1, y, 0), Id("copper_cable"), look, out _);
+            Coal(-2, 4, 0); BlockActions.Place(At(0, 10, -1), Id("elevator_stop"), look, out _);
+            bool placed = BlockActions.Place(At(1, 4, 0), Id("elevator_car_3x3"), look, out string why);
+            var m2 = BlockStates.entities.TryGetValue(At(0, 14, 0).Key, out var mm) ? mm : null;
+            Ticks(100); double charged2 = m2?.Num("energy") ?? -1;
+            V3 FootAt2(int x, int y, int z) { var c = At(x, y, z).Center; return c - M.Nrm(c) * .5; }
+            var P2 = PlayerPhysics.P; var kP = P2.p; bool kOn = P2.on, kFly = P2.fly, kCore = P2.core;
+            P2.p = FootAt2(2, 4, 0) + M.Nrm(FootAt2(2, 4, 0)) * .3; P2.on = true; P2.fly = false; P2.core = false; P2.vu = 0; P2.vh = new V3();
+            for (int i = 0; i < 20; i++) { PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); }
+            double startFy = m2?.Num("fy") ?? 0;
+            PlayerPhysics.PlayerUpdate(.05, 0, 0, true, false, false);
+            for (int i = 0; i < 120; i++) { PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); if (i % 2 == 0) Ticks(1); }
+            double upFy = m2?.Num("fy") ?? 0; double feetUp = M.Dot(P2.p - FootAt2(2, 4, 0), M.Nrm(FootAt2(2, 4, 0)));
+            PlayerPhysics.PlayerUpdate(.05, 0, 0, false, true, false); PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false);
+            for (int i = 0; i < 120; i++) { PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); if (i % 2 == 0) Ticks(1); }
+            double downFy = m2?.Num("fy") ?? 0;
+            P2.p = FootAt2(-2, 10, 2) + M.Nrm(FootAt2(-2, 10, 2)) * .3;
+            BlockActions.Use(At(0, 10, -1)); for (int i = 0; i < 120; i++) { PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); if (i % 2 == 0) Ticks(1); }
+            double calledFy = m2?.Num("fy") ?? 0;
+            // flying in the car: jump still rides (to the top, 2 under the motor) and the player is carried
+            P2.p = FootAt2(2, 9, 0) + M.Nrm(FootAt2(2, 9, 0)) * .4; P2.fly = true; P2.vu = 0;
+            PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); PlayerPhysics.PlayerUpdate(.05, 0, 0, true, false, false);
+            for (int i = 0; i < 120; i++) { PlayerPhysics.PlayerUpdate(.05, 0, 0, false, false, false); if (i % 2 == 0) Ticks(1); }
+            double flyFy = m2?.Num("fy") ?? 0, flyFeet = M.Dot(P2.p - FootAt2(2, 12, 0), M.Nrm(FootAt2(2, 12, 0)));
+            P2.p = kP; P2.on = kOn; P2.fly = kFly; P2.core = kCore;
+            Check(placed && m2 != null && charged2 > 1 && upFy > startFy + 4.5 && feetUp > 4.9 && Math.Abs(downFy - startFy) < 1e-6 && calledFy > startFy + 4.5 && flyFy == -2 && flyFeet > -.1 && flyFeet < .7,
+                  $"elevator in play: placed {placed} ({why}), motor charged {charged2:0.0} E, floor {startFy} -> jump {upFy} (feet {feetUp:0.00} up) -> sneak {downFy} -> stop called {calledFy} -> flying jump {flyFy} (feet {flyFeet:0.00} over the top floor); {(m2 == null ? "" : BEH[m2.BlockId].Describe(m2))}");
+            Elevator.Cars.Clear();
+        }
         // ----- conveyor: chest A (10 iron ore) -> extractor -> belts east, a turn south, a slope up, a flat run, a slope down -> chest B
         Clear(); Put(0, 8, 0, "chest", "north"); E(0, 8, 0).Inv("slots")[0] = new ItemStack(Item("iron_ore"), 10); Put(1, 8, 0, "extractor", "east"); Coal(1, 9, 0);
         Put(2, 8, 0, "conveyor_belt", "east"); Put(3, 8, 0, "conveyor_belt", "east"); Put(4, 8, 0, "conveyor_belt", "south"); Put(4, 8, 1, "conveyor_belt", "south");

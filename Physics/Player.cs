@@ -119,7 +119,7 @@ public static class PlayerPhysics
     }
     public static void PlayerUpdate(double dt, double fw, double sd, bool jump, bool sneak, bool ctrl)
     {
-        if (Elevator.Update(dt, jump, sneak)) jump = false; // elevator platforms move (carrying the player); jump on one = ride up
+        int ride = Elevator.Update(dt, jump, sneak); if ((ride & 1) != 0) jump = false; if ((ride & 2) != 0) sneak = false; // elevator cars move (carrying the player); jump / sneak in one = ride
         int n = Math.Max(1, (int)Math.Ceiling(dt / .017)); double h = dt / n;
         for (int i = 0; i < n; i++) PStep(h, fw, sd, jump, sneak, ctrl);
         Conveyor.CarryPlayer(dt); // standing on a conveyor belt carries the player

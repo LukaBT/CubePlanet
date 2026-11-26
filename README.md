@@ -322,8 +322,9 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * **Elevator** (built like a real traction lift): a straight column of **Guide Rails** up one side of the shaft, an **Elevator Motor** (the
   hoist, on the grid) on top of the rails, and an **Elevator Car 1x1 / 3x3 / 5x5** placed against the rails at any height: it hangs on the
   rails from that side (guide shoes, a frame, railings), hangs from a cable to the motor and has a counterweight running down the rails as it
-  rises. Its floor is solid and carries you. Floors: the bottom of the rails, the top (2 blocks under the motor) and each **Elevator Stop**
-  placed beside the rails one block above a landing's floor (a call button). In the car: jump = next floor up, sneak = next floor down; right
+    rises. Its floor is solid and carries you. Floors: the bottom of the rails, the top (2 blocks under the motor) and each **Elevator Stop**
+  on a landing beside the shaft (next to the rails or anywhere along the car's sides): the car stops level with the block the stop stands on
+  (a stop mounted on a wall at chest height: one block below it). In the car (walking or flying): jump = next floor up, sneak = next floor down; right
   click a stop to call the car, the motor to send it to the bottom. It will not move into blocks in the shaft. Energy: the counterweight
   balances the car, so the motor lifts you: 80 kg x gravity x height / 80 % (10 blocks: 0.76 E), going down gives half back, plus 0.01 E per
   block per car cell; it keeps 50 E from the grid (5 E/s). Breaking the motor gives the car back.
