@@ -41,6 +41,8 @@ public static class Renderer
         pHlLine = Gpu.MakePipe("highlight_lines", Glsl.PHL_VS, Glsl.PHL_FS, new PipeCfg { layout = VL.Pos3, topo = PrimitiveTopology.LineList, cmp = CompareOp.GreaterOrEqual, depthWrite = false, blend = BlendMode.Alpha });
         // block texture array from Assets/ (layer = block texture ID) with a CPU-built mip chain (16 -> 1), sampled nearest / mip-linear
         int NL = GameAssets.BlockLayerCount, TW = GameAssets.BlockTexW;
+        foreach (var (what, n) in new[] { ("block", GameAssets.BlockLayerCount), ("item", GameAssets.ItemLayerCount) })
+            if (n > Gpu.MaxArrayLayers) throw new InvalidDataException($"{n} {what} textures (highest texture id + 1) but this GPU allows at most {Gpu.MaxArrayLayers} layers in a texture array");
         if (TW != GameAssets.BlockTexH || (TW & (TW - 1)) != 0) throw new InvalidDataException("block textures must be square with a power-of-two size, got " + TW + "x" + GameAssets.BlockTexH);
         var img = GameAssets.BlockLayers; var mips = new List<byte[]> { img }; int sz = TW;
         while (sz > 1)

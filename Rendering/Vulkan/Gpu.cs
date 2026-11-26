@@ -22,6 +22,8 @@ namespace CubePlanet;
 public static unsafe partial class Gpu
 {
     public static Vk vk;
+    /// <summary>The most layers a texture array may have on this GPU (2048 on most desktop GPUs).</summary>
+    public static uint MaxArrayLayers = 2048;
     static Instance inst; static PhysicalDevice phys; public static Device dev; static Queue queue; static uint qfam;
     static KhrSurface khrSurf; static KhrSwapchain khrSwap; static SurfaceKHR surface; static SwapchainKHR swap;
     static Image[] swImgs = Array.Empty<Image>(); static ImageView[] swViews = Array.Empty<ImageView>(); static Semaphore[] renderDone = Array.Empty<Semaphore>();
@@ -112,6 +114,7 @@ public static unsafe partial class Gpu
         vk.GetPhysicalDeviceMemoryProperties(phys, out memProps);
         vk.GetPhysicalDeviceProperties(phys, out var props); vk.GetPhysicalDeviceFeatures(phys, out var avail);
         anisoSupported = avail.SamplerAnisotropy; maxAniso = Math.Min(16f, props.Limits.MaxSamplerAnisotropy);
+        MaxArrayLayers = props.Limits.MaxImageArrayLayers; // block / item textures are texture arrays: one layer per texture
         var lim = props.Limits.FramebufferColorSampleCounts & props.Limits.FramebufferDepthSampleCounts;
         samples = SampleCountFlags.Count1Bit; int msaa = pickMsaa(Integrated);
         foreach (var (want, f) in new[] { (8, SampleCountFlags.Count8Bit), (4, SampleCountFlags.Count4Bit), (2, SampleCountFlags.Count2Bit) })

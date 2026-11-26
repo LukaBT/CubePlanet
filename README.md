@@ -74,6 +74,11 @@ Everything about blocks comes from `Assets/`, in exactly the format the Python A
 an unknown block name in code (`Blocks.Stone` ...) stops it too, and a texture ID without a texture shows a magenta / black checkerboard.
 * Block IDs are 2 bytes (1..65535, 0 = air); chunk data is `ushort[]`. Item IDs are a separate space; item texture ID = item ID.
 * Texture layer = block texture ID; atlas rows are flipped on load (row 0 = bottom of a face). Textures must be square, power-of-two sized.
+* Room: both atlases have 16 x 128 cells = 2048 textures (blocks 256 x 2048 px, items 512 x 4096 px); a texture's position is written
+  in its index, so the image can grow further. Block and item IDs go up to 65535. The GPU holds the textures as texture arrays, one
+  layer per texture up to the highest ID used (no cost for empty cells); most desktop GPUs allow 2048+ layers, and the game says so
+  clearly at start if a GPU allows fewer. Item pictures sit at id % 16, id / 16 by convention; the bucket keeps id 200, so new items
+  take the next id above the highest one.
 * Today's 117 blocks were exported once from the old procedural textures (identical bytes); each block has an item that places it, plus `bucket`.
 * Game keys in `properties.definition` (all optional): `model` (cube / cross / liquid / attached + `attach`: vine / pod / boxes), `random_offset`,
   `waterlogged` (underwater plants), `lod_color`, `render.layer` (opaque / cutout / translucent / liquid), `render.connect_group`
