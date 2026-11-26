@@ -63,8 +63,10 @@ public sealed class Tank
         if (Vent) { Air = Math.Max(0, Volume - Water * Unit); return; }
         double p = Pressure; if (p > Rating && Air > 0) Air = Rating * Math.Max(0, Volume - WaterVol(Rating));
     }
-    /// <summary>Energy (E) the compressed air holds, expanding to 1 bar (isothermal: p0 V ln p).</summary>
-    public double AirEnergy { get { double p = Pressure; return p > 1 ? P0 * Air * Math.Log(p) / JoulesPerE : 0; } }
+
+    /// <summary>Usable energy (E) of the compressed air: the work it does expanding to 1 bar, minus pushing the outside air away
+    /// (isothermal): p0 (n ln p - (n - V_air)), n = Air (m^3 at 1 bar), V_air = n / p.</summary>
+    public double AirEnergy { get { double p = Pressure; return p > 1 ? P0 * (Air * Math.Log(p) - (Air - Air / p)) / JoulesPerE : 0; } }
     public bool Contains(BlockPos p) => !p.Core && p.B == B && p.F == F && p.X >= X0 - 1 && p.X <= X1 + 1 && p.Y >= Y0 - 1 && p.Y <= Y1 + 1 && p.Z >= Z0 - 1 && p.Z <= Z1 + 1;
     public string Describe() =>
         $"TANK {W}X{H}X{D} ({Volume * 8:0} UNITS)  WATER {Water:0} ({Water * Unit / Volume * 100:0}%)  {(Vent ? "VENTED" : "SEALED")} {Pressure:0.00} BAR" +
