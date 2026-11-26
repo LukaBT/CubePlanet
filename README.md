@@ -475,7 +475,7 @@ ignores input, prints FPS + chunk pipeline timings, does not save settings), `--
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
-`--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes on the main thread) and autosave time on the main thread vs in the background.
+`--benchedit` (no window): time per block edit (setting the block + meshing the chunks it changes; the meshing now runs on the workers) and autosave time on the main thread vs in the background.
 `--bench N --flyspeed V` (window): flies the free camera at V blocks/s and lists every frame over 25 ms with what it spent its time on
 (chunk work, LOD uploads, shadows, scene, update, UI, end frame, GPU wait, time between frames) and the garbage collections in it.
 `--benchfly` / `--benchgen` (no window): the main thread's non-drawing work while flying, block lookups in ungenerated chunks.
@@ -524,8 +524,9 @@ Chunk keys were widened (19/18/19 bits) and block-edit/water/cave keys are now 6
 ## Chunk loading
 Worker threads (cores - 2, max 14) do both jobs, meshing first: block data generation (terrain, caves, ores, trees, structures) and meshing
 (faces, skylight, ambient occlusion). A chunk is meshed only once its 26 neighbours have block data, so its lighting is right the first time
-(no second relight pass). The main thread only uploads finished meshes, so loading costs it almost nothing. Edited chunks are still meshed on
-the main thread, so block edits show up the same frame. The scan for which chunks to load also runs in the background. Chunks behind you are
+(no second relight pass). The main thread only uploads finished meshes, so loading costs it almost nothing. Edited chunks are meshed by the
+workers first of all (the old mesh stays drawn until the new one arrives, a frame or two later): meshing them on the main thread cost ~4 ms
+a chunk, up to ~20 ms an edit. The scan for which chunks to load also runs in the background. Chunks behind you are
 meshed too (at lower priority), so turning around doesn't show holes.
 Measured (render distance 12, 2967 chunks): everything generated and meshed 3.5 s after start, 0 ms of meshing on the main thread
 (before: 1446 visible chunks meshed on the main thread at about 2 ms each, inside a 5-9 ms per-frame budget).

@@ -14,6 +14,7 @@ public class Chunk
     public long waitStamp = -1;
     public int mst;            // mesh claim: 0 idle, 1 a worker is meshing it
     public bool relight;       // re-mesh in the background (a neighbour it was waiting for appeared, light near an edit, flowing water)
+    public bool urgent;        // a player edit: re-meshed by the workers before anything else (the old mesh stays until the new one is ready)
     public int ver;            // bumped by every block change: a background mesh started before a change is redone
     public int readyWait;      // frames spent waiting for neighbour data before meshing
     public bool mfail;         // background mesh threw: retry on the main thread

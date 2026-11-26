@@ -57,7 +57,7 @@ public static class ChunkMeshes
     internal static int meshPubFrame;
     /// <summary>
     /// Chunk pipeline step: apply finished background meshes, hand new mesh jobs to the workers (nearest first, chunks in view first,
-    /// only once their neighbours are generated), and mesh edited chunks right here so block edits show up the same frame.
+    /// only once their neighbours are generated); edited chunks go to the front of the workers' list.
     /// </summary>
     internal static void ChunkWork(double t0)
     {
@@ -66,10 +66,10 @@ public static class ChunkMeshes
             var ch = r.ch; Volatile.Write(ref ch.mst, 0);
             if (!chunks.TryGetValue(ch.key, out var cur) || cur != ch) continue; // freed meanwhile
             if (r.failed) { ch.mfail = true; continue; }
-            ch.relight = ch.ver != r.ver; Upload(ch, r.r, r.wait, false); // changed while it was meshed (flowing water): mesh it again
+            ch.relight = ch.ver != r.ver; if (!ch.relight) ch.urgent = false; Upload(ch, r.r, r.wait, false); // changed while it was meshed (flowing water, another edit): mesh it again
         }
         PublishGen();
-        buildQ.Clear(); meshQ.Clear();
+        buildQ.Clear(); meshQ.Clear(); bool urgent = false;
         foreach (var ch in chunks.Values)
         {
             if (Volatile.Read(ref ch.mst) != 0) continue;
@@ -81,6 +81,9 @@ public static class ChunkMeshes
                 foreach (var k in ch.wait) if (chunks.ContainsKey(k)) { ch.relight = true; break; }
             }
             bool edited = ch.built && ch.dirty;
+            // a player edit on a chunk that already has a mesh: the worker threads re-mesh it first thing (the old mesh stays drawn until the
+            // new one arrives, a frame or two later). Meshing it here on the main thread cost 4 ms a chunk, up to ~20 ms an edit: a visible hitch.
+            if (edited && !ch.core && !ch.gfail && !ch.mfail && !Program.SyncMesh) { ch.dirty = false; ch.relight = true; ch.urgent = true; edited = false; urgent = true; }
             if (!edited && ch.built && !ch.relight && !ch.mfail) continue;
             double dx = ch.mx - C.x, dy = ch.my - C.y, dz = ch.mz - C.z, d2 = dx * dx + dy * dy + dz * dz;
             bool vis = Vis(ch.mx, ch.my, ch.mz, ch.cr);
@@ -91,9 +94,9 @@ public static class ChunkMeshes
             }
             if (!ch.built && !NeighborsReady(ch) && ++ch.readyWait < 90) continue;
             if (!ch.built) ch.dirty = false; // the background build reads the current data; an edit during it sets dirty again
-            meshQ.Add((vis ? d2 : d2 * 4, ch));
+            meshQ.Add((ch.urgent ? d2 - 1e12 : vis ? d2 : d2 * 4, ch));
         }
-        if (meshQ.Count > 0 && frameNo - meshPubFrame >= 3)
+        if (meshQ.Count > 0 && (frameNo - meshPubFrame >= 3 || urgent))
         {
             meshPubFrame = frameNo; meshQ.Sort((a, b) => a.d.CompareTo(b.d));
             var arr = new Chunk[meshQ.Count]; for (int i = 0; i < arr.Length; i++) arr[i] = meshQ[i].c;
