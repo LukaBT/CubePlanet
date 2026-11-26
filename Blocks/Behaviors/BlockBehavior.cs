@@ -49,6 +49,9 @@ public abstract class BlockBehavior
         ["electric_furnace"] = () => new ElectricFurnaceBehavior(),
         ["motor"] = () => new MotorBehavior(),
         ["solar_panel"] = () => new SolarPanelBehavior(),
+        ["gearbox"] = () => new GearboxBehavior(),
+        ["processor"] = () => new ProcessorBehavior(),
+        ["mechanical_pump"] = () => new MechanicalPumpBehavior(),
         ["crop"] = () => new CropBehavior(),
     };
     public static BlockBehavior Create(string name, string owner) =>

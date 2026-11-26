@@ -42,9 +42,18 @@ public interface IEnergyMachine
 /// </summary>
 public static class EnergyNet
 {
-    public sealed class Net { public readonly List<BlockEntity> Machines = new(); public double Supply, Demand, Stored, Capacity, Loss; }
-    /// <summary>The networks of the last step (for the HUD).</summary>
+    /// <summary>A network's last step, for the HUD and the multimeter (E/s unless noted).</summary>
+    public sealed class Net
+    {
+        public readonly List<BlockEntity> Machines = new(); public double Supply, Demand, Stored, Capacity, Loss;
+        public double Available, FromStore, Made, Wanted, Got, Unused, DemandMet = 1; public int Cables, Wires, Transformers, Levels;
+        public int CablesAtLimit, CablesOver, TransformersAtLimit, TransformersFighting, WiresAtLimit, BatteriesAtRate, BatteriesFull, BatteriesEmptying, Generators30, WrongV;
+        public readonly SortedSet<string> LimitCables = new(); public double LineMore;
+    }
+    /// <summary>The networks of the last step (for the HUD): by machine.</summary>
     public static readonly Dictionary<long, Net> NetOf = new();
+    /// <summary>... and by every block in them (cables, transformers, anchors too): the multimeter.</summary>
+    public static readonly Dictionary<long, Net> NodeNet = new();
     public static int LastNetworks;
     /// <summary>Energy through each cable block in the last step: flow and capacity (E/s), its voltage level, its loss and cooling (E/s), and
     /// whether the level is above its rating (then it carries nothing), for the HUD.</summary>
@@ -108,7 +117,7 @@ public static class EnergyNet
 
     public static void Tick(double dt)
     {
-        NetOf.Clear(); CableLoad.Clear(); WrongVoltage.Clear(); LastNetworks = 0;
+        NetOf.Clear(); NodeNet.Clear(); CableLoad.Clear(); WrongVoltage.Clear(); LastNetworks = 0;
         Wires.Clean();
         // wires by anchor (both ends)
         var wiresAt = new Dictionary<long, List<Wires.Link>>();
@@ -174,6 +183,7 @@ public static class EnergyNet
                     }
             }
             LastNetworks++;
+            foreach (var k in b.G.Keys) if (k < 0x7E00_0000_0000_0000L) NodeNet[k] = net;
             Balance(net, dt, b, node.ToArray());
         }
     }
@@ -266,6 +276,8 @@ public static class EnergyNet
             };
         }
         bool powered = made.Sum() > 0; // cooling (superconductors) runs while the network has a source
+        net.Available = (fix + dis + dst) / dt; net.FromStore = sout / dt; net.Wanted = (dem + flex + sin) / dt;
+        var lvSeen = new HashSet<double>(); for (int v = 0; v < G.Keys.Count; v++) if (b.K[v] != Kind.Transformer) lvSeen.Add(level[v]); net.Levels = lvSeen.Count;
         // what actually gets through (and is used: surplus nobody takes is not made)
         var (mo, go, th) = CableFlow.Route(G, node, made, got);
         // losses: I^2 R in cables and wires (I = energy / level; a block at full current loses "loss" of what it carries), 2 % in transformers
@@ -275,6 +287,13 @@ public static class EnergyNet
             double flow = th[v] / dt, l = 0;
             if (b.K[v] is Kind.Cable or Kind.Wire)
             {
+                if (b.K[v] == Kind.Cable) net.Cables++; else net.Wires++;
+                if (over[v]) net.CablesOver++;
+                else if (G.Cap[v] > 0 && th[v] >= G.Cap[v] * .995)
+                {
+                    if (b.K[v] == Kind.Cable) { net.CablesAtLimit++; net.LimitCables.Add($"{(DEFS[b.Id[v]]?.Name ?? "cable").ToUpperInvariant()} ({b.CapLv[v] * level[v]:0} E/S AT {Voltage.Name(level[v])})"); }
+                    else net.WiresAtLimit++;
+                }
                 double cur = flow / level[v], cap = b.CapLv[v]; l = cap > 0 ? b.LossF[v] * cap * (cur / cap) * (cur / cap) * b.Len[v] : 0;
                 double up = powered && b.Rating.TryGetValue(v, out var rr) ? rr.upkeep * b.Len[v] : 0;
                 if (b.K[v] == Kind.Cable) CableLoad[G.Keys[v]] = new Load(flow, over[v] ? 0 : b.CapLv[v] * level[v], level[v], l, up, over[v]);
@@ -283,6 +302,7 @@ public static class EnergyNet
             }
             else if (b.K[v] == Kind.Transformer)
             {
+                net.Transformers++; if (!tOk[v]) net.TransformersFighting++; else if (G.Cap[v] > 0 && th[v] >= G.Cap[v] * .995) net.TransformersAtLimit++;
                 l = flow * TransformerBehavior.SpecOf(b.Id[v]).Loss;
                 if (BlockStates.entities.TryGetValue(G.Keys[v], out var te)) te.SetNum("flow", flow);
             }
@@ -290,6 +310,23 @@ public static class EnergyNet
         }
         double gotSum = go.Sum(); net.Loss = loss / dt;
         if (loss > 0 && gotSum > 0) { double k = Math.Max(0, 1 - loss / gotSum); for (int i = 0; i < n; i++) go[i] *= k; }
+        // the multimeter's findings: what is made / used, what is wasted, what limits it
+        net.Made = mo.Sum() / dt; net.Got = go.Sum() / dt; net.Unused = Math.Max(0, fix - mo.Sum()) / dt; net.WrongV = 0;
+        double demW = 0, demG = 0;
+        for (int i = 0; i < n; i++)
+        {
+            var me = net.Machines[i]; var pl = plans[i];
+            if (WrongVoltage.ContainsKey(me.Pos.Key)) net.WrongV++;
+            if (pl.Demand > 0) { demW += pl.Demand; demG += Math.Min(go[i], pl.Demand); }
+            if (BEH[me.BlockId] is BatteryBehavior)
+            {
+                if (pl.StoreIn >= BatteryBehavior.Rate * dt * .999 && go[i] >= pl.StoreIn * .99 && net.Unused > 0) net.BatteriesAtRate++;
+                if (pl.StoreIn <= 1e-9 && me.Num("energy") >= BatteryBehavior.Capacity - 1e-6) net.BatteriesFull++;
+                if (pl.StoreOut > 0 && mo[i] >= pl.StoreOut * .99 && pl.StoreOut < BatteryBehavior.Rate * dt * .999) net.BatteriesEmptying++;
+            }
+            if (BEH[me.BlockId] is GeneratorBehavior && me.Num("input") >= GeneratorBehavior.MaxIn - 1e-6 && me.Num("line") > me.Num("line_load") + .5) { net.Generators30++; net.LineMore = Math.Max(net.LineMore, me.Num("line") - me.Num("line_load")); }
+        }
+        net.DemandMet = demW > 0 ? demG / demW : 1;
         for (int i = 0; i < n; i++)
         {
             MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);

@@ -15,4 +15,8 @@ texture_rows: 16
 149 beetroot_seeds 160 288
 150 wooden_hoe 192 288
 164 wire_spool 128 320
+171 iron_dust 352 320
+172 gold_dust 384 320
+173 copper_dust 416 320
+174 multimeter 448 320
 200 bucket 256 384

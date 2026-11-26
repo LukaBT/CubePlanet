@@ -508,6 +508,170 @@
           }
         }
       ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "millstone",
+      "id": 7,
+      "name": "Millstone",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Millstone",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "sawmill",
+      "id": 8,
+      "name": "Sawmill",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Sawmill",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
     }
   ]
 }

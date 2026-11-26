@@ -88,16 +88,19 @@ public static class Kinetics
                 double p = e.Num("drive"), sg = MotorBehavior.Spin(e); torque += sg * p; turbines++;
                 if (p > 0) { free += sg * 2.5; turning++; }
             }
-            else if (BEH[e.BlockId] is GeneratorBehavior) gens.Add(e);
+            else if (BEH[e.BlockId] is IRotationLoad) gens.Add(e);
         double src = Math.Abs(torque);
-        double used = 0;
-        foreach (var g in gens) { double inp = Math.Min(GeneratorBehavior.MaxIn, src / gens.Count); g.SetNum("input", inp); used += inp; }
+        // loads (generators, millstones, sawmills, pumps) get what they want, or a share of the line's power in proportion to it
+        double want = 0; var wants = new double[gens.Count];
+        for (int i = 0; i < gens.Count; i++) { wants[i] = Math.Max(0, ((IRotationLoad)BEH[gens[i].BlockId]).Wants(gens[i])); want += wants[i]; }
+        double k = want > 0 ? Math.Min(1, src / want) : 0, used = 0;
+        for (int i = 0; i < gens.Count; i++) { double inp = wants[i] * k; ((IRotationLoad)BEH[gens[i].BlockId]).Work(gens[i], inp, dt); used += inp; }
         double w0 = turning > 0 ? free / turning : 0, load = src > 0 ? used / src : 0;
         // spin up / run down smoothly; free it turns fastest, load slows it; every part continues from the network's first part's angle
         double speed = net[0].Num("speed"), target = w0 * (1 - .55 * load);
         speed += (target - speed) * Math.Min(1, dt * 1.5); if (Math.Abs(speed) < 1e-3) speed = 0;
         double angle = (net[0].Num("angle") + speed * dt) % (2 * Math.PI);
-        foreach (var e in net) { e.SetNum("angle", angle); e.SetNum("speed", speed); e.SetNum("turbines", turbines); }
+        foreach (var e in net) { e.SetNum("angle", angle); e.SetNum("speed", speed); e.SetNum("turbines", turbines); e.SetNum("line", src); e.SetNum("line_load", used); e.SetNum("line_want", want); }
     }
 }
 
@@ -187,9 +190,11 @@ public sealed class ShaftBehavior : BlockBehavior, IKinetic
 
 /// <summary>Generator: the shaft runs through it (either end joins a shaft or a turbine's back); takes up to 30 E/s of rotation power and
 /// gives 90 % of it to its energy network. Several generators on one shaft line share the power.</summary>
-public sealed class GeneratorBehavior : BlockBehavior, IKinetic, IEnergyMachine
+public sealed class GeneratorBehavior : BlockBehavior, IKinetic, IEnergyMachine, IRotationLoad
 {
     public const double MaxIn = 30, Efficiency = .9;
+    public double Wants(BlockEntity e) => MaxIn;
+    public void Work(BlockEntity e, double power, double dt) => e.SetNum("input", power);
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     public (int x, int y, int z)[] Ports(BlockEntity e) { var (x, y, z) = Kinetics.Dir(e); return new[] { (x, y, z), (-x, -y, -z) }; }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p) => p.Fixed = e.Num("input") * Efficiency * dt;

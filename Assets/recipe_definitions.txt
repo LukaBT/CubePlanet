@@ -153,6 +153,48 @@
         "count": 1
       },
       "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "iron_ingot_from_iron_dust",
+      "input": {
+        "namespace": "base",
+        "id_name": "iron_dust"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 1
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "gold_ingot_from_gold_dust",
+      "input": {
+        "namespace": "base",
+        "id_name": "gold_dust"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "gold_ingot",
+        "count": 1
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "copper_ingot_from_copper_dust",
+      "input": {
+        "namespace": "base",
+        "id_name": "copper_dust"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "copper_ingot",
+        "count": 1
+      },
+      "time": 6
     }
   ]
 }

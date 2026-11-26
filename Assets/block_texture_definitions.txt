@@ -209,3 +209,12 @@ texture_rows: 16
 206 motor_back 224 192
 207 solar_cell 240 192
 208 solar_frame 0 208
+209 gearbox 16 208
+210 millstone_stone 32 208
+211 millstone_top 48 208
+212 millstone_base 64 208
+213 sawmill_table 80 208
+214 saw_blade 96 208
+215 mpump_side 112 208
+216 mpump_front 128 208
+217 mpump_back 144 208

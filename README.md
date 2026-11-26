@@ -238,6 +238,23 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   an MV branch line ~160 blocks to a village (LV-MV, 3 batteries). It then reloads the saved world with no chunks loaded and checks
   that the town and the village still get their power.
 
+## Rotation machines and the multimeter (Energy/Mechanical.cs, Energy/Multimeter.cs)
+* Rotation lines now have **loads** besides generators; a line shares its sources' power between them in proportion to what each wants.
+* **Gearbox**: joins shafts on all six sides (a turbine's horizontal shaft can turn down a tower, or split to several machines).
+* **Millstone** (15 E/s of rotation): iron / gold / copper ore (and deepslate ores) -> 2 dust each, 120 E per ore; dust smelts to an
+  ingot (furnace or electric furnace), so ore gives twice the ingots. **Sawmill** (15 E/s): a log -> 6 planks, 60 E each. Both take a
+  shaft on any side but the top; windows with input, progress and output. Driven by a wind turbine, a motor or a gearbox line.
+* **Mechanical Pump**: lifts water like the electric pump (same cost per unit and lift, up to 16 units/s), driven by a shaft on a side
+  across its axis: a wind pump. Right click: ON / OFF.
+* **Multimeter** (item): hold it and look at any block of an energy network: the HUD shows the whole network (machines, cable blocks,
+  wires, transformers, voltage levels), what it makes and could make, what is used and wanted, losses, storage, and what limits it in
+  plain words: machines short of power, cables / wires / transformers at their limit, cables above their voltage rating, generators at
+  their 30 E/s with rotation left over, batteries at their 50 E/s charge rate, full or running empty, production nobody takes, machines on
+  the wrong voltage, high losses. On a shaft or rotation machine: its line (sources, what the loads want and get).
+* `--demomill NAME [--demosecs S]` (no window) builds a world with a large windmill on a tower, a gearbox and a vertical shaft down to a
+  gearbox on the ground driving a millstone (iron ore), a sawmill (oak logs) and a wind pump (a pipe down into a pool, a pipe up into a
+  raised glass tank); the hotbar has a multimeter.
+
 ## Electric machines, lamps, solar (Energy/Electric.cs)
 * **Electric Lamp** (0.5 E/s): lights up when powered and gives **block light** around it (level 9 at the lamp, one less per block,
   separate from sky light so it shows at night; Rendering/Chunks/Mesher.cs block light, packed into the top 4 bits of the vertex sky

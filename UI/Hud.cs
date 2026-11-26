@@ -35,6 +35,7 @@ public static class Hud
         var tp = BlockPos.Of(t);
         if (Wires.IsAnchor(tp)) more += "\n" + Wires.Describe(tp);
         else if (EnergyNet.IsCable(t.id)) more += "\n" + EnergyNet.DescribeCable(tp);
+        if (Multimeter.Held) more += Multimeter.Report(tp);
         if (EnergyNet.WrongVoltage.TryGetValue(tp.Key, out var wv)) more += $"\nWRONG VOLTAGE ({Voltage.Name(wv)}): MACHINES RUN ON LV, PUT A TRANSFORMER BETWEEN";
         return $"\nTARGET {(d?.Name ?? BN[t.id]).ToUpperInvariant()}{st}{more}";
     }

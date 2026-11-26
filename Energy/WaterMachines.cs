@@ -222,6 +222,18 @@ public sealed class PumpBehavior : BlockBehavior, IEnergyMachine
     public override bool OnUse(BlockPos p, int id, int state) => WaterMachines.CycleMode(BlockStates.EntityOrNew(p, id));
 
     static readonly Dictionary<long, (WC src, WC dst, double cost)> pending = new();
+    /// <summary>What a pump at e can do this step: water from src to dst at cost E per unit, at most units.</summary>
+    public static bool Job(BlockEntity e, double dt, out WC src, out WC dst, out double cost, out double units)
+    {
+        src = dst = default; cost = units = 0;
+        if (!e.Pos.Loaded) return false; // water only moves in loaded land
+        src = WaterMachines.Intake(e); dst = WaterMachines.Outlet(e);
+        if (!src.ok || !dst.ok) return false;
+        double lift = Math.Max(0, WaterMachines.OutletLevel(dst) - Surface(src)); e.SetNum("lift", lift);
+        cost = (lift * WaterMachines.K + BaseCost) / Efficiency;
+        units = Math.Min(MaxFlow * dt + e.Num("carry"), Math.Min(WaterMachines.Column(src), WaterMachines.Room(dst)));
+        return units > 0;
+    }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         pending.Remove(e.Pos.Key);

@@ -3068,6 +3068,135 @@
     {
       "type": "item",
       "namespace": "base",
+      "id_name": "iron_dust",
+      "id": 171,
+      "name": "Iron Dust",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gold_dust",
+      "id": 172,
+      "name": "Gold Dust",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_dust",
+      "id": 173,
+      "name": "Copper Dust",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "multimeter",
+      "id": 174,
+      "name": "Multimeter",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 1,
+          "behavior": "multimeter"
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gearbox",
+      "id": 175,
+      "name": "Gearbox",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "gearbox"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "millstone",
+      "id": 176,
+      "name": "Millstone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "millstone"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "sawmill",
+      "id": 177,
+      "name": "Sawmill",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "sawmill"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "mechanical_pump",
+      "id": 178,
+      "name": "Mechanical Pump",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "mechanical_pump"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
       "id_name": "bucket",
       "id": 200,
       "name": "Bucket",

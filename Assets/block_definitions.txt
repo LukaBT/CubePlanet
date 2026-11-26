@@ -15837,6 +15837,482 @@
           }
         }
       }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "gearbox",
+      "id": 163,
+      "name": "Gearbox",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 209
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "gearbox",
+          "lod_color": [
+            140,
+            120,
+            90
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "gearbox",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "millstone",
+      "id": 164,
+      "name": "Millstone",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 212,
+        "top": 211
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "millstone"
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "processor",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            150,
+            146,
+            140
+          ],
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.5,
+              "d": 1
+            },
+            {
+              "x": 0.12,
+              "y": 0.5,
+              "z": 0.12,
+              "w": 0.76,
+              "h": 0.12,
+              "d": 0.76,
+              "textures": {
+                "all": 210
+              }
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.95,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.95,
+                "d": 1
+              }
+            ]
+          },
+          "moving_parts": [
+            {
+              "axis": "y",
+              "pivot": [
+                0.5,
+                0.78,
+                0.5
+              ],
+              "speed": 1,
+              "boxes": [
+                {
+                  "x": 0.08,
+                  "y": 0.62,
+                  "z": 0.08,
+                  "w": 0.84,
+                  "h": 0.32,
+                  "d": 0.84,
+                  "textures": {
+                    "all": 210,
+                    "top": 211
+                  }
+                }
+              ]
+            }
+          ],
+          "processing": {
+            "power": 15,
+            "recipes": [
+              {
+                "input": "iron_ore",
+                "output": "iron_dust",
+                "count": 2,
+                "work": 120
+              },
+              {
+                "input": "deepslate_iron_ore",
+                "output": "iron_dust",
+                "count": 2,
+                "work": 120
+              },
+              {
+                "input": "gold_ore",
+                "output": "gold_dust",
+                "count": 2,
+                "work": 120
+              },
+              {
+                "input": "deepslate_gold_ore",
+                "output": "gold_dust",
+                "count": 2,
+                "work": 120
+              },
+              {
+                "input": "copper_ore",
+                "output": "copper_dust",
+                "count": 2,
+                "work": 120
+              },
+              {
+                "input": "deepslate_copper_ore",
+                "output": "copper_dust",
+                "count": 2,
+                "work": 120
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "millstone",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "input": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 120
+          },
+          "input_power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "sawmill",
+      "id": 165,
+      "name": "Sawmill",
+      "stateless": false,
+      "group_tags": [],
+      "textures": {
+        "all": 213
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "sawmill"
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "behavior": "processor",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            150,
+            112,
+            70
+          ],
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 0.75,
+              "d": 1
+            }
+          ],
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 0.75,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 1
+              }
+            ]
+          },
+          "moving_parts": [
+            {
+              "axis": "x",
+              "pivot": [
+                0.5,
+                0.75,
+                0.5
+              ],
+              "speed": 3,
+              "boxes": [
+                {
+                  "x": 0.47,
+                  "y": 0.4,
+                  "z": 0.15,
+                  "w": 0.06,
+                  "h": 0.7,
+                  "d": 0.7,
+                  "textures": {
+                    "all": 214
+                  }
+                }
+              ]
+            }
+          ],
+          "processing": {
+            "power": 15,
+            "recipes": [
+              {
+                "input": "oak_log",
+                "output": "oak_planks",
+                "count": 6,
+                "work": 60
+              },
+              {
+                "input": "spruce_log",
+                "output": "spruce_planks",
+                "count": 6,
+                "work": 60
+              },
+              {
+                "input": "acacia_log",
+                "output": "acacia_planks",
+                "count": 6,
+                "work": 60
+              },
+              {
+                "input": "jungle_log",
+                "output": "jungle_planks",
+                "count": 6,
+                "work": 60
+              },
+              {
+                "input": "cherry_log",
+                "output": "cherry_planks",
+                "count": 6,
+                "work": 60
+              },
+              {
+                "input": "palm_log",
+                "output": "palm_planks",
+                "count": 6,
+                "work": 60
+              }
+            ]
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "sawmill",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "input": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 1
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 60
+          },
+          "input_power": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "mechanical_pump",
+      "id": 166,
+      "name": "Mechanical Pump",
+      "stateless": false,
+      "group_tags": [
+        "water_pipe"
+      ],
+      "textures": {
+        "north": 216,
+        "south": 217,
+        "side": 215,
+        "top": 215,
+        "bottom": 215
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "all",
+          "behavior": "mechanical_pump",
+          "lod_color": [
+            60,
+            90,
+            140
+          ],
+          "render": {
+            "layer": "opaque"
+          },
+          "default_state": "normal",
+          "hardness": 1.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "mechanical_pump",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "angle": {
+            "type": "number",
+            "default": 0
+          },
+          "speed": {
+            "type": "number",
+            "default": 0
+          },
+          "carry": {
+            "type": "number",
+            "default": 0
+          },
+          "lift": {
+            "type": "number",
+            "default": 0
+          },
+          "flow": {
+            "type": "number",
+            "default": 0
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "off": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
     }
   ]
 }
