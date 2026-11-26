@@ -8,6 +8,11 @@ public static class PlayerPhysics
 
     // ---------- player physics (radial gravity, voxel collision) ----------
     public const double EYE = 1.62, GRAV = 30, JUMP = 9, HW = .24;
+    /// <summary>Realistic gravity (setting): 9.81 m/s^2 at the surface; the jump is set to still reach 1.25 blocks (4.95 m/s take-off), so it
+    /// lasts ~1 s instead of the game's 0.6 s. Both scale with the planet's gravity factor like the game's values.</summary>
+    public const double RealG = 9.81, RealJump = 4.95;
+    public static double Gravity => Settings.SET.realgrav > .5 ? RealG : GRAV;
+    public static double JumpSpeed => Settings.SET.realgrav > .5 ? RealJump : JUMP;
     /// <summary>Highest ledge the player walks up without jumping (stairs, slabs), like Minecraft's step height.</summary>
     public const double STEP = .6;
     /// <summary>How far the camera still trails a step-up (glides to 0).</summary>
@@ -71,7 +76,7 @@ public static class PlayerPhysics
             P.vu -= 7 * gs * dt; if (jump) P.vu += 24 * dt; P.vu *= Math.Exp(-2.2 * dt); P.vu = Math.Max(-5, Math.Min(5, P.vu));
             if (jump && !P.head) P.vu = Math.Max(P.vu, 6.5);
         }
-        else { P.vu = Math.Max(-55, P.vu - GRAV * gs * dt); if (jump && P.gnd) P.vu = JUMP; }
+        else { P.vu = Math.Max(-55, P.vu - Gravity * gs * dt); if (jump && P.gnd) P.vu = JumpSpeed; }
         // climbing out of water like Minecraft: feet still in water, pushing against a wall (the bank) and jump held -> rise at climbing speed,
         // which lifts the feet over a 1 block high edge (the chest leaves the water earlier, so the swim lift alone stops too low)
         if (!P.fly && jump && feetWet && pushBlocked) P.vu = Math.Max(P.vu, 6);

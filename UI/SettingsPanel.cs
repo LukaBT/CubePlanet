@@ -58,7 +58,7 @@ public static partial class UI
         Slider("Field of view", ref SET.fov, 50, 110, 1); Slider("Mouse sensitivity", ref SET.sens, .2, 3, .1); Slider("Fly speed", ref SET.fly, 5, 300, 5);
         Slider("Clouds", ref SET.clouds, 0, 3, 1, v => new[] { "off", "low", "high", "ultra" }[(int)v]); Slider("Fog", ref SET.fog, 0, 2, .1);
         double hour = Sky.LocalHour(); if (Slider("Time of day", ref hour, 0, 23.99, .25, v => $"{(int)v:00}:{(int)((v % 1) * 60):00}")) Sky.SetHour(hour);
-        Slider("Day length (s)", ref SET.day, 60, 1800, 30); Slider("Tick speed (farming)", ref SET.tick, 1, 50, 1, v => $"x{v:0}"); Check("Freeze time", ref SET.pause); Slider("Axial tilt (Earth=23.5)", ref SET.tilt, 0, 90, .5);
+        Slider("Day length (s)", ref SET.day, 60, 1800, 30); Slider("Tick speed (farming)", ref SET.tick, 1, 50, 1, v => $"x{v:0}"); Check("Freeze time", ref SET.pause); Check("Realistic gravity (9.81 m/s2, floatier jumps)", ref SET.realgrav); Slider("Axial tilt (Earth=23.5)", ref SET.tilt, 0, 90, .5);
         Head("WIND");
         { double nat = Kinetics.IsNatural ? 1 : 0, spd = Kinetics.WindSpeed, from = Kinetics.FromBearing;
           if (Check("Natural wind (changes by itself)", ref nat)) { if (nat > .5) Kinetics.Natural(); else Kinetics.SetWind(Math.Round(spd), Math.Round(from / 5) * 5 % 360); }

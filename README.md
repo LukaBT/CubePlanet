@@ -239,6 +239,9 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
   that the town and the village still get their power.
 
 ## Hydraulics with real physics (Energy/WaterMachines.cs)
+* **Player gravity** is a game value, 30 m/s^2 (~3 g, like other block games: a snappy 1.35-block jump, 0.6 s in the air). Settings
+  (Esc): "Realistic gravity" switches it to 9.81 m/s^2 with a 4.95 m/s jump that still clears a block (1.25 blocks, ~1 s in the
+  air). Both scale with the planet's gravity factor. Machines always use real gravity.
 * Gravity where a machine is: g = 9.81 m/s^2 x the planet's gravity factor (full on the surface, falling linearly toward the centre
   inside the planet, with the square of the distance out in space). 1 block = 1 m, 1 unit = 125 kg of water, 1 E = 125 x 9.81 J.
 * Energy per kg water gains or gives between two ends: g x the height difference + the pressure difference / 1000 (a sealed tank's

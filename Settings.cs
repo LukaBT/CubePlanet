@@ -12,6 +12,7 @@ public class Settings
     public double ver; // settings file version (old files: 0)
     public double rscale = 1; // render resolution (fraction of the window); the UI always stays at full resolution
     public double tick = 1; // tick speed: how much faster farm blocks (soil, crops) tick than normal
+    public double realgrav = 0; // 1: the player falls with real gravity (9.81 m/s^2, 1 block = 1 m) instead of the game's ~3 g
 
     public static readonly string[] PresetNames = { "LOW", "MEDIUM", "HIGH", "ULTRA" };
     //                                   shadows  ao  aniso bloom rays  ssr  fxaa msaa clouds

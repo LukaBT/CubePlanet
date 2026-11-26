@@ -23,7 +23,7 @@ public static class Hud
         string mode = C.orbit ? "ORBIT" : P.on ? (P.fly ? "PLAYER FLY" : P.wet ? "SWIM" : P.gnd ? "WALK" : "AIR") : (C.lvl ? "FREECAM LEVEL" : "FREECAM");
         return $"{mode}  ALT {(r - R):0.0}  R {R}  {(P.on && !C.orbit ? "" : "SPEED x" + spd.ToString("0.00"))}\n" +
                $"LAT {Math.Asin(C.y / r) * 180 / PI:0.0}  LON {Math.Atan2(C.x, C.z) * 180 / PI:0.0}  {(int)h:00}:{(int)((h % 1) * 60):00}\n" +
-               $"RD {RD}  G {GravK(r) * GRAV:0.0}  CHUNKS {chunks.Count}  LOD {lodDrawn}  {fps:0} FPS {(SET.vsync > .5 ? "VSYNC" : "UNCAPPED")}\n{LocInfo()}{Target()}";
+               $"RD {RD}  G {GravK(r) * PlayerPhysics.Gravity:0.00}  CHUNKS {chunks.Count}  LOD {lodDrawn}  {fps:0} FPS {(SET.vsync > .5 ? "VSYNC" : "UNCAPPED")}\n{LocInfo()}{Target()}";
     }
     /// <summary>The targeted block and its state (doors: half / open / facing, water: level ...).</summary>
     static string Target()

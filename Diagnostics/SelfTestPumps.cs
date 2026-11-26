@@ -70,6 +70,13 @@ public static partial class SelfTest
               && Math.Abs(WaterMachines.EPerUnit(WaterMachines.G0 / 2 * 10) - .5) < 1e-9 && Math.Abs(WaterMachines.EPerUnit(WaterMachines.G0 * 10) - 1) < 1e-9
               && Math.Abs(GravK(R / 2) - .5) < 1e-9 && GravK(R * 2) == .25,
               "gravity: a 100-block lift is impossible at surface gravity and fine at half; suction doubles; a 10-block drop gives 1 E per unit at the surface, 0.5 at half gravity (inside the planet at half radius / in space at twice the radius: 1/2, 1/4 g)");
+        // the player's gravity setting: game ~3 g (snappy) or real 9.81 m/s2; both jumps still clear a full block
+        double keep = Settings.SET.realgrav;
+        Settings.SET.realgrav = 0; double gGame = PlayerPhysics.Gravity, hGame = PlayerPhysics.JumpSpeed * PlayerPhysics.JumpSpeed / (2 * gGame), tGame = 2 * PlayerPhysics.JumpSpeed / gGame;
+        Settings.SET.realgrav = 1; double gReal = PlayerPhysics.Gravity, hReal = PlayerPhysics.JumpSpeed * PlayerPhysics.JumpSpeed / (2 * gReal), tReal = 2 * PlayerPhysics.JumpSpeed / gReal;
+        Settings.SET.realgrav = keep;
+        Check(gGame == 30 && gReal == 9.81 && hGame > 1.2 && hReal > 1.2 && tReal > tGame * 1.5,
+              $"player gravity: game {gGame} m/s2 (jump {hGame:0.00} blocks, {tGame:0.00} s in the air), realistic {gReal} m/s2 (jump {hReal:0.00} blocks, {tReal:0.00} s)");
         Console.WriteLine($"PUMPS suction limit {maxS:0.0} blocks; centrifugal stalls at {pCentri:0.0} bar, piston {pPiston:0.0} bar; g here {g:0.00}");
         Clear(); WaterFlow.Clear();
         foreach (var c in made) FreeChunk(c);
