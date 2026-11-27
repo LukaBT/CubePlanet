@@ -489,7 +489,11 @@ time of every phase. Measured (2026-11-27, before -> after the speed-ups, same w
 chunk (shared cave-water columns, a faster Perlin noise with identical values, a tighter block loop), meshing 3.05 -> 1.87 ms (a cached
 1-block border, buried cells skipped, faces written straight into the vertex lists, skylight copied row by row and seeded only where it can
 spread), hot code compiled fully optimised from the start; first load in the game 3.5-3.9 s -> 2.3-2.7 s. `--benchmachines` (no window): builds 64 / 256 / 1024 small factories (generator, cables, battery, furnace, lamp, conveyor line, pump) and
-times the machine tick: measured 704 machines 7.6 ms, 2,816 machines 9.0 ms, 11,264 machines 30 ms a tick (10 ticks a second, one core).
+times the machine tick (10 a second): 704 machines 0.46 ms, 2,816 machines 1.4 ms, 11,264 machines 6.1 ms (it was 1.8 / 8 / 29 ms). Power networks
+are kept between ticks and rebuilt only after a grid block, transformer, anchor, machine or wire changes; each tick the machines plan (one
+thread, fixed order: plans touch the world), every network's shares, cable routing (a max-flow graph built once per network) and losses are
+worked out on all cores (from 128 networks up), then the machines settle (one thread); definition numbers (power, light level, speed) are
+read from the JSON once. The bench prints the time of each part and phase; SERIAL=1 runs the solve phase on one thread to compare.
 `--meshhash` (no window):
 one hash over every mesh around spawn; `checks/check.ps1` compares it with `checks/meshhash.txt` like the world fingerprints.
 

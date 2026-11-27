@@ -46,7 +46,8 @@ public static partial class DemoWorld
         {
             int side = (int)Math.Round(Math.Sqrt(n));
             for (int mz = 0; mz < side; mz++) for (int mx = 0; mx < side; mx++) if (mz * Side + mx >= 0 && !(mx < Prev(n) && mz < Prev(n))) Module(mx, mz);
-            for (int i = 0; i < 30; i++) { BlockActions.Tick(.1); WaterSim.WaterStep(); } // warm up (networks form, JIT)
+            for (int i = 0; i < 300; i++) { BlockActions.Tick(.1); WaterSim.WaterStep(); } // warm up (networks form, the JIT optimises the hot code)
+            Array.Clear(BlockActions.Prof); Array.Clear(EnergyNet.PP); EnergyNet.SerialSolve = Environment.GetEnvironmentVariable("SERIAL") == "1";
             double tick = 0, water = 0, worst = 0; int T = 50;
             for (int i = 0; i < T; i++)
             {
@@ -54,6 +55,10 @@ public static partial class DemoWorld
                 tick += a; water += b; worst = Math.Max(worst, a + b);
             }
             int ents = BlockStates.entities.Count, nets = EnergyNet.NetOf.Values.Distinct().Count();
+            double P(int k) => BlockActions.Prof[k] * 1000.0 / System.Diagnostics.Stopwatch.Frequency / T;
+            Console.WriteLine($"   parts: tanks {P(0):0.00}, rotation {P(1):0.00}, energy networks {P(2):0.00} (balancing {P(4):0.00}, building {P(2) - P(4):0.00}), block ticks {P(3):0.00} ms");
+            double Q(int k) => EnergyNet.PP[k] * 1000.0 / System.Diagnostics.Stopwatch.Frequency / T;
+            Console.WriteLine($"   phases: plan {Q(0):0.00}, solve {Q(1):0.00}, merge {Q(2):0.00}, settle {Q(3):0.00} ms");
             Console.WriteLine($"BENCHMACHINES {built} modules: {ents} machines, {nets} power networks; machine tick {tick / T:0.00} ms, water {water / T:0.00} ms, worst {worst:0.0} ms (10 ticks a second: {(tick + water) / T * 10 / 10:0.0} % of one core)");
         }
         static int Prev(int n) => n == 64 ? 0 : n == 256 ? 8 : 16;

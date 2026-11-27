@@ -49,7 +49,20 @@ public static class EnergyNet
         public double Available, FromStore, Made, Wanted, Got, Unused, DemandMet = 1; public int Cables, Wires, Transformers, Levels;
         public int CablesAtLimit, CablesOver, TransformersAtLimit, TransformersFighting, WiresAtLimit, BatteriesAtRate, BatteriesFull, BatteriesEmptying, Generators30, WrongV;
         public readonly SortedSet<string> LimitCables = new(); public double LineMore;
+        /// <summary>Clears this step's numbers (the network itself is kept between steps).</summary>
+        public void Reset()
+        {
+            Supply = Demand = Stored = Capacity = Loss = Available = FromStore = Made = Wanted = Got = Unused = LineMore = 0; DemandMet = 1;
+            Cables = Wires = Transformers = Levels = CablesAtLimit = CablesOver = TransformersAtLimit = TransformersFighting = WiresAtLimit = 0;
+            BatteriesAtRate = BatteriesFull = BatteriesEmptying = Generators30 = WrongV = 0; LimitCables.Clear();
+        }
     }
+    // ---- the networks are kept between steps and rebuilt only after something that can change them: a grid block placed or broken, a
+    // transformer / anchor changing state, a machine appearing or going, a wire added or removed (building them was 60 % of the step)
+    static int topoVer, builtVer = -1, builtEntities = -1, builtWires = -1;
+    static readonly List<Step> built = new(); public static readonly long[] PP = new long[4]; public static bool SerialSolve;
+    /// <summary>Something changed that can change the networks: they are rebuilt on the next step.</summary>
+    public static void Changed() => Interlocked.Increment(ref topoVer);
     /// <summary>The networks of the last step (for the HUD): by machine.</summary>
     public static readonly Dictionary<long, Net> NetOf = new();
     /// <summary>... and by every block in them (cables, transformers, anchors too): the multimeter.</summary>
@@ -117,8 +130,26 @@ public static class EnergyNet
 
     public static void Tick(double dt)
     {
-        NetOf.Clear(); NodeNet.Clear(); CableLoad.Clear(); WrongVoltage.Clear(); LastNetworks = 0;
-        Wires.Clean();
+        CableLoad.Clear(); WrongVoltage.Clear();
+        Wires.Clean(); foreach (var l in Wires.Links) l.Flow = l.LossNow = 0;
+        if (builtVer != topoVer || builtEntities != BlockStates.entities.Count || builtWires != Wires.Links.Count) Rebuild();
+        long tb = System.Diagnostics.Stopwatch.GetTimestamp();
+        foreach (var s in built) { s.net.Reset(); PlanStep(s, dt); }
+        long ta = System.Diagnostics.Stopwatch.GetTimestamp();
+        if (built.Count >= 128 && !SerialSolve) Parallel.ForEach(built, s => SolveStep(s, dt)); else foreach (var s in built) SolveStep(s, dt);
+        long tc = System.Diagnostics.Stopwatch.GetTimestamp();
+        foreach (var s in built) foreach (var (k, l) in s.loads) CableLoad[k] = l;
+        long td = System.Diagnostics.Stopwatch.GetTimestamp();
+        foreach (var s in built) SettleStep(s, dt);
+        long te2 = System.Diagnostics.Stopwatch.GetTimestamp(); PP[0] += ta - tb; PP[1] += tc - ta; PP[2] += td - tc; PP[3] += te2 - td;
+        BlockActions.Prof[4] += System.Diagnostics.Stopwatch.GetTimestamp() - tb;
+        LastNetworks = built.Count;
+    }
+    /// <summary>Finds every network again: from each machine, a flood through cables, machines, transformers, anchors and wires.</summary>
+    static void Rebuild()
+    {
+        builtVer = topoVer; builtEntities = BlockStates.entities.Count; builtWires = Wires.Links.Count;
+        NetOf.Clear(); NodeNet.Clear(); built.Clear();
         // wires by anchor (both ends)
         var wiresAt = new Dictionary<long, List<Wires.Link>>();
         foreach (var l in Wires.Links) { foreach (var p in new[] { l.A, l.B }) { if (!wiresAt.TryGetValue(p.Key, out var ls)) wiresAt[p.Key] = ls = new(); ls.Add(l); } l.Flow = l.LossNow = 0; }
@@ -182,9 +213,10 @@ public static class EnergyNet
                         if (!done.Contains(wi)) b.G.Edges.Add((pi, wi));
                     }
             }
-            LastNetworks++;
             foreach (var k in b.G.Keys) if (k < 0x7E00_0000_0000_0000L) NodeNet[k] = net;
-            Balance(net, dt, b, node.ToArray());
+            // voltage levels depend on the network's shape only: worked out once here
+            var (level, tOk) = Levels(b); var lvSeen = new HashSet<double>(); for (int v = 0; v < b.G.Keys.Count; v++) if (b.K[v] != Kind.Transformer) lvSeen.Add(level[v]);
+            built.Add(new Step { net = net, b = b, node = node.ToArray(), level = level, tOk = tOk, levels = lvSeen.Count });
         }
     }
     static Kind KindOf(BlockPos p, int id) => IsMachine(p) ? Kind.Machine : IsCable(id) ? Kind.Cable : Kind.Anchor;
@@ -224,17 +256,31 @@ public static class EnergyNet
         return (level, tOk);
     }
 
-    static void Balance(Net net, double dt, Build b, int[] node)
+    /// <summary>One network's step, in three phases: its machines plan (one thread, in a fixed order: plans touch the world), then the shares,
+    /// routing and losses are worked out for every network at once on all cores (each touches only its own network), then each machine is told
+    /// what it made / got (one thread again).</summary>
+    sealed class Step
     {
-        var (level, tOk) = Levels(b);
-        int n = net.Machines.Count; var plans = new EnergyPlan[n];
-        double fix = 0, dis = 0, dem = 0, flex = 0, sin = 0, sout = 0, dst = 0;
+        public Net net; public Build b; public int[] node; public double[] level; public bool[] tOk; public int levels;
+        public EnergyPlan[] plans; public double fix, dis, dem, flex, sin, sout, dst; public double[] mo, go;
+        public readonly List<(long key, Load load)> loads = new(); public CableFlow.Solver solver;
+    }
+    static void PlanStep(Step s, double dt)
+    {
+        var net = s.net; int n = net.Machines.Count; if (s.plans == null || s.plans.Length != n) s.plans = new EnergyPlan[n]; else Array.Clear(s.plans);
+        var plans = s.plans; s.fix = s.dis = s.dem = s.flex = s.sin = s.sout = s.dst = 0; s.loads.Clear();
         for (int i = 0; i < n; i++)
         {
-            if (level[node[i]] != 1) { WrongVoltage[net.Machines[i].Pos.Key] = level[node[i]]; continue; } // machines run on LV only
+            if (s.level[s.node[i]] != 1) { WrongVoltage[net.Machines[i].Pos.Key] = s.level[s.node[i]]; continue; } // machines run on LV only
             MachineOf(net.Machines[i]).Plan(net.Machines[i], dt, ref plans[i]);
-            fix += plans[i].Fixed; dis += plans[i].Dispatch; dst += plans[i].DispatchStore; dem += plans[i].Demand; flex += plans[i].Flexible; sin += plans[i].StoreIn; sout += plans[i].StoreOut;
+            s.fix += plans[i].Fixed; s.dis += plans[i].Dispatch; s.dst += plans[i].DispatchStore; s.dem += plans[i].Demand; s.flex += plans[i].Flexible; s.sin += plans[i].StoreIn; s.sout += plans[i].StoreOut;
         }
+    }
+    /// <summary>The pure part of a network's step (runs on any thread): shares, routing through the cables, losses, the multimeter's numbers.</summary>
+    static void SolveStep(Step s, double dt)
+    {
+        var net = s.net; var b = s.b; var node = s.node; var level = s.level; var tOk = s.tOk; var plans = s.plans; int n = net.Machines.Count;
+        double fix = s.fix, dis = s.dis, dem = s.dem, flex = s.flex, sin = s.sin, sout = s.sout, dst = s.dst;
         // shares (0..1) of each kind that is actually used this step
         double fDis = 0, fDem = 1, fFlex = 0, fIn = 0, fOut = 0, fDst = 0;
         if (fix >= dem)
@@ -276,10 +322,10 @@ public static class EnergyNet
             };
         }
         bool powered = made.Sum() > 0; // cooling (superconductors) runs while the network has a source
-        net.Available = (fix + dis + dst) / dt; net.FromStore = sout / dt; net.Wanted = (dem + flex + sin) / dt;
-        var lvSeen = new HashSet<double>(); for (int v = 0; v < G.Keys.Count; v++) if (b.K[v] != Kind.Transformer) lvSeen.Add(level[v]); net.Levels = lvSeen.Count;
+        net.Available = (fix + dis + dst) / dt; net.FromStore = sout / dt; net.Wanted = (dem + flex + sin) / dt; net.Levels = s.levels;
         // what actually gets through (and is used: surplus nobody takes is not made)
-        var (mo, go, th) = CableFlow.Route(G, node, made, got);
+        s.solver ??= new CableFlow.Solver(G, node);
+        var (mo, go, th) = s.solver.Route(G, made, got);
         // losses: I^2 R in cables and wires (I = energy / level; a block at full current loses "loss" of what it carries), 2 % in transformers
         double loss = 0;
         for (int v = 0; v < G.Keys.Count; v++)
@@ -296,7 +342,7 @@ public static class EnergyNet
                 }
                 double cur = flow / level[v], cap = b.CapLv[v]; l = cap > 0 ? b.LossF[v] * cap * (cur / cap) * (cur / cap) * b.Len[v] : 0;
                 double up = powered && b.Rating.TryGetValue(v, out var rr) ? rr.upkeep * b.Len[v] : 0;
-                if (b.K[v] == Kind.Cable) CableLoad[G.Keys[v]] = new Load(flow, over[v] ? 0 : b.CapLv[v] * level[v], level[v], l, up, over[v]);
+                if (b.K[v] == Kind.Cable) s.loads.Add((G.Keys[v], new Load(flow, over[v] ? 0 : b.CapLv[v] * level[v], level[v], l, up, over[v])));
                 else { var w = b.Wire[v]; w.Flow = flow; w.Cap = over[v] ? 0 : b.CapLv[v] * level[v]; w.Level = level[v]; w.LossNow = l; }
                 l += up;
             }
@@ -329,6 +375,11 @@ public static class EnergyNet
         net.DemandMet = demW > 0 ? demG / demW : 1;
         // storage first (machines that look at it, like the grid status lamp, see this step's numbers)
         for (int i = 0; i < n; i++) if (net.Machines[i].Numbers.TryGetValue("energy", out double st) && BEH[net.Machines[i].BlockId] is BatteryBehavior) { net.Stored += st; net.Capacity += BatteryBehavior.Capacity; }
-        for (int i = 0; i < n; i++) MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, mo[i], go[i]);
+        s.mo = mo; s.go = go;
+    }
+    static void SettleStep(Step s, double dt)
+    {
+        var net = s.net; int n = net.Machines.Count;
+        for (int i = 0; i < n; i++) MachineOf(net.Machines[i]).Settle(net.Machines[i], dt, s.mo[i], s.go[i]);
     }
 }

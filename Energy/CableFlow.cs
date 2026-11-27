@@ -38,8 +38,42 @@ public static class CableFlow
         return (mo, go, th);
     }
 
+    /// <summary>A network's flow graph built once (the network's shape is kept between steps): each step only sets the capacities and runs.
+    /// Every machine gets its source and sink edge always (capacity 0 when unused: never followed), so the search visits the edges in the
+    /// same order as a graph built fresh for that step and finds the same flows.</summary>
+    public sealed class Solver
+    {
+        readonly Dinic d; readonly int[] thru, src, snk; readonly int n, m, S, T; readonly int edgeCount;
+        public Solver(Graph g, int[] machineNode)
+        {
+            n = g.Keys.Count; m = machineNode.Length; S = 2 * n; T = 2 * n + 1; d = new Dinic(2 * n + 2);
+            thru = new int[n]; for (int v = 0; v < n; v++) thru[v] = d.Edge(2 * v, 2 * v + 1, 0);
+            foreach (var (a, b) in g.Edges) { d.Edge(2 * a + 1, 2 * b, Inf); d.Edge(2 * b + 1, 2 * a, Inf); }
+            src = new int[m]; snk = new int[m];
+            for (int i = 0; i < m; i++) { src[i] = d.Edge(S, 2 * machineNode[i], 0); snk[i] = d.Edge(2 * machineNode[i] + 1, T, 0); }
+            edgeCount = d.Count;
+        }
+        public (double[] made, double[] got, double[] through) Route(Graph g, double[] made, double[] got)
+        {
+            d.ResetFlows();
+            for (int v = 0; v < n; v++) d.SetCap(thru[v], g.Cap[v]);
+            for (int i = 0; i < m; i++) { d.SetCap(src[i], made[i] > 0 ? made[i] : 0); d.SetCap(snk[i], got[i] > 0 ? got[i] : 0); }
+            d.Run(S, T);
+            var mo = new double[m]; var go = new double[m]; var th = new double[n];
+            for (int i = 0; i < m; i++) { mo[i] = made[i] > 0 ? d.Flow(src[i]) : 0; go[i] = got[i] > 0 ? d.Flow(snk[i]) : 0; }
+            for (int v = 0; v < n; v++) th[v] = d.Flow(thru[v]);
+            return (mo, go, th);
+        }
+    }
+
     sealed class Dinic
     {
+        public int Count => to.Count;
+        /// <summary>Every edge back to its original capacity (no flow).</summary>
+        public void ResetFlows() { for (int e = 0; e < cap.Count; e++) cap[e] = orig[e]; }
+        /// <summary>Sets an edge's capacity (and its reverse edge empty), before a run.</summary>
+        public void SetCap(int e, double c) { cap[e] = c; orig[e] = c; cap[e ^ 1] = 0; orig[e ^ 1] = 0; }
+        int[] bq = Array.Empty<int>();
         readonly List<int> to = new(), next = new(); readonly List<double> cap = new(), orig = new();
         readonly int[] head, level, it; const double Eps = 1e-9;
         public Dinic(int n) { head = new int[n]; Array.Fill(head, -1); level = new int[n]; it = new int[n]; }
@@ -53,11 +87,11 @@ public static class CableFlow
         public double Flow(int e) => orig[e] - cap[e];
         bool Bfs(int s, int t)
         {
-            Array.Fill(level, -1); var q = new Queue<int>(); q.Enqueue(s); level[s] = 0;
-            while (q.Count > 0)
+            Array.Fill(level, -1); if (bq.Length < level.Length) bq = new int[level.Length]; int qh = 0, qt = 0; bq[qt++] = s; level[s] = 0;
+            while (qh < qt)
             {
-                int v = q.Dequeue();
-                for (int e = head[v]; e >= 0; e = next[e]) if (cap[e] > Eps && level[to[e]] < 0) { level[to[e]] = level[v] + 1; q.Enqueue(to[e]); }
+                int v = bq[qh++];
+                for (int e = head[v]; e >= 0; e = next[e]) if (cap[e] > Eps && level[to[e]] < 0) { level[to[e]] = level[v] + 1; bq[qt++] = to[e]; }
             }
             return level[t] >= 0;
         }

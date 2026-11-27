@@ -112,13 +112,18 @@ public static class BlockActions
 
     // ---------- block entity ticking (furnaces, machines): 10 times per second ----------
     static double tickAcc;
+    /// <summary>Machine tick time per part (Stopwatch ticks): 0 tanks, 1 rotation networks, 2 energy networks (3 of it: building them), 3 block ticks.</summary>
+    public static readonly long[] Prof = new long[5];
     public static void Tick(double dt)
     {
         tickAcc += dt; if (tickAcc < .1) return; double step = tickAcc; tickAcc = 0;
         if (BlockStates.entities.Count == 0) return;
+        long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
         Tanks.Tick(step); // tanks with a broken shell burst
-        Kinetics.Tick(step); // rotation first: generators know their input before the energy networks balance
-        EnergyNet.Tick(step);
+        long t1 = System.Diagnostics.Stopwatch.GetTimestamp(); Kinetics.Tick(step); // rotation first: generators know their input before the energy networks balance
+        long t2 = System.Diagnostics.Stopwatch.GetTimestamp(); EnergyNet.Tick(step);
+        long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
         foreach (var e in BlockStates.entities.Values.ToArray()) BEH[e.BlockId]?.OnTick(e, step);
+        long t4 = System.Diagnostics.Stopwatch.GetTimestamp(); Prof[0] += t1 - t0; Prof[1] += t2 - t1; Prof[2] += t3 - t2; Prof[3] += t4 - t3;
     }
 }

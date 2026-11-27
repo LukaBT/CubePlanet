@@ -133,12 +133,12 @@ public static class BlockAccess
         bi = NB; f = NF; bx = NX; by = NY; bz = NZ;
         long kk = ek();
         long k = ck(bi, f, bx >> 5, by >> 5, bz >> 5);
-        lock (EditLock) { edits[kk] = (ushort)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
+        lock (EditLock) { if (!chunks.ContainsKey(k) && (GridCache.IsGridId(id) || (edits.TryGetValue(kk, out ushort was) && GridCache.IsGridId(was)))) EnergyNet.Changed(); edits[kk] = (ushort)id; ecount[k] = (ecount.TryGetValue(k, out int ec) ? ec : 0) + 1; }
         if (!chunks.ContainsKey(k)) lastScan = new V3(1e9, 0, 0); // chunk was skipped as deep solid: make the loader create it now
         if (LIQ[id] && lvl > 0) state = WaterSim.LevelState(lvl);
         lock (EditLock) { if (state != 0) BlockStates.states[kk] = (ushort)state; else BlockStates.states.Remove(kk); }
         if (BlockStates.entities.Count > 0 && BlockStates.entities.TryGetValue(kk, out var be) && be.BlockId != id) BlockStates.entities.Remove(kk);
-        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.ver++; if (background) ch.relight = true; else ch.dirty = true; }
+        if (chunks.TryGetValue(k, out var ch)) { Ensure(ch); ch.solid = false; int ci = (bx & 31) + 32 * ((bz & 31) + 32 * (by & 31)); if (GridCache.IsGridId(id) || GridCache.IsGridId(ch.d[ci])) EnergyNet.Changed(); ch.d[ci] = (ushort)id; BlockStates.Store(ch, ci, state); ch.ver++; if (background) ch.relight = true; else ch.dirty = true; }
         // neighbour chunks: one touching the edited cell shows a new face at once (dirty: meshed on the main thread this frame); one only
         // within skylight reach (8 blocks) just gets re-lit by a worker thread. Meshing them all on the main thread froze the game for
         // tens of ms per edit when placing / breaking fast.

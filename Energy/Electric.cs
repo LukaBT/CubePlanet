@@ -40,8 +40,15 @@ public static class Electric
         int st = e.Pos.State, want = (int)f.With((uint)st, on ? 1 : 0);
         if (want != st) BlockStates.Set(e.Pos, want, true);
     }
+    /// <summary>A number from the block's definition (properties.definition.key.name); read from the JSON once per block, key and name (machines
+    /// ask for their power, light level, speed every step: walking the JSON each time was the biggest part of the machine step).</summary>
     public static double Key(BlockBehavior b, int id, string key, string name, double def)
-        => DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition." + key) is { ValueKind: JsonValueKind.Object } j ? DefinitionFile.Num(j, name, def) : def;
+    {
+        var k = (id, key, name, def); if (keyCache.TryGetValue(k, out double v)) return v;
+        v = DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition." + key) is { ValueKind: JsonValueKind.Object } j ? DefinitionFile.Num(j, name, def) : def;
+        keyCache[k] = v; return v;
+    }
+    static readonly ConcurrentDictionary<(int, string, string, double), double> keyCache = new();
     /// <summary>The main part of a multiblock (its first part), where its block entity lives.</summary>
     public static BlockPos MainPart(BlockPos p)
     {

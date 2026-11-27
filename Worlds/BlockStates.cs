@@ -32,6 +32,7 @@ public static class BlockStates
     public static void Set(BlockPos p, int state, bool background = false)
     {
         lock (EditLock) { if (state != 0) states[p.Key] = (ushort)state; else states.Remove(p.Key); }
+        { int id = p.Id; if (BEH[id] is TransformerBehavior || Wires.HasAnchor(id)) EnergyNet.Changed(); } // their state (facing, pylon part) shapes the network
         Chunk ch = null;
         if (p.Core) chunks.TryGetValue(cKey(p.X >> 5, p.Y >> 5, p.Z >> 5), out ch);
         else chunks.TryGetValue(ck(p.B, p.F, p.X >> 5, p.Y >> 5, p.Z >> 5), out ch);
