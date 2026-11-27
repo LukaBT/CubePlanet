@@ -1,0 +1,52 @@
+CUBE PLANET - HOW TO BUILD
+==========================
+
+1. INSTALL .NET 8 SDK (one command, run once)
+---------------------------------------------
+
+Option A - normal PC (needs admin rights; uses winget, built into Windows 10/11):
+
+    winget install Microsoft.DotNet.SDK.8
+
+Option B - school / locked PC (NO admin needed; installs into your user folder):
+
+    powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://dot.net/v1/dotnet-install.ps1))) -Channel 8.0"
+
+    With option B, "dotnet" is not on the PATH. Either use the full path
+    %LOCALAPPDATA%\Microsoft\dotnet\dotnet.exe instead of "dotnet" below, or run
+    this once in the same window first:
+
+    set PATH=%LOCALAPPDATA%\Microsoft\dotnet;%PATH%
+
+Check it worked (close and reopen the command window after option A):
+
+    dotnet --version
+
+It should print 8.0.something.
+
+
+2. BUILD THE SINGLE-FILE EXE (run in this folder, the one with CubePlanet.csproj)
+-------------------------------------------------------------------------------
+
+    dotnet publish -c Release -o publish
+
+The result is in the "publish" folder:
+
+    publish\CubePlanet.exe   - the whole game in one file (no .NET install needed to run it)
+    publish\Assets\          - textures and block definitions; must stay next to the exe
+
+To take the game to another PC (e.g. on a USB stick), copy the whole "publish"
+folder (CubePlanet.exe + Assets) and double-click CubePlanet.exe.
+
+
+3. RENDERER
+-----------
+
+The game uses Vulkan, and switches to DirectX 11 by itself on PCs without Vulkan
+(e.g. Intel HD 4400 graphics). To choose yourself: Esc > GRAPHICS > Renderer
+(applies after a restart), or start it with:
+
+    publish\CubePlanet.exe --dx11
+    publish\CubePlanet.exe --vulkan
+
+The first start takes a few seconds longer (shaders are compiled once and cached).
