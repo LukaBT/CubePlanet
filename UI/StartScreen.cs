@@ -6,6 +6,8 @@ public static partial class UI
     public static string nameStr = "";
     /// <summary>Set by the window: start a saved world, or a new one (null) from nameStr / radiusStr / seedStr.</summary>
     public static Action<WorldSave.Info> OnStart;
+    /// <summary>Leave the world for the start screen (set by the game window).</summary>
+    public static Action OnLeave;
     static List<WorldSave.Info> worlds; static int armedDelete = -1; static double armedT;
     public static void RefreshWorlds() { worlds = WorldSave.List(); armedDelete = -1; }
 

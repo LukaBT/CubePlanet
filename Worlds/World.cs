@@ -23,6 +23,25 @@ public static class World
 
     public static bool Started;
 
+    // ---------- leaving a world (back to the start screen) ----------
+    /// <summary>Empties everything the world left in memory and on the GPU: background jobs, chunks and their meshes, distant terrain, edits,
+    /// machines, water, power lines, tanks, elevators. The caller saves the world first.</summary>
+    public static void Leave()
+    {
+        Started = false;
+        ChunkWorkers.SetGenList(Array.Empty<Chunk>()); ChunkWorkers.SetMeshList(Array.Empty<Chunk>());
+        try { ChunkLoader.scanTask?.Wait(); } catch { }
+        ChunkLoader.scanTask = null; ChunkLoader.pending.Clear(); ChunkLoader.pi = 0; ChunkLoader.lastScan = new V3(1e9, 0, 0);
+        foreach (var ch in chunks.Values) { ChunkMeshes.DropMesh(ch.mesh); ChunkMeshes.DropMesh(ch.wmesh); ch.mesh = ch.wmesh = null; }
+        chunks.Clear(); chunkMap.Clear(); ResetBlkCache(); ChunkLoader.chunksVer++; ChunkLoader.meshVer++;
+        while (ChunkWorkers.meshDone.TryDequeue(out _)) { }
+        LodTerrain.Reset();
+        foreach (var c in Shadows.cas) c.valid = false;
+        WorldSave.ResetWorldState();
+        Elevator.Cars.Clear(); Conveyor.Later.Clear(); PipeContents.Reset(); WaterSim.WAct.Clear(); WaterSim.wactQ.Clear(); Highlight.TG = null;
+        ClearFeatCaches(); // new generation: patches and caches of this world are not used by the next one
+    }
+
     // ---------- world creation ----------
     public static void InitWorld(double radius, int seed)
     {

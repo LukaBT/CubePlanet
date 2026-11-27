@@ -7,7 +7,8 @@ and radial-gravity player physics.
 
 ## Run
 The start screen lists saved worlds (PLAY / DELETE, delete asks for a second click) and creates new ones (name, radius, seed; Tab switches
-field, Enter creates). Worlds are saved every minute, from the settings panel (SAVE NOW) and when the game closes.
+field, Enter creates). Worlds are saved every minute, from the settings panel (SAVE NOW) and when the game closes. Esc > **Leave world**
+saves the world and goes back to this start screen (`--benchleave` with `--bench` tests leaving and loading worlds).
 ```
 dotnet run -c Release                       # start screen lets you type radius + seed
 dotnet run -c Release -- --radius 1200 --seed 1337

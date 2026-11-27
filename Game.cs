@@ -54,7 +54,7 @@ public class Game : GameWindow
         PlayerInventory.Init(); UI.Pick(2);
         Renderer.VW = FramebufferSize.X; Renderer.VH = FramebufferSize.Y;
         ChunkGenerator.mainTid = Environment.CurrentManagedThreadId;
-        UI.OnStart = StartGame;
+        UI.OnStart = StartGame; UI.OnLeave = LeaveWorld;
         if (Program.Bench > 0)
         {   // bench: fixed free camera above the spawn point; --world loads a saved world (saved again at the end only with --benchsave)
             var bw = Program.WorldArg == null ? null : WorldSave.List().FirstOrDefault(i => i.Name == Program.WorldArg);
@@ -80,6 +80,19 @@ public class Game : GameWindow
     {
         bool want = !(UI.startScreen || UI.settingsOpen || UI.invOpen);
         if (want && !Captured) CursorState = CursorState.Grabbed; else if (!want && Captured) CursorState = CursorState.Normal;
+    }
+    /// <summary>Saves the world and goes back to the start screen (Esc > Leave world).</summary>
+    void LeaveWorld()
+    {
+        string name = WorldSave.CurrentName;
+        if (WorldSave.Current != null) try { WorldSave.Save(); } catch (Exception ex) { UI.Note("Saving failed: " + ex.Message, 8); return; } // keep playing rather than lose it
+        WorldSave.WaitPending();
+        World.Leave();
+        WorldSave.Current = null; WorldSave.CurrentName = null;
+        UI.settingsOpen = false; UI.CloseScreen(); UI.startScreen = true; UI.RefreshWorlds();
+        PlayerInventory.Init(); UI.Pick(2);
+        System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.Interactive; Thread.CurrentThread.Priority = ThreadPriority.Normal;
+        if (name != null) UI.Note($"Saved {name}", 3);
     }
     /// <summary>Starts a saved world (w) or a new one (w == null, from the start screen fields; bench runs are never saved).</summary>
     void StartGame(WorldSave.Info w)
@@ -221,6 +234,19 @@ public class Game : GameWindow
         if (holeOk) BlockActions.Break(hole);
         editNo++;
     }
+    // --benchleave (with --bench): leave the world at 4 s, start a new one at 5 s, leave it at 9 s, load the --world (or a new one) at 10 s
+    int leaveStep;
+    void BenchLeaveStep(double now)
+    {
+        double el = (now - benchT0) / 1000; double[] at = { 4, 5, 9, 10 };
+        if (leaveStep >= at.Length || el < at[leaveStep]) return;
+        switch (leaveStep++)
+        {
+            case 0: case 2: LeaveWorld(); Console.WriteLine($"LEAVE at {el:0.0}s: chunks {World.chunks.Count}, machines {BlockStates.entities.Count}, LOD {LodTerrain.lodMap.Count}, edits {World.edits.Count}, started {World.Started}"); break;
+            case 1: UI.radiusStr = "1500"; UI.seedStr = "4242"; StartGame(null); PlayerPhysics.P.on = false; Console.WriteLine($"NEW WORLD radius {World.R}"); break;
+            case 3: var w = Program.WorldArg == null ? null : WorldSave.List().FirstOrDefault(i => i.Name == Program.WorldArg); StartGame(w); PlayerPhysics.P.on = false; WorldSave.Current = null; Console.WriteLine($"BACK INTO {(w?.Name ?? "a new world")}: radius {World.R}, machines {BlockStates.entities.Count}"); break;
+        }
+    }
     static string Stats(List<double> fr)
     {
         if (fr.Count == 0) return "no frames"; var s = fr.OrderBy(x => x).ToList();
@@ -252,6 +278,7 @@ public class Game : GameWindow
         }
         g0Last = g0; g1Last = g1; g2Last = g2;
         if (Program.BenchEdits) BenchEdit(now, ft);
+        if (Program.BenchLeave) BenchLeaveStep(now);
         if (Program.TurnAt >= 0)
         {
             double el = (now - benchT0) / 1000;
@@ -291,6 +318,7 @@ public class Game : GameWindow
 
         if (!World.Started && Program.StartShot != null && ++startFrames == 30) Gpu.ShotPath = Program.StartShot; // --startshot: picture of the start screen, then quit
         if (!World.Started && Program.StartShot != null && startFrames == 40) { Close(); return; }
+        if (!World.Started && Program.BenchLeave && benchT0 >= 0) BenchLeaveStep(now); // the start screen between leaving and the next world
         if (!World.Started) { Gpu.BeginFinal(13 / 255f, 18 / 255f, 38 / 255f); UI.Begin(w, h); UI.Draw(dt); UI.End(); UI.clicked = false; Gpu.EndFrame(); return; }
 
         var SET = Settings.SET; var kb = KeyboardState;

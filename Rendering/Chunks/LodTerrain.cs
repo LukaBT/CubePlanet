@@ -13,7 +13,7 @@ public static class LodTerrain
     // LOD patches are built on thread-pool threads (each needs 121 terrain samples, and turning around used to create hundreds of them
     // in one frame); until a patch is ready its parent is drawn instead.
     internal static readonly HashSet<long> lodPending = new();
-    internal static readonly System.Collections.Concurrent.ConcurrentQueue<(long k, float[] vd, V3 o)> lodDone = new();
+    internal static readonly System.Collections.Concurrent.ConcurrentQueue<(long k, float[] vd, V3 o, int gen)> lodDone = new();
     internal const int LOD_INFLIGHT = 48;
     internal static long LodKey(int f, int lv, int i, int j) => (((long)f * 16 + lv) * 4096 + i) * 4096 + j;
     internal static LodMesh TryLod(int f, int lv, int i, int j)
@@ -26,17 +26,25 @@ public static class LodTerrain
         long k = LodKey(f, lv, i, j);
         if (lodPending.Count >= LOD_INFLIGHT || !lodPending.Add(k)) return;
         // background work runs below the main thread's priority (it took the CPU away from it: frames of 25 - 33 ms when flying fast)
-        ThreadPool.UnsafeQueueUserWorkItem(_ => { var th = Thread.CurrentThread; var pr = th.Priority; th.Priority = ThreadPriority.BelowNormal; try { var (vd, o) = BuildLodData(f, lv, i, j); lodDone.Enqueue((k, vd, o)); } finally { th.Priority = pr; } }, null);
+        int gen = WGEN;
+        ThreadPool.UnsafeQueueUserWorkItem(_ => { var th = Thread.CurrentThread; var pr = th.Priority; th.Priority = ThreadPriority.BelowNormal; try { var (vd, o) = BuildLodData(f, lv, i, j); lodDone.Enqueue((k, vd, o, gen)); } catch { } finally { th.Priority = pr; } }, null);
     }
     /// <summary>Uploads finished LOD patches (before any render pass of the frame).</summary>
     internal static void LodUploads(double t0)
     {
         while (NowMs - t0 < 12 && lodDone.TryDequeue(out var d))
         {
+            if (d.gen != WGEN) continue; // built for a world that was left meanwhile
             lodPending.Remove(d.k);
             if (lodMap.ContainsKey(d.k)) continue;
             lodMap[d.k] = new LodMesh { a = Gpu.Upload(d.vd, d.vd.Length, Array.Empty<byte>(), 0), o = d.o, t = frameNo };
         }
+    }
+    /// <summary>Drops every patch (leaving a world).</summary>
+    internal static void Reset()
+    {
+        foreach (var m in lodMap.Values) Gpu.Free(m.a);
+        lodMap.Clear(); lodDrop.Clear(); lodPending.Clear(); lodQ.Clear(); while (lodDone.TryDequeue(out _)) { }
     }
     internal static (float[] vd, V3 o) BuildLodData(int f, int lv, int i, int j)
     {
