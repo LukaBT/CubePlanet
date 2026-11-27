@@ -488,7 +488,9 @@ this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (ben
 time of every phase. Measured (2026-11-27, before -> after the speed-ups, same world and the same meshes): generation 1.48 -> 0.71 ms a
 chunk (shared cave-water columns, a faster Perlin noise with identical values, a tighter block loop), meshing 3.05 -> 1.87 ms (a cached
 1-block border, buried cells skipped, faces written straight into the vertex lists, skylight copied row by row and seeded only where it can
-spread), hot code compiled fully optimised from the start; first load in the game 3.5-3.9 s -> 2.3-2.7 s. `--meshhash` (no window):
+spread), hot code compiled fully optimised from the start; first load in the game 3.5-3.9 s -> 2.3-2.7 s. `--benchmachines` (no window): builds 64 / 256 / 1024 small factories (generator, cables, battery, furnace, lamp, conveyor line, pump) and
+times the machine tick: measured 704 machines 7.6 ms, 2,816 machines 9.0 ms, 11,264 machines 30 ms a tick (10 ticks a second, one core).
+`--meshhash` (no window):
 one hash over every mesh around spawn; `checks/check.ps1` compares it with `checks/meshhash.txt` like the world fingerprints.
 
 `--benchedits` (with `--bench`, opens a window): after 8 s it digs / fills a block in the ground every 0.15 s and reports frame times with and

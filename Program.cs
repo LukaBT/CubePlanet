@@ -59,6 +59,7 @@ public static class Program
         if (Array.IndexOf(args, "--dxshaders") >= 0) { Environment.ExitCode = DxProbe.Run(); return; } // headless: every shader through the Direct3D 11 path
         if (Array.IndexOf(args, "--genprofile") >= 0) { GenProfile.Run(double.TryParse(UI.radiusStr, out var gr) ? gr : 1200, int.TryParse(UI.seedStr, out var gs2) && gs2 != 0 ? gs2 : 1337); return; } // headless: generation + meshing time per phase, one thread
         if (Array.IndexOf(args, "--meshhash") >= 0) { MeshHash.Run(); return; } // headless: one hash over every mesh around spawn (mesher changes must keep it)
+        if (Array.IndexOf(args, "--benchmachines") >= 0) { DemoWorld.BenchMachines(); return; } // headless: machine + water tick time for 64 / 256 / 1024 factory modules
         if (Array.IndexOf(args, "--benchedit") >= 0) { EditBench.Run(); return; } // headless block-edit cost
         if (Array.IndexOf(args, "--selftest") >= 0) { Environment.ExitCode = SelfTest.Run(); return; } // headless rule checks
         if (Array.IndexOf(args, "--fingerprint") >= 0)
