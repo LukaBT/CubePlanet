@@ -10,11 +10,11 @@ public class Game : GameWindow
 {
     static readonly string SettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CubePlanet", "settings.json");
     double lastT, editT, lastSpace, lastW, lastRender; bool blockClick; int hudFrame; string hudCache = "";
-    bool wDown, autoLow; int startFrames;
+    bool wDown, autoLow, vkFallback; int startFrames;
 
     public Game() : base(GameWindowSettings.Default, new NativeWindowSettings
     {
-        ClientSize = new Vector2i(1280, 720), Title = "Cube Planet (Vulkan)", API = ContextAPI.NoAPI, // Vulkan: GLFW creates no GL context
+        ClientSize = new Vector2i(1280, 720), Title = "Cube Planet", API = ContextAPI.NoAPI, // Vulkan / Direct3D 11: GLFW creates no GL context
     }) { }
 
     protected override void OnLoad()
@@ -32,17 +32,24 @@ public class Game : GameWindow
         if (Settings.SET.ver < 2) { if (Settings.SET.shadows >= 1) Settings.SET.shadows = 3; Settings.SET.ver = 2; } // older settings files had a single on/off shadow switch
         unsafe
         {
-            Gpu.Init(WindowPtr, integrated =>
+            Func<bool, int> pick = integrated =>
             {
                 // first start on integrated graphics (school / office PCs, laptops): start from the LOW preset at 75 % resolution and a shorter view
                 if (firstStart && integrated && Program.Overrides.Count == 0) { Settings.SET.ApplyPreset(0); Settings.SET.rscale = .75; Settings.SET.rd = Math.Min(Settings.SET.rd, 6); autoLow = true; }
                 return Program.Msaa >= 0 ? Program.Msaa : (int)Settings.SET.msaa;
-            }, Settings.SET.vsync > .5);
+            };
+            // renderer: Vulkan unless the settings or --dx11 ask for DirectX 11; a PC without Vulkan (Intel HD 4000 / 4400 / 5500 ...) gets DirectX 11
+            bool dx = Program.ForceDx || (!Program.ForceVk && Settings.SET.renderer > .5);
+            if (!dx)
+                try { Gpu.Init(WindowPtr, pick, Settings.SET.vsync > .5); }
+                catch (Exception ex) { Console.Error.WriteLine("Vulkan is not available (" + ex.Message + "): using DirectX 11"); dx = true; vkFallback = true; }
+            if (dx) { Dx.Init(WindowPtr, pick, Settings.SET.vsync > .5); Gpu.DeviceName = Dx.DeviceName; Gpu.Integrated = Dx.Integrated; }
         }
         Gpu.SetRenderScale(Settings.SET.rscale);
         Renderer.InitGpu(); UI.Init(); Gpu.WriteDescriptors();
         if (autoLow) UI.Note("Integrated graphics detected: LOW preset at 75% resolution (change it in Esc > GRAPHICS)", 8);
-        Title = $"Cube Planet (Vulkan, {Gpu.DeviceName})";
+        Title = $"Cube Planet ({(Dx.On ? "DirectX 11" : "Vulkan")}, {Gpu.DeviceName})";
+        if (vkFallback) UI.Note("This PC has no Vulkan: running on DirectX 11", 6);
         UI.OnFullscreen = () => WindowState = WindowState == WindowState.Fullscreen ? WindowState.Normal : WindowState.Fullscreen;
         PlayerInventory.Init(); UI.Pick(2);
         Renderer.VW = FramebufferSize.X; Renderer.VH = FramebufferSize.Y;

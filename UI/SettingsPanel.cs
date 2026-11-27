@@ -72,6 +72,7 @@ public static partial class UI
         Check("Ambient occlusion (block corners)", ref SET.ao);
         Check(Renderer.AnisoOk ? "Anisotropic texture filtering" : "Anisotropic filtering (unsupported)", ref SET.aniso);
         Check("Bloom (glow)", ref SET.bloom); Check("God rays", ref SET.godrays); Check("Water reflections (SSR)", ref SET.ssr); Check("FXAA anti-aliasing", ref SET.fxaa);
+        if (Btn($"Renderer (now {(Dx.On ? "DirectX 11" : "Vulkan")}; applies on restart)", SET.renderer > .5 ? "DIRECTX 11" : "VULKAN")) SET.renderer = SET.renderer > .5 ? 0 : 1;
         if (Btn("MSAA (applies on restart)", SET.msaa < 1 ? "OFF" : (int)SET.msaa + "X")) SET.msaa = SET.msaa < 1 ? 2 : SET.msaa < 3 ? 4 : SET.msaa < 6 ? 8 : 0;
         Head("WATER");
         Slider("Wave height", ref SET.wvA, 0, 2.5, .05); Slider("Wave speed", ref SET.wvSpd, 0, 4, .05); Slider("Wave length", ref SET.wvLen, .4, 3, .05);

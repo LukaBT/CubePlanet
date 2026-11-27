@@ -20,11 +20,13 @@ public static unsafe partial class Gpu
     /// <summary>Render resolution as a fraction of the window (0.3 .. 1). Changing it rebuilds the size-dependent targets.</summary>
     public static void SetRenderScale(double s)
     {
+        if (Dx.On) { Dx.SetRenderScale(s); return; }
         float v = (float)Math.Clamp(s, .25, 1);
         if (Math.Abs(v - renderScale) > .001) { renderScale = v; needRecreate = true; }
     }
     public static bool BeginFrame(bool vsync)
     {
+        if (Dx.On) return Dx.BeginFrame(vsync);
         if (vsync != curVsync) { curVsync = vsync; needRecreate = true; }
         if (needRecreate || ext.Width == 0) { Recreate(); if (ext.Width == 0) return false; }
         var f = fences[fi]; vk.WaitForFences(dev, 1, &f, true, ulong.MaxValue);
@@ -52,14 +54,16 @@ public static unsafe partial class Gpu
     }
     public static void BeginShadow(int layer)
     {
+        if (Dx.On) { Dx.BeginShadow(layer); return; }
         FlushUploads();
         var cv = new ClearValue { DepthStencil = new ClearDepthStencilValue(1, 0) };
         BeginPass(shadowRP, shadowFB[layer], new Extent2D(SMS, SMS), &cv, 1);
     }
-    public static void EndPass() { if (inPass) { vk.CmdEndRenderPass(cb); inPass = false; } }
+    public static void EndPass() { if (Dx.On) return; if (inPass) { vk.CmdEndRenderPass(cb); inPass = false; } }
     /// <summary>Opens the HDR scene pass (colour cleared to transparent black: alpha 0 marks open sky for god rays).</summary>
     public static void BeginScene()
     {
+        if (Dx.On) { Dx.BeginScene(); return; }
         FlushUploads();
         var cv = stackalloc ClearValue[5];
         cv[0] = new ClearValue { Color = new ClearColorValue(0, 0, 0, 0) }; cv[1] = new ClearValue { Color = new ClearColorValue(60000, 0, 0, 0) };
@@ -69,6 +73,7 @@ public static unsafe partial class Gpu
     /// <summary>Ends the scene, runs the bloom chain if enabled, opens the swapchain pass and draws the composite (FXAA, bloom, god rays).</summary>
     public static void PostProcess(bool doBloom, bool doClouds)
     {
+        if (Dx.On) { Dx.PostProcess(doBloom, doClouds); return; }
         EndPass();
         if (doClouds)
         {
@@ -97,12 +102,14 @@ public static unsafe partial class Gpu
     /// <summary>Swapchain pass (the start screen draws only this, the game draws its composite into it first). The UI goes on top.</summary>
     public static void BeginFinal(float r, float g, float b)
     {
+        if (Dx.On) { Dx.BeginFinal(r, g, b); return; }
         FlushUploads();
         var cv = new ClearValue { Color = new ClearColorValue(r, g, b, 1) };
         BeginPass(finalRP, finalFB[imgIdx], ext, &cv, 1);
     }
     public static void EndFrame()
     {
+        if (Dx.On) { Dx.EndFrame(ref ShotPath); return; }
         if (!frameOn) return;
         EndPass();
         Buffer shotBuf = default; DeviceMemory shotMem = default; string shot = ShotPath; ShotPath = null;
@@ -138,28 +145,31 @@ public static unsafe partial class Gpu
     public static string ShotPath;
 
     // ======================================================================= uniforms + draw helpers
-    public static void WriteUbo(float[] u) { fixed (float* p = u) System.Buffer.MemoryCopy(p, uboPtr[fi], UBO_FLOATS * 4, Math.Min(u.Length, UBO_FLOATS) * 4); }
-    public static void UboSet(int i, float v) => uboPtr[fi][i] = v;
+    public static void WriteUbo(float[] u) { if (Dx.On) { Dx.WriteUbo(u); return; } fixed (float* p = u) System.Buffer.MemoryCopy(p, uboPtr[fi], UBO_FLOATS * 4, Math.Min(u.Length, UBO_FLOATS) * 4); }
+    public static void UboSet(int i, float v) { if (Dx.On) Dx.UboSet(i, v); else uboPtr[fi][i] = v; }
     static Pipe boundPipe; static Buffer boundVB, boundIB; static ulong boundVBOff, boundIBOff; static IndexType boundIT;
-    public static void Bind(Pipe p) { if (boundPipe == p) return; boundPipe = p; vk.CmdBindPipeline(cb, PipelineBindPoint.Graphics, p.p); }
-    public static void Push(float x, float y, float z, float wt) { var d = stackalloc float[4] { x, y, z, wt }; vk.CmdPushConstants(cb, playout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, 16, d); }
-    public static void PushK(float r, float g, float b, float a) { var d = stackalloc float[4] { r, g, b, a }; vk.CmdPushConstants(cb, playout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 16, 16, d); }
+    public static void Bind(Pipe p) { if (Dx.On) { Dx.Bind(p); return; } if (boundPipe == p) return; boundPipe = p; vk.CmdBindPipeline(cb, PipelineBindPoint.Graphics, p.p); }
+    public static void Push(float x, float y, float z, float wt) { if (Dx.On) { Dx.SetPush(x, y, z, wt); return; } var d = stackalloc float[4] { x, y, z, wt }; vk.CmdPushConstants(cb, playout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 0, 16, d); }
+    public static void PushK(float r, float g, float b, float a) { if (Dx.On) { Dx.SetPushK(r, g, b, a); return; } var d = stackalloc float[4] { r, g, b, a }; vk.CmdPushConstants(cb, playout, ShaderStageFlags.VertexBit | ShaderStageFlags.FragmentBit, 16, 16, d); }
     public static void BindVB(Buffer b, ulong off) { if (b.Handle == boundVB.Handle && off == boundVBOff) return; boundVB = b; boundVBOff = off; vk.CmdBindVertexBuffers(cb, 0, 1, &b, &off); }
     public static void BindIB(Buffer b, ulong off, IndexType t) { if (b.Handle == boundIB.Handle && off == boundIBOff && t == boundIT) return; boundIB = b; boundIBOff = off; boundIT = t; vk.CmdBindIndexBuffer(cb, b, off, t); }
     /// <summary>Mesh stored as [vertices][indices] in one allocation.</summary>
     public static void DrawMesh(GAlloc a, uint vbytes, uint count, uint first, IndexType it)
     {
+        if (Dx.On) { Dx.DrawMesh(a, vbytes, count, first, it); return; }
         BindVB(a.blk.buf, a.off); BindIB(a.blk.buf, a.off + vbytes, it); vk.CmdDrawIndexed(cb, count, 1, first, 0, 0);
     }
     /// <summary>Vertices from one allocation, indices from another (shared) one.</summary>
     public static void DrawShared(GAlloc v, GAlloc ix, IndexType t, uint count, uint first = 0)
     {
+        if (Dx.On) { Dx.DrawShared(v, ix, t, count, first); return; }
         BindVB(v.blk.buf, v.off); BindIB(ix.blk.buf, ix.off, t); vk.CmdDrawIndexed(cb, count, 1, first, 0, 0);
     }
-    public static void DrawFull() => vk.CmdDraw(cb, 3, 1, 0, 0);
+    public static void DrawFull() { if (Dx.On) Dx.DrawFull(); else vk.CmdDraw(cb, 3, 1, 0, 0); }
     /// <summary>Per-frame vertex data (host-visible ring).</summary>
     public static void DrawDynamic(ReadOnlySpan<float> data, uint vcount)
     {
+        if (Dx.On) { Dx.DrawDynamic(data, vcount); return; }
         if (vcount == 0) return;
         var (r, o) = RingAlloc((ulong)data.Length * 4); data.CopyTo(new Span<float>(r.ptr + o, data.Length));
         BindVB(r.buf, o); vk.CmdDraw(cb, vcount, 1, 0, 0);
@@ -167,12 +177,14 @@ public static unsafe partial class Gpu
     /// <summary>Per-frame packed vertices (bytes) drawn with a shared 16-bit index buffer.</summary>
     public static void DrawDynamicIndexedBytes(byte[] data, int bytes, GAlloc ix, uint count)
     {
+        if (Dx.On) { Dx.DrawDynamicIndexedBytes(data, bytes, ix, count); return; }
         if (count == 0) return;
         var (r, o) = RingAlloc((ulong)bytes); fixed (byte* p = data) System.Buffer.MemoryCopy(p, r.ptr + o, bytes, bytes);
         BindVB(r.buf, o); BindIB(ix.blk.buf, ix.off, IndexType.Uint16); vk.CmdDrawIndexed(cb, count, 1, 0, 0, 0);
     }
     public static void DrawDynamicIndexed(float[] data, int floats, GAlloc ix, uint count, uint first)
     {
+        if (Dx.On) { Dx.DrawDynamicIndexed(data, floats, ix, count, first); return; }
         var (r, o) = RingAlloc((ulong)floats * 4); fixed (float* p = data) System.Buffer.MemoryCopy(p, r.ptr + o, floats * 4, floats * 4);
         BindVB(r.buf, o); BindIB(ix.blk.buf, ix.off, IndexType.Uint16); vk.CmdDrawIndexed(cb, count, 1, first, 0, 0);
     }

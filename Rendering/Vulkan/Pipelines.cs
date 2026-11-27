@@ -18,6 +18,7 @@ public static unsafe partial class Gpu
 {
     public static Pipe MakePipe(string name, string vs, string fs, PipeCfg c)
     {
+        if (Dx.On) return Dx.MakePipe(name, vs, fs, c);
         var vm = Module(Spirv(vs, ShaderKind.VertexShader, name + ".vert")); var fm = Module(Spirv(fs, ShaderKind.FragmentShader, name + ".frag"));
         var main = (byte*)SilkMarshal.StringToPtr("main");
         var st = stackalloc PipelineShaderStageCreateInfo[2];

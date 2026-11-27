@@ -55,6 +55,7 @@ public static unsafe partial class Gpu
     /// <summary>(Re)writes every descriptor: call once every texture exists, and after resize / aniso changes (with the GPU idle).</summary>
     public static void WriteDescriptors()
     {
+        if (Dx.On) return;
         if (sceneCol[0] == null) return;
         for (int f = 0; f < FIF; f++)
         {
@@ -80,9 +81,10 @@ public static unsafe partial class Gpu
             WriteImg(psets[f, 12], 0, linClamp, sceneDist[f].view); WriteImg(psets[f, 12], 1, linClamp, sceneDist[f].view);
         }
     }
-    public static bool AnisoSupported => anisoSupported;
+    public static bool AnisoSupported => !Dx.On && anisoSupported;
     public static void SetAniso(bool on)
     {
+        if (Dx.On) return;
         if (on == anisoOn) return; anisoOn = on;
         if (texBlocks == null) return;
         vk.DeviceWaitIdle(dev); WriteDescriptors();

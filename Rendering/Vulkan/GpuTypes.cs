@@ -5,10 +5,10 @@ using Image = Silk.NET.Vulkan.Image;
 namespace CubePlanet;
 
 /// <summary>Sub-allocation inside one big device-local buffer (vertex + index data of one mesh).</summary>
-public sealed class GAlloc { public GBlock blk; public ulong off, size; public bool freed; }
+public sealed class GAlloc { public GBlock blk; public ulong off, size; public bool freed; public nint dxbuf; }
 public sealed class GBlock { public Buffer buf; public DeviceMemory mem; public ulong size; public readonly List<(ulong o, ulong s)> free = new(); }
-public sealed class GTex { public Image img; public DeviceMemory mem; public ImageView view; public Sampler smp; }
-public sealed class Pipe { public Pipeline p; public string name; }
+public sealed class GTex { public Image img; public DeviceMemory mem; public ImageView view; public Sampler smp; public nint dxtex, dxsrv, dxsmp; }
+public sealed class Pipe { public Pipeline p; public string name; public object dx; }
 
 public enum VL { None, Chunk, ChunkShadow, Lod, LodSea, LodShadow, Pos3, UI }
 public enum BlendMode { None, Alpha, Add }

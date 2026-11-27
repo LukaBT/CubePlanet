@@ -83,11 +83,12 @@ public static unsafe partial class Gpu
         fl.Insert(lo, (o, s));
     }
     /// <summary>Frees a mesh allocation once the GPU can no longer be using it.</summary>
-    public static void Free(GAlloc a) { if (a == null || a.freed) return; a.freed = true; pendFree[fi].Add(a); }
+    public static void Free(GAlloc a) { if (Dx.On) { Dx.Free(a); return; } if (a == null || a.freed) return; a.freed = true; pendFree[fi].Add(a); }
 
     /// <summary>Copies data into a new device-local allocation (recorded in this frame's command buffer, before any render pass).</summary>
     public static GAlloc Upload<T1, T2>(T1[] a, int aCount, T2[] b, int bCount) where T1 : unmanaged where T2 : unmanaged
     {
+        if (Dx.On) return Dx.Upload(a, aCount, b, bCount);
         ulong sa = (ulong)(aCount * sizeof(T1)), sb = (ulong)(bCount * sizeof(T2)), size = sa + sb;
         if (size == 0) return HeapAlloc(16);
         var g = HeapAlloc(size);
@@ -112,6 +113,7 @@ public static unsafe partial class Gpu
     /// <summary>Makes this frame's uploads visible to vertex fetch. Called before the first render pass of the frame.</summary>
     public static void FlushUploads()
     {
+        if (Dx.On) return;
         if (!uploadsPending) return; uploadsPending = false;
         var mb = new MemoryBarrier { SType = StructureType.MemoryBarrier, SrcAccessMask = AccessFlags.TransferWriteBit, DstAccessMask = AccessFlags.VertexAttributeReadBit | AccessFlags.IndexReadBit };
         vk.CmdPipelineBarrier(cb, PipelineStageFlags.TransferBit, PipelineStageFlags.VertexInputBit, 0, 1, &mb, 0, null, 0, null);

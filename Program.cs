@@ -3,7 +3,7 @@ namespace CubePlanet;
 public static class Program
 {
     public static int Msaa = -1; // -1 = use the settings value
-    public static readonly List<string> Overrides = new(); public static bool SyncMesh, BenchEdits, EditSync; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
+    public static readonly List<string> Overrides = new(); public static bool SyncMesh, BenchEdits, EditSync, ForceDx, ForceVk; public static double Hour = -1, Yaw, Pitch, Up, TurnAt = -1; // bench camera: --hour 18 --yaw 90 --pitch -20 // --syncmesh: mesh on the main thread (debug)
     public static bool Showcase; // --showcase: bench places example blocks in front of the camera
     public static bool BenchSave; // --benchsave: a bench run with --world saves the world when it ends
     public static string WorldArg; // --world NAME: play that saved world right away (created with --radius / --seed if missing)
@@ -21,7 +21,7 @@ public static class Program
             Environment.ExitCode = 1; return;
         }
         // optional: CubePlanet --radius 1200 --seed 1337 --msaa 0|2|4|8 --novsync
-        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--benchedits") BenchEdits = true; if (a == "--editsync") EditSync = true; if (a == "--showcase") Showcase = true; if (a == "--benchsave") BenchSave = true; if (a == "--showsettings") UI.settingsOpen = true; }
+        foreach (var a in args) { if (a == "--novsync") NoVsync = true; if (a == "--syncmesh") SyncMesh = true; if (a == "--benchedits") BenchEdits = true; if (a == "--dx11") ForceDx = true; if (a == "--vulkan") ForceVk = true; if (a == "--editsync") EditSync = true; if (a == "--showcase") Showcase = true; if (a == "--benchsave") BenchSave = true; if (a == "--showsettings") UI.settingsOpen = true; }
         for (int i = 0; i + 1 < args.Length; i++)
         {
             if (args[i] == "--radius") UI.radiusStr = args[i + 1];
@@ -55,6 +55,8 @@ public static class Program
         if (Array.IndexOf(args, "--benchfly") >= 0) { FlyBench.Run(); return; } // headless main-thread cost of flying fast
         if (Array.IndexOf(args, "--benchgen") >= 0) { GenBench.Run(); return; } // headless cost of block lookups in ungenerated chunks
         if (Array.IndexOf(args, "--benchwater") >= 0) { WaterBench.Run(); return; } // headless cave water + water simulation cost
+        NativeLibs.Preload("shaderc_shared.dll", "spirv-cross.dll"); // single-file .exe: native libraries live in the unpack folder
+        if (Array.IndexOf(args, "--dxshaders") >= 0) { Environment.ExitCode = DxProbe.Run(); return; } // headless: every shader through the Direct3D 11 path
         if (Array.IndexOf(args, "--benchedit") >= 0) { EditBench.Run(); return; } // headless block-edit cost
         if (Array.IndexOf(args, "--selftest") >= 0) { Environment.ExitCode = SelfTest.Run(); return; } // headless rule checks
         if (Array.IndexOf(args, "--fingerprint") >= 0)

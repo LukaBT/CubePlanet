@@ -23,11 +23,15 @@ public static unsafe partial class Gpu
     static readonly Regex LooseUniform = new(@"uniform\s+(?!\w+\s*\{)[^;{]*;", RegexOptions.Compiled);
     static Shaderc sc; static Compiler* scComp; static CompileOptions* scOpt;
 
-    static byte[] Spirv(string src, ShaderKind kind, string name)
+    /// <summary>Same as Spirv, with another header (the Direct3D backend's register layout).</summary>
+    public static byte[] SpirvWith(string header, string src, bool fragment, string name) => Spirv(src, fragment ? ShaderKind.FragmentShader : ShaderKind.VertexShader, name, header);
+    static byte[] Spirv(string src, ShaderKind kind, string name, string header = null)
     {
+        CacheDir ??= Environment.GetEnvironmentVariable("CUBEPLANET_SHADERCACHE") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CubePlanet", "vkcache");
+        try { Directory.CreateDirectory(CacheDir); } catch { }
         string body = LooseUniform.Replace(src, "").Replace("gl_VertexID", "gl_VertexIndex");
         if (kind == ShaderKind.FragmentShader) body = body.Replace("out vec4 o;", "layout(location=0) out vec4 o;");
-        string full = HEADER + body;
+        string full = (header ?? HEADER) + body;
         string hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(full + (int)kind)));
         string path = Path.Combine(CacheDir, hash + ".spv");
         try { if (File.Exists(path)) return File.ReadAllBytes(path); } catch { }

@@ -1,4 +1,4 @@
-# Cube Planet (C# / .NET 8 / Vulkan)
+# Cube Planet (C# / .NET 8 / Vulkan + DirectX 11)
 
 Desktop port of `CubePlanet.html`: a round, fully editable voxel planet built from a cube-sphere with
 polar "bands", a Cartesian core, caves, biomes, trees, villages and other structures, distant LOD terrain,
@@ -12,7 +12,15 @@ field, Enter creates). Worlds are saved every minute, from the settings panel (S
 dotnet run -c Release                       # start screen lets you type radius + seed
 dotnet run -c Release -- --radius 1200 --seed 1337
 ```
-Requires the .NET 8 SDK and a GPU/driver with Vulkan 1.1. Packages (OpenTK windowing, Silk.NET Vulkan + shaderc) are restored from NuGet.
+Requires the .NET 8 SDK and a GPU with Vulkan 1.1 or DirectX 11. Packages (OpenTK windowing, Silk.NET Vulkan + shaderc, Direct3D 11 +
+SPIRV-Cross) are restored from NuGet.
+
+**Renderers**: Vulkan by default; on a PC without Vulkan (Intel HD 4000 / 4400 / 5500 graphics: 3rd-5th gen Core CPUs, older GPUs) the
+game starts on **DirectX 11** by itself. Esc > GRAPHICS > Renderer switches it (applies on restart); `--dx11` / `--vulkan` force one.
+Both draw the same picture: the shaders are written once in GLSL; for DirectX they are compiled to SPIR-V, turned into HLSL by
+SPIRV-Cross and compiled by Windows' d3dcompiler_47 (cached in `%APPDATA%/CubePlanet/vkcache`, the first start takes a few seconds
+longer). `--dxshaders` (no window) checks every shader through that path; the self-test does too. On integrated graphics the first start
+picks the LOW preset at 75 % resolution. Measured on an RX 5700 XT: DirectX 11 ~205 FPS, Vulkan ~220 FPS (no vsync, same view).
 The previous OpenGL version is kept in `../CubePlanet_OpenGL_backup`.
 Settings are saved to `%APPDATA%/CubePlanet/settings.json` (or the platform equivalent).
 

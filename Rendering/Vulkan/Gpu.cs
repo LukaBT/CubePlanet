@@ -75,8 +75,9 @@ public static unsafe partial class Gpu
     /// <summary>pickMsaa is called once the GPU is known (argument: integrated graphics?) and returns the MSAA sample count to use.</summary>
     public static void Init(Window* win, Func<bool, int> pickMsaa, bool vsync)
     {
+        if (Environment.GetEnvironmentVariable("CUBEPLANET_NOVULKAN") == "1") throw new Exception("Vulkan switched off (CUBEPLANET_NOVULKAN=1)"); // test the DirectX 11 fallback
         vk = Vk.GetApi(); curVsync = vsync;
-        CacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CubePlanet", "vkcache");
+        CacheDir = Environment.GetEnvironmentVariable("CUBEPLANET_SHADERCACHE") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CubePlanet", "vkcache"); // (override: tests with a clean cache)
         try { Directory.CreateDirectory(CacheDir); } catch { }
 
         // ---- instance
@@ -186,6 +187,7 @@ public static unsafe partial class Gpu
 
     public static void Shutdown()
     {
+        if (Dx.On) { Dx.Shutdown(); return; }
         if (dev.Handle == 0) return;
         vk.DeviceWaitIdle(dev);
         try

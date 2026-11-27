@@ -73,6 +73,7 @@ public static unsafe partial class Gpu
     /// <summary>Creates a sampled texture and uploads every mip level (mips[level] holds all layers / slices of that level, tightly packed).</summary>
     public static GTex MakeTexture(ImageType t, ImageViewType vt, Format f, int bpp, uint w, uint h, uint d, uint layers, byte[][] mips, Filter mag, Filter min, SamplerMipmapMode mm, SamplerAddressMode am)
     {
+        if (Dx.On) return Dx.MakeTexture(t, vt, f, bpp, w, h, d, layers, mips, mag, min, mm, am);
         var tex = MkImage(t, vt, f, w, h, d, layers, (uint)mips.Length, ImageUsageFlags.SampledBit | ImageUsageFlags.TransferDstBit, ImageAspectFlags.ColorBit);
         tex.smp = MkSampler(mag, min, mm, am, mips.Length - 1);
         ulong total = 0; foreach (var m in mips) total += (ulong)m.Length;

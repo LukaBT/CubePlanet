@@ -310,6 +310,11 @@ public static partial class SelfTest
         var qs = ItemIcons.Quads(It("stone"));
         Check(qs.All(q => q.Tex > 0) && qs.Max(q => q.Shade) == 1 && qs.Min(q => q.Shade) < .7, "icon faces carry block textures and top / side shading");
         Check(ItemIcons.Quads(It("oak_stairs")).Zip(ItemIcons.Quads(It("oak_stairs")).Skip(1)).All(p => p.First.Depth <= p.Second.Depth), "icon faces are drawn back to front");
+        // every pipeline through the Direct3D 11 path (GLSL -> SPIR-V -> HLSL -> DXBC), so a shader change cannot break the DirectX renderer unnoticed
+        { string dxDir = Path.Combine(Path.GetTempPath(), "cubeplanet_dxselftest"); Directory.CreateDirectory(dxDir); var bad = new List<string>();
+          foreach (var (n, v, fs) in DxProbe.Pipelines()) try { Dx.Compile(v, fs, n, dxDir); } catch (Exception e) { bad.Add(n + ": " + e.Message.Split((char)10)[0]); }
+          foreach (var x in Directory.GetFiles(dxDir)) try { File.Delete(x); } catch { }
+          Check(bad.Count == 0, "every shader compiles for DirectX 11" + (bad.Count > 0 ? ": " + string.Join("; ", bad) : "")); }
         try { Gpu.CheckCompiles(Glsl.UI_FS, true, "ui.frag"); Check(true, ""); } catch (Exception e) { Check(false, "ui.frag compiles: " + e.Message); }
         // terrain / water shaders, put together as Renderer does (flowing water look)
         try { Gpu.CheckCompiles(Glsl.WAVE + Glsl.PV_VS, false, "terrain.vert"); Gpu.CheckCompiles(Glsl.WAVE + Glsl.COMMON_BODY + Glsl.PV_FS, true, "terrain.frag"); Check(true, ""); }

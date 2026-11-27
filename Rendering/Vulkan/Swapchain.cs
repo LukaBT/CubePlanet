@@ -129,5 +129,5 @@ public static unsafe partial class Gpu
         if (cloudFB.Handle != 0) vk.DestroyFramebuffer(dev, cloudFB, null); cloudFB = default; DestroyTex(ref cloudCol); DestroyTex(ref cloudDist);
     }
     static void Recreate() { vk.DeviceWaitIdle(dev); DestroySwapchainResources(); CreateSwapchain(); needRecreate = false; }
-    public static void Resize() => needRecreate = true;
+    public static void Resize() { if (Dx.On) Dx.Resize(); else needRecreate = true; }
 }
