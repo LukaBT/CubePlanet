@@ -15,7 +15,7 @@ public static class Ores
         (DiamondOre, DeepslateDiamondOre, 70, 700, 0.9, 4, false),
         (EmeraldOre, DeepslateEmeraldOre, 3, 70, 1.6, 2, true),     // mountains only
     };
-    internal static void ApplyOres(Chunk ch, ushort[] d, Col c, double r0, int f)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static void ApplyOres(Chunk ch, ushort[] d, Col c, double r0, int f)
     {
         uint st = unchecked((uint)(HH(ch.band * 6 + f, ch.cx, ch.cy * 3 + 1, ch.cz * 5 + 2) * 4294967296.0)) | 1u;
         double Rn() { st ^= st << 13; st ^= st >> 17; st ^= st << 5; return st / 4294967296.0; }
@@ -51,7 +51,7 @@ public static class Ores
         return true;
     }
     /// <summary>Oil and its oil-shale cap where a reservoir lies in this chunk (only replaces stone, deepslate and ores). True if any was placed.</summary>
-    internal static bool ApplyOil(Chunk ch, ushort[] d, Col c, double r0, int f)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static bool ApplyOil(Chunk ch, ushort[] d, Col c, double r0, int f)
     {
         int x0 = ch.cx * CS, z0 = ch.cz * CS; bool any = false;
         for (int gz = (int)Math.Floor((z0 - 12.0) / OilGrid); gz <= (int)Math.Floor((z0 + CS + 12.0) / OilGrid); gz++)

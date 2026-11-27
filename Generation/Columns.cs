@@ -19,7 +19,7 @@ public static class Columns
     internal static Dictionary<long, Feat> STC { get { TlSync(); return tlStc; } }
 
 
-    public static Col ColsOf(Band B, int f, int cx, int cz)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] public static Col ColsOf(Band B, int f, int cx, int cz)
     {
         long key = (((long)(B.b * 6 + f) * 1048576) + cx) * 1048576 + cz;
         if (colCache.TryGetValue(key, out var c)) return c;

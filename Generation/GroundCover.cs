@@ -6,7 +6,7 @@ public static class GroundCover
     internal static readonly int[] FANS = { TubeCoralFan, BrainCoralFan, BubbleCoralFan, FireCoralFan, HornCoralFan };
 
     // ground cover: grass, ferns, flowers, mushrooms, dead bushes, sugar cane, pumpkins and melons (after trees/structures, only into free air)
-    internal static void Cover(Chunk ch, ushort[] d, Col c, Band B, int f)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static void Cover(Chunk ch, ushort[] d, Col c, Band B, int f)
     {
         int cx0 = ch.cx * CS, cz0 = ch.cz * CS, cy0 = ch.cy * CS;
         for (int z = 0; z < CS; z++)
@@ -51,7 +51,7 @@ public static class GroundCover
     }
 
     // underwater ground cover: seagrass, short kelp, sea pickles and coral fans standing in the water above the sea floor
-    internal static void CoverSea(Chunk ch, ushort[] d, Col c, Band B, int f)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static void CoverSea(Chunk ch, ushort[] d, Col c, Band B, int f)
     {
         int cx0 = ch.cx * CS, cz0 = ch.cz * CS, cy0 = ch.cy * CS;
         for (int z = 0; z < CS; z++)

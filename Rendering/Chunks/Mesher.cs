@@ -3,6 +3,8 @@ namespace CubePlanet;
 /// <summary>Turns chunk block data into packed vertices: faces, skylight, ambient occlusion, water surfaces.</summary>
 public static class Mesher
 {
+    /// <summary>Meshing time per phase (Stopwatch ticks, all threads) for --genprofile: 1 skylight, 2 cubes + liquids + faces, 3 boxes / plants, 4 packing.</summary>
+    public static readonly long[] Prof = new long[5];
     internal static readonly int[][] OPN_PR =
     {
         new[]{1,0,3}, new[]{-1,0,3}, new[]{0,1,3}, new[]{0,-1,3}, new[]{1,0,6}, new[]{-1,0,6}, new[]{0,1,6}, new[]{0,-1,6},
@@ -12,7 +14,7 @@ public static class Mesher
     // scratch buffers reused by every Build on the same thread (meshing runs on the worker threads) so meshing doesn't churn the GC
     [ThreadStatic] internal static List<float> pVs, pWv, pGv;
     [ThreadStatic] internal static List<uint> pIx, pWi, pGi;
-    [ThreadStatic] internal static byte[] sOp, sLt; [ThreadStatic] internal static int[] sQ;
+    [ThreadStatic] internal static byte[] sOp, sLt; [ThreadStatic] internal static int[] sQ; [ThreadStatic] internal static ushort[] sPad; [ThreadStatic] internal static int[] sLow;
     [ThreadStatic] internal static List<long> tWait;
     internal static bool WLGet(long k, out int lv) { if (BlockStates.TryGet(k, out ushort s)) { lv = LevelOf(s); return true; } lv = 0; return false; } // water level (state of a water cell)
 
@@ -25,7 +27,7 @@ public static class Mesher
     internal static short Q16(double v) => (short)Math.Clamp(Math.Round(v), -32767, 32767);
     /// <summary>Converts the mesher's 10-float vertices (x,y,z,u,v,layer,sky,nx,ny,nz; u and v in 1/16 block (0..16), u also carries 32*(3-ao), layer carries texture | material flags &lt;&lt; 16, see Blocks.Lay) into the packed GPU format.
     /// sky carries the block light too: sky + 100 x level (0..15), packed into the top 4 bits of the sky word.</summary>
-    internal static unsafe MeshData Pack(ReadOnlySpan<float> v, ReadOnlySpan<uint> ix)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static unsafe MeshData Pack(ReadOnlySpan<float> v, ReadOnlySpan<uint> ix)
     {
         int nv = v.Length / 10; var vb = new byte[nv * 16];
         fixed (byte* pb = vb)
@@ -86,7 +88,7 @@ public static class Mesher
         return ax == 0 ? areaY && areaZ : ax == 1 ? areaX && areaZ : areaX && areaY;
     }
 
-    internal static BuildResult BuildImpl(Chunk ch)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static BuildResult BuildImpl(Chunk ch)
     {
         if (ch.core) return BuildCore(ch);
         pVs ??= new(1 << 16); pWv ??= new(1 << 12); pGv ??= new(1 << 12); pIx ??= new(1 << 16); pWi ??= new(1 << 12); pGi ??= new(1 << 12);
@@ -97,11 +99,20 @@ public static class Mesher
         Ensure(ch);
         if (ch.emp && !ed) return null;
         if (ch.solid && !ed && R0 + CS <= R - CAVB - 1) return null; // buried stone: no visible faces
-        ushort[] d = ch.d;
+        ushort[] d = ch.d; long tB = System.Diagnostics.Stopwatch.GetTimestamp(), tL = 0, tX = 0, tP = 0; // phase times for --genprofile (Prof)
         var tu = new double[CS + 1]; var tv = new double[CS + 1];
         for (int i = 0; i <= CS; i++) { tu[i] = Math.Tan(-PI / 4 + (ch.cz * CS + i) * B.d); tv[i] = Math.Tan(-PI / 4 + (ch.cx * CS + i) * B.d); }
-        V3 Pt(double x, double y, double z)
+        // the grid directions of the 33 x 33 integer corners (most vertices sit on them): the same arithmetic as below, done once per corner
+        var LX = new double[(CS + 1) * (CS + 1)]; var LY2 = new double[LX.Length]; var LZ = new double[LX.Length]; var LL = new double[LX.Length];
+        for (int zi = 0; zi <= CS; zi++) for (int xi = 0; xi <= CS; xi++)
+            {
+                double a = tu[zi], b = tv[xi], X = n.X + u.X * a + v.X * b, Y = n.Y + u.Y * a + v.Y * b, Z = n.Z + u.Z * a + v.Z * b; int k = zi * (CS + 1) + xi;
+                LX[k] = X; LY2[k] = Y; LZ[k] = Z; LL[k] = Math.Sqrt(X * X + Y * Y + Z * Z);
+            }
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] V3 Pt(double x, double y, double z)
         {
+            int xi = (int)x, zi = (int)z;
+            if (xi == x && zi == z && x >= 0 && x <= CS && z >= 0 && z <= CS) { int k = zi * (CS + 1) + xi; double sk = (R0 + y) / LL[k]; return new V3(LX[k] * sk, LY2[k] * sk, LZ[k] * sk); }
             double a = (z == Math.Floor(z) && z >= 0 && z <= CS) ? tu[(int)z] : Math.Tan(-PI / 4 + (ch.cz * CS + z) * B.d);
             double b = (x == Math.Floor(x) && x >= 0 && x <= CS) ? tv[(int)x] : Math.Tan(-PI / 4 + (ch.cx * CS + x) * B.d);
             double X = n.X + u.X * a + v.X * b, Y = n.Y + u.Y * a + v.Y * b, Z = n.Z + u.Z * a + v.Z * b;
@@ -112,11 +123,12 @@ public static class Mesher
         // reads real block data from neighbouring chunks (ensuring them when needed) and across cube-face seams via Blk(); chunks waiting on a missing neighbour are re-lit when it appears
         Col cols = ColsOf(B, f, ch.cx, ch.cz);
         byte[] LT = null; const int LM = 8, LY = 8; int LW = CS + 2 * LM, LH = CS + 8 + LY;
-        void LightInit()
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] void LightInit()
         {
             int N3 = LW * LW * LH;
             if (sOp == null || sOp.Length < N3) { sOp = new byte[N3]; sLt = new byte[N3]; sQ = new int[N3]; } else Array.Clear(sLt, 0, N3);
             var op = sOp; var lt = sLt; var q = sQ; int qh = 0, qt = 0;
+            var lowLit = sLow ??= new int[LW * LW];
             var n27 = new Chunk[27]; var n27s = new bool[27];
             LT = lt; tWait = new List<long>();
             if (R0 + CS + 8 < R + cols.lo - 8) return;
@@ -157,6 +169,36 @@ public static class Mesher
                 }
                 return nc;
             }
+            // fast path (most chunks): away from cube-face edges and band borders, with all 26 neighbours generated, the opacity box is copied
+            // row by row from the 27 chunks (the same values the per-cell code below reads, without its per-cell checks)
+            bool fast = ch.cx > 0 && ch.cz > 0 && ch.cx < B.fc - 1 && ch.cz < B.fc - 1 && ch.cy > 0 && ch.cy + 1 < nrow;
+            var fc27 = new ushort[27][];
+            if (fast)
+                for (int k = 0; k < 27 && fast; k++)
+                {
+                    int ox = k % 3 - 1, oz = (k / 3) % 3 - 1, oy = k / 9 - 1;
+                    if (ox == 0 && oy == 0 && oz == 0) { fc27[k] = d; continue; }
+                    chunkMap.TryGetValue(ck(ch.band, f, ch.cx + ox, ch.cy + oy, ch.cz + oz), out var nc);
+                    if (nc == null) { fast = false; break; }
+                    if (nc.d == null) Ensure(nc);
+                    fc27[k] = nc.d; if (fc27[k] == null) fast = false;
+                }
+            if (fast)
+            {
+                for (int gy = -LY; gy < CS + 8; gy++)
+                {
+                    int oy = gy < 0 ? 0 : gy >= CS ? 2 : 1, ly = gy < 0 ? gy + CS : gy >= CS ? gy - CS : gy, gi = gy + LY;
+                    for (int gz = -LM; gz < CS + LM; gz++)
+                    {
+                        int oz = gz < 0 ? 0 : gz >= CS ? 2 : 1, lz = gz & 31, row = (gi * LW + gz + LM) * LW + LM;
+                        var c0 = fc27[(oy * 3 + oz) * 3]; var c1 = fc27[(oy * 3 + oz) * 3 + 1]; var c2 = fc27[(oy * 3 + oz) * 3 + 2]; int b0 = 32 * (lz + 32 * ly);
+                        for (int gx = -LM; gx < 0; gx++) op[row + gx] = OPQ[c0[(gx & 31) + b0]];
+                        for (int gx = 0; gx < CS; gx++) op[row + gx] = OPQ[c1[gx + b0]];
+                        for (int gx = CS; gx < CS + LM; gx++) op[row + gx] = OPQ[c2[(gx & 31) + b0]];
+                    }
+                }
+            }
+            else
             for (int gy = -LY; gy < CS + 8; gy++)
             {
                 double rr = R0 + gy + .5; int ky = ch.cy + (gy < 0 ? -1 : gy >= CS ? 1 : 0), ly = gy < 0 ? gy + CS : gy >= CS ? gy - CS : gy, gi = gy + LY;
@@ -200,13 +242,24 @@ public static class Mesher
             for (int gz = -LM; gz < CS + LM; gz++)
                 for (int gx = -LM; gx < CS + LM; gx++)
                 {
+                    int cI = (gz + LM) * LW + gx + LM; lowLit[cI] = LH; // lowest sky-lit cell of the column (LH: none)
                     if (!(R0 + CS + 7.5 > R + Math.Min(HAt(gx, gz), tpB ? HUp(gx, gz) : 1e9))) continue;
                     for (int gi = LH - 1; gi >= 0; gi--)
                     {
                         int i = (gi * LW + gz + LM) * LW + gx + LM;
                         if (op[i] != 0) break;
-                        lt[i] = 15; q[qt++] = i;
+                        lt[i] = 15; lowLit[cI] = gi;
                     }
+                }
+            // only sky-lit cells next to a cell that is not (beside them, the cells above / below are lit or opaque) can pass light on: seed just
+            // those (in open air nearly every cell of the box was queued and checked its six neighbours for nothing); the result is the same
+            for (int cz2 = 0; cz2 < LW; cz2++)
+                for (int cx2 = 0; cx2 < LW; cx2++)
+                {
+                    int cI = cz2 * LW + cx2, lo = lowLit[cI]; if (lo >= LH) continue;
+                    int lW = cx2 > 0 ? lowLit[cI - 1] : 0, lE = cx2 < LW - 1 ? lowLit[cI + 1] : 0, lN = cz2 > 0 ? lowLit[cI - LW] : 0, lS = cz2 < LW - 1 ? lowLit[cI + LW] : 0;
+                    int need = Math.Max(Math.Max(lW, lE), Math.Max(lN, lS)); // neighbours are sky-lit from 'their low' up: below that they are not
+                    for (int gi = lo; gi < LH && gi < need; gi++) q[qt++] = gi * LW * LW + cI;
                 }
             int SY = LW * LW;
             void Tn(int j, int val) { if (op[j] == 0 && lt[j] < val) { lt[j] = (byte)val; q[qt++] = j; } }
@@ -261,7 +314,7 @@ public static class Mesher
         }
         double LightAt(int nx, int ny, int nz)
         {
-            if (LT == null) LightInit();
+            if (LT == null) { long tq = System.Diagnostics.Stopwatch.GetTimestamp(); LightInit(); long e = System.Diagnostics.Stopwatch.GetTimestamp() - tq; tL += e; Interlocked.Add(ref Prof[1], e); }
             ny += LY; if (ny < 0) ny = 0;
             if (ny >= LH || nx < -LM || nx >= CS + LM || nz < -LM || nz >= CS + LM) return 1;
             return LT[(ny * LW + nz + LM) * LW + nx + LM] / 15.0;
@@ -294,7 +347,19 @@ public static class Mesher
         }
         void Two(V3[] p, float lay, double sky, V3 nn) { PQ(p, false, lay, sky, nn); PQ(new[] { p[3], p[2], p[1], p[0] }, true, lay, sky, nn); }
         int StAt(int x, int y, int z) => ch.st?[x + CS * (z + CS * y)] ?? 0; // state word of a cell of this chunk
-        int Gb(int x, int y, int z) => x >= 0 && x < CS && y >= 0 && y < CS && z >= 0 && z < CS ? d[x + CS * (z + CS * y)] : Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
+        // blocks of the 1-block border around the chunk, looked up once each (ambient occlusion and face culling ask for them many times)
+        var pad = sPad ??= new ushort[(CS + 2) * (CS + 2) * (CS + 2)]; Array.Fill(pad, (ushort)0xFFFF);
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] int Gb(int x, int y, int z)
+        {
+            if ((uint)x < CS && (uint)y < CS && (uint)z < CS) return d[x + CS * (z + CS * y)];
+            if ((uint)(x + 1) <= CS + 1 && (uint)(y + 1) <= CS + 1 && (uint)(z + 1) <= CS + 1)
+            {
+                int pi = (x + 1) + (CS + 2) * ((z + 1) + (CS + 2) * (y + 1)); int pv = pad[pi];
+                if (pv == 0xFFFF) pad[pi] = (ushort)(pv = Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z));
+                return pv;
+            }
+            return Blk(ch.band, f, ch.cx * CS + x, ch.cy * CS + y, ch.cz * CS + z);
+        }
 
         // "boxes" models (slabs, stairs, fences, ...): every box face goes through the same curved corner mapping as the cubes;
         // faces on the block boundary are hidden by opaque neighbours, faces inside the block are always drawn
@@ -425,19 +490,25 @@ public static class Mesher
                 {
                     int id = d[x + CS * (z + CS * y)];
                     if (id == 0) continue;
-                    if (MODEL[id] == ModelBoxes) { BoxModel(id, x, y, z); continue; }
+                    if (MODEL[id] == ModelBoxes) { long tq = System.Diagnostics.Stopwatch.GetTimestamp(); BoxModel(id, x, y, z); long e = System.Diagnostics.Stopwatch.GetTimestamp() - tq; tX += e; Interlocked.Add(ref Prof[3], e); continue; }
                     if (SPC[id] != 0)
                     {
-                        Special(id, x, y, z);
+                        { long tq = System.Diagnostics.Stopwatch.GetTimestamp(); Special(id, x, y, z); long e = System.Diagnostics.Stopwatch.GetTimestamp() - tq; tX += e; Interlocked.Add(ref Prof[3], e); }
                         if (!UWP[id]) continue;
                         id = Water; // an underwater plant sits inside water: give its cell the water faces too (otherwise it leaves a hole in the surface)
                     }
                     if (ch.solid && x > 0 && x < CS - 1 && y > 0 && y < CS - 1 && z > 0 && z < CS - 1) continue;
+                    // buried: all six neighbours (inside this chunk) opaque -> no face of any kind can show (most cells of a chunk)
+                    if (x > 0 && x < CS - 1 && y > 0 && y < CS - 1 && z > 0 && z < CS - 1)
+                    {
+                        int ci = x + CS * (z + CS * y);
+                        if (OPQ[d[ci - 1]] != 0 && OPQ[d[ci + 1]] != 0 && OPQ[d[ci - CS]] != 0 && OPQ[d[ci + CS]] != 0 && OPQ[d[ci - CS * CS]] != 0 && OPQ[d[ci + CS * CS]] != 0) continue;
+                    }
                     bool lq = LIQ[id], wt = id == Water; // every liquid gets a surface; water is drawn by the water shader, the others opaque
                     for (int fc = 0; fc < 6; fc++)
                     {
                         int nx = x + DX[fc], ny = y + DY[fc], nz = z + DZ[fc];
-                        int nb = nx >= 0 && nx < CS && ny >= 0 && ny < CS && nz >= 0 && nz < CS ? d[nx + CS * (nz + CS * ny)] : Blk(ch.band, f, ch.cx * CS + nx, ch.cy * CS + ny, ch.cz * CS + nz);
+                        int nb = Gb(nx, ny, nz);
                         // band seam: the next band has 2x2 cells above one cell of this band; Blk() only sees one of them, so look at all four and keep the face if any is open
                         if (fc == 2 && ny == CS && topB && Cul(nb, lq, id))
                         {
@@ -507,30 +578,33 @@ public static class Mesher
                             }
                         }
                         else { aoq[0] = aoq[1] = aoq[2] = aoq[3] = 3; }
-                        for (int i = 0; i < 4; i++)
+                        // 4 vertices x 10 floats and 6 indices written straight into the lists' storage (46 List.Add calls a face were a good part of meshing)
+                        int a0 = A.Count; System.Runtime.InteropServices.CollectionsMarshal.SetCount(A, a0 + 40); var sa = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(A).Slice(a0, 40);
+                        for (int i = 0, o = 0; i < 4; i++, o += 10)
                         {
-                            A.Add((float)qd[i * 3]); A.Add((float)qd[i * 3 + 1]); A.Add((float)qd[i * 3 + 2]); A.Add(CU[i] * 16 + 32 * (3 - aoq[i]) + 128 * flow); A.Add(CV[i] * 16); A.Add(lay);
-                            A.Add((float)(sky + (wt && ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0)));
-                            A.Add((float)fx); A.Add((float)fy); A.Add((float)fz);
+                            sa[o] = (float)qd[i * 3]; sa[o + 1] = (float)qd[i * 3 + 1]; sa[o + 2] = (float)qd[i * 3 + 2]; sa[o + 3] = CU[i] * 16 + 32 * (3 - aoq[i]) + 128 * flow; sa[o + 4] = CV[i] * 16; sa[o + 5] = lay;
+                            sa[o + 6] = (float)(sky + (wt && ab && c[i * 3 + 1] == 1 ? 2 + 2 * Opn(x + c[i * 3], y + 1, z + c[i * 3 + 2]) : 0));
+                            sa[o + 7] = (float)fx; sa[o + 8] = (float)fy; sa[o + 9] = (float)fz;
                         }
                         // split the quad along the diagonal that keeps the occlusion gradient smooth
-                        if (aoq[0] + aoq[2] < aoq[1] + aoq[3]) { I.Add(first + 1); I.Add(first + 2); I.Add(first + 3); I.Add(first + 1); I.Add(first + 3); I.Add(first); }
-                        else { I.Add(first); I.Add(first + 1); I.Add(first + 2); I.Add(first); I.Add(first + 2); I.Add(first + 3); }
+                        int i0 = I.Count; System.Runtime.InteropServices.CollectionsMarshal.SetCount(I, i0 + 6); var si = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(I).Slice(i0, 6);
+                        if (aoq[0] + aoq[2] < aoq[1] + aoq[3]) { si[0] = first + 1; si[1] = first + 2; si[2] = first + 3; si[3] = first + 1; si[4] = first + 3; si[5] = first; }
+                        else { si[0] = first; si[1] = first + 1; si[2] = first + 2; si[3] = first; si[4] = first + 2; si[5] = first + 3; }
                     }
                 }
         }
         int nw = wi.Count, goff = wv.Count / 10;
         if (ix.Count == 0 && nw == 0 && gi2.Count == 0) return null;
         var res = new BuildResult { org = org };
-        if (ix.Count > 0) res.o = Pack(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(vs), System.Runtime.InteropServices.CollectionsMarshal.AsSpan(ix));
+        if (ix.Count > 0) { long tq = System.Diagnostics.Stopwatch.GetTimestamp(); res.o = Pack(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(vs), System.Runtime.InteropServices.CollectionsMarshal.AsSpan(ix)); tP += System.Diagnostics.Stopwatch.GetTimestamp() - tq; Interlocked.Add(ref Prof[4], System.Diagnostics.Stopwatch.GetTimestamp() - tq); }
         if (nw > 0 || gi2.Count > 0)
         {
             var wvs = new float[wv.Count + gv.Count]; wv.CopyTo(wvs, 0); gv.CopyTo(wvs, wv.Count);
             var wix = new uint[nw + gi2.Count]; wi.CopyTo(wix, 0);
             for (int i = 0; i < gi2.Count; i++) wix[nw + i] = gi2[i] + (uint)goff;
-            res.w = Pack(wvs, wix); res.nw = nw;
+            { long tq = System.Diagnostics.Stopwatch.GetTimestamp(); res.w = Pack(wvs, wix); tP += System.Diagnostics.Stopwatch.GetTimestamp() - tq; Interlocked.Add(ref Prof[4], System.Diagnostics.Stopwatch.GetTimestamp() - tq); } res.nw = nw;
         }
-        return res;
+        Interlocked.Add(ref Prof[2], System.Diagnostics.Stopwatch.GetTimestamp() - tB - tL - tX - tP); return res;
     }
 
     internal static BuildResult BuildCore(Chunk ch)

@@ -24,6 +24,12 @@ try {
         Write-Host "fingerprints unchanged" -ForegroundColor Green
     }
 
+    # meshes: one hash over every mesh around spawn (mesher speed-ups must not change a single vertex)
+    $mh = (& $exe --meshhash | Select-String 'MESHHASH' | ForEach-Object { $_.Line }) -replace '\s*\(\d+ ms meshing\)$', ''
+    $mhFile = Join-Path $PSScriptRoot 'meshhash.txt'
+    if ($Update -or -not (Test-Path $mhFile)) { $mh | Set-Content -Encoding ascii $mhFile; Write-Host "mesh hash reference written" -ForegroundColor Yellow }
+    elseif ((Get-Content $mhFile) -ne $mh) { Write-Host "MESH HASH CHANGED: $mh (reference: $(Get-Content $mhFile))" -ForegroundColor Red; exit 1 }
+    else { Write-Host "mesh hash unchanged" -ForegroundColor Green }
     # headless rule checks (collision / selection boxes, placement, meshing; later: multiblocks, containers, saving)
     & $exe --selftest | Out-Host
     if ($LASTEXITCODE -ne 0) { Write-Host "SELFTEST FAILED" -ForegroundColor Red; exit 1 }

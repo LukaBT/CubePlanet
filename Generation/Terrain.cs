@@ -19,7 +19,7 @@ public static class TerrainGen
 
     // noise slots used by the biome code (each slot has its own random offset): 27 lush/cherry, 28 oasis, 29 volcano, 30 canyon region, 31 islands, 32 sand/clay/island detail,
     // 33 ice / ash detail, 34 icebergs, 35 sea ridges, 36 trenches, 37 canyon lines, 38 canyon plateau, 39 meadow, 40 bamboo, 41 old growth, 42 coral reef
-    public static void Terrain(double ux, double uy, double uz, double lw)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] public static void Terrain(double ux, double uy, double uz, double lw)
     {
         double x = ux * R, y = uy * R, z = uz * R, lat = Math.Abs(uy), Lc = LCN, bs = BSC, ls = LSC, sl = Math.Sqrt(LSC), dw = Math.Min(1, (LSC - 1) / 2);
         double l = Fb(x, y, z, Lc, 4, 0, lw) * 2.1 + .1 * Fb(x, y, z, 130 * ls, 3, 1, lw) + .02; // continents: >0 land

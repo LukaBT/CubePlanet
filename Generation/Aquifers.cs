@@ -12,7 +12,7 @@ public static class Aquifers
     const double Cell = 40, Barrier = 3, Dry = -1e9;
 
     /// <summary>Water level of a column (relative to sea level; very low = dry) and the height up to which cave air there stays stone (border barrier).</summary>
-    public static (double level, double barrierTop) Column(int f, double a, double b)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] public static (double level, double barrierTop) Column(int f, double a, double b)
     {
         V3 p = GpA(f, a, b, R);
         int gx = (int)Math.Floor(p.X / Cell), gy = (int)Math.Floor(p.Y / Cell), gz = (int)Math.Floor(p.Z / Cell);

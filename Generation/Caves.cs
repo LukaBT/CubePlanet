@@ -6,7 +6,7 @@ namespace CubePlanet;
 public static class Caves
 {
     /// <summary>Cave density (>0 = air): cheese caverns, spaghetti tunnels, a wide tunnel network in some regions, and ravines.</summary>
-    internal static double CaveS(double x, double y, double z, double rel)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static double CaveS(double x, double y, double z, double rel)
     {
         var o = OFF[14]; var p = OFF[15]; var q = OFF[16]; var u = OFF[17]; var w = OFF[18]; var mk = OFF[25];
         // cheese caves: big irregular caverns, rare close to the surface
@@ -30,7 +30,7 @@ public static class Caves
     }
 
     // cave density is sampled on a 4-block lattice and trilinearly interpolated (>0 = air)
-    public static double NodeV(Band B, int f, int gx, int gy, int gz)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] public static double NodeV(Band B, int f, int gx, int gy, int gz)
     {
         long key = Mix(B.b * 6 + f, gx, gy, gz);
         if (nodeCache.TryGetValue(key, out double v)) return v;

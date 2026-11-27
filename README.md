@@ -484,6 +484,13 @@ ignores input, prints FPS + chunk pipeline timings, does not save settings), `--
 this run only, e.g. `--set ssr=0`), `--hour H --yaw DEG --pitch DEG --up N` (bench camera), `--turnat S` (turn 180 degrees after S seconds and report the worst frame), `--syncmesh` (mesh on the main thread, for debugging).
 `--assets DIR` loads the asset files from another folder (e.g. an editor export). `--world NAME` plays a saved world right away (or creates it with `--radius` / `--seed`); with `--bench` it is loaded read-only (`--benchsave` saves it when the run ends). `--startshot file.png` saves a picture of the start screen and quits.
 `--selftest` (no window): rule checks (slab collision, the player landing on a slab, raycast / selection boxes, placing next to a slab, box meshing, doors as multiblocks, facing of stairs / beds / furnaces, moving items in a chest window, furnace smelting, the oxygen generator, state surviving chunk regeneration, water level as state, save -> clear -> load giving identical chunks, state words and block entities); exit code 1 on failure. `--showcase` (with `--bench`): places a row of example blocks in front of the camera; `--showui inventory|chest|furnace|oxygen_generator` opens a window over it.
+`--genprofile [--radius N] [--seed N]` (no window): generates and meshes the ~3000 chunks around spawn on one thread and prints the
+time of every phase. Measured (2026-11-27, before -> after the speed-ups, same world and the same meshes): generation 1.48 -> 0.71 ms a
+chunk (shared cave-water columns, a faster Perlin noise with identical values, a tighter block loop), meshing 3.05 -> 1.87 ms (a cached
+1-block border, buried cells skipped, faces written straight into the vertex lists, skylight copied row by row and seeded only where it can
+spread), hot code compiled fully optimised from the start; first load in the game 3.5-3.9 s -> 2.3-2.7 s. `--meshhash` (no window):
+one hash over every mesh around spawn; `checks/check.ps1` compares it with `checks/meshhash.txt` like the world fingerprints.
+
 `--benchedits` (with `--bench`, opens a window): after 8 s it digs / fills a block in the ground every 0.15 s and reports frame times with and
 without edits; `--editsync` meshes edited chunks on the main thread (the old way) to compare. Measured (Utility Demo, RX 5700 XT, no vsync):
 old worst frame 13.8 ms while editing (4.7 ms of meshing per chunk), new 7.7 ms, the same as without edits.

@@ -9,4 +9,7 @@ public class Col
     public double hi = -1e9, lo = 1e9;
     /// <summary>Lakes: water surface (relative to sea level, NaN = none) and the surface of a lake nearby (no caves above it - 40).</summary>
     public float[] rs = new float[1024], rn = new float[1024];
+    /// <summary>Cave water of each column (<see cref="Aquifers.Column"/>): computed the first time a chunk of this column has caves, then shared
+    /// by every chunk above and below (it used to be recomputed for each: a quarter of all generation time).</summary>
+    public (double level, double barrierTop)[] aq;
 }

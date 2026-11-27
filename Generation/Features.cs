@@ -328,7 +328,7 @@ public static class Features
     }
 
 
-    internal static List<Feat> FeatsR(Band B, int f, int xa, int za, int xb, int zb, int ya, int yb)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static List<Feat> FeatsR(Band B, int f, int xa, int za, int xb, int zb, int ya, int yb)
     {
         var o = new List<Feat>();
         bool Ht(Feat F) => F.a <= xb && F.b >= xa && F.c <= zb && F.e >= za && F.g <= yb && F.h >= ya;
@@ -346,7 +346,7 @@ public static class Features
         int x0 = ch.cx * CS, z0 = ch.cz * CS, y0 = ch.cy * CS;
         return FeatsR(B, f, x0, z0, x0 + CS - 1, z0 + CS - 1, y0, y0 + CS - 1);
     }
-    internal static void ApplyFeats(Chunk ch, ushort[] d, List<Feat> fl)
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization)] internal static void ApplyFeats(Chunk ch, ushort[] d, List<Feat> fl)
     {
         int x0 = ch.cx * CS, z0 = ch.cz * CS, y0 = ch.cy * CS;
         foreach (var F in fl)
