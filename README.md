@@ -402,6 +402,12 @@ veins: iron ore 50 % Fe (real high-grade hematite), copper ore 4 % Cu, gold ore 
 * The simple furnace still works the old way, with realistic losses: an iron ore block -> 6 wrought iron ingots (a bloomery keeps ~40 %
   of the iron), pig iron -> wrought iron (puddling), copper concentrate -> blister copper, gold concentrate -> a gold bar; raw copper and
   gold ore cannot be smelted (too little metal in them), sand -> 0.6 glass, cobblestone -> 0.85 stone.
+* Extractors and belts: an extractor takes the first item the block in front (or the machine at the end of its belt line) can use, so
+  slag and tailings stay behind; a machine with several input slots keeps one slot per kind of item, so one ingredient cannot fill them all.
+* `--demosteel NAME [--demosecs S]` (no window) builds an automatic steel works: an ore chest -> jaw crusher -> ore concentrator (water
+  from a basin a spring keeps full) -> blast furnace (coke from a coke oven, limestone from a second crusher grinding coral) -> oxygen
+  steel furnace (oxygen tanks filled by an air separation unit) -> plate mill -> a chest of steel plates; coal generators under the floor.
+  It runs 420 s before saving (6 plates by then).
 
 ## Electric machines, lamps, solar (Energy/Electric.cs)
 * **Electric Lamp** (0.5 E/s): lights up when powered and gives **block light** around it (level 9 at the lamp, one less per block,

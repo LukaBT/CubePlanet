@@ -53,6 +53,22 @@ public static class ItemsUtil
     }
     /// <summary>The inventory items are taken out of (a machine's output, a chest's slots).</summary>
     public static ItemStack[] OutputOf(BlockEntity e) => e.Inv("output") ?? e.Inv("slots");
+    /// <summary>Puts one of an item into a machine / chest the way extractors and belts do (really = false: only checks). A processing machine
+    /// with several input slots keeps one slot per kind of item, so one ingredient arriving fast (coke) cannot fill the slots another needs.</summary>
+    public static bool Feed(BlockEntity t, ItemStack s, bool really)
+    {
+        var inv = InputFor(t, s); if (inv == null) return false;
+        if (inv.Length > 1 && inv == t.Inv("input") && BEH[t.BlockId] is IndustryBehavior or ProcessorBehavior)
+        {
+            int i = Array.FindIndex(inv, x => x != null && !x.IsEmpty && x.Item == s.Item && x.State == s.State);
+            if (i >= 0 && inv[i].Count >= inv[i].MaxStack) return false;
+            if (i < 0) i = Array.FindIndex(inv, x => x == null || x.IsEmpty);
+            if (i < 0) return false;
+            if (really) { if (inv[i] == null || inv[i].IsEmpty) inv[i] = new ItemStack(s.Item, 1, s.State); else inv[i].Count++; }
+            return true;
+        }
+        return really ? Insert(inv, new ItemStack(s.Item, 1, s.State)) == 1 : Accepts(t, s);
+    }
     public static bool Accepts(BlockEntity e, ItemStack s) { var inv = InputFor(e, s); if (inv == null) return false; var probe = new ItemStack(s.Item, 1, s.State); var copy = inv.Select(x => x == null ? null : new ItemStack(x.Item, x.Count, x.State)).ToArray(); return Insert(copy, probe) == 1; }
     public static readonly (int, int, int)[] N6 = { (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
 }
@@ -632,16 +648,20 @@ public sealed class ExtractorBehavior : BlockBehavior, IEnergyMachine
     static bool Give(BlockEntity front, ItemStack s, bool really)
     {
         if (front == null) return false;
-        if (Conveyor.IsBelt(front.BlockId)) return Conveyor.CanTake(front) && (!really || Conveyor.Put(front, s, 0));
-        if (!ItemsUtil.Accepts(front, s)) return false;
-        return !really || ItemsUtil.Insert(ItemsUtil.InputFor(front, s), new ItemStack(s.Item, 1, s.State)) == 1;
+        if (Conveyor.IsBelt(front.BlockId))
+        {   // only what the machine at the end of the belt takes (a chest takes everything; a line ending in the open takes anything)
+            var dest = Conveyor.Destination(front);
+            return Conveyor.CanTake(front) && (dest == null || ItemsUtil.InputFor(dest, s) != null && ItemsUtil.Feed(dest, s, false)) && (!really || Conveyor.Put(front, s, 0));
+        }
+        return ItemsUtil.Feed(front, s, really);
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p)
     {
         var src = Source(e); var outInv = src == null ? null : ItemsUtil.OutputOf(src);
         if (outInv == null || outInv.All(s => s == null || s.IsEmpty)) { e.SetNum("status", src == null ? 1 : 2); return; }
-        var s0 = outInv.First(s => s != null && !s.IsEmpty);
-        if (!Give(Front(e), s0, false)) { e.SetNum("status", Front(e) == null ? 4 : 3); return; }
+        // the first stack the block in front can take (a blast furnace's slag stays behind while its pig iron goes on to the steel furnace)
+        var front = Front(e); var s0 = outInv.FirstOrDefault(s => s != null && !s.IsEmpty && Give(front, s, false));
+        if (s0 == null) { e.SetNum("status", front == null ? 4 : 3); return; }
         e.SetNum("status", 0); p.Demand = PerItem * ItemsPerSecond * dt;
     }
     public void Settle(BlockEntity e, double dt, double made, double got)
@@ -650,7 +670,7 @@ public sealed class ExtractorBehavior : BlockBehavior, IEnergyMachine
         var src = Source(e); if (src == null) return; var outInv = ItemsUtil.OutputOf(src); var front = Front(e);
         for (int k = 0; k < n; k++)
         {
-            int si = Array.FindIndex(outInv, s => s != null && !s.IsEmpty); if (si < 0) break; var s = outInv[si];
+            int si = Array.FindIndex(outInv, s => s != null && !s.IsEmpty && Give(front, s, false)); if (si < 0) break; var s = outInv[si];
             if (!Give(front, s, true)) break;
             if (--s.Count <= 0) outInv[si] = null;
             e.SetNum("moved", e.Num("moved") + 1);
@@ -658,7 +678,7 @@ public sealed class ExtractorBehavior : BlockBehavior, IEnergyMachine
     }
     public override string Describe(BlockEntity e) => (int)e.Num("status") switch
     {
-        1 => "NOTHING TO TAKE FROM: ITS BACK MUST TOUCH A CHEST OR A MACHINE", 2 => "SOURCE EMPTY", 3 => "THE BELT / INVENTORY IN FRONT IS FULL",
+        1 => "NOTHING TO TAKE FROM: ITS BACK MUST TOUCH A CHEST OR A MACHINE", 2 => "SOURCE EMPTY", 3 => "THE BELT / INVENTORY IN FRONT IS FULL (OR TAKES NONE OF THESE ITEMS)",
         4 => "NOTHING IN FRONT: PUT A CONVEYOR BELT OR A CHEST THERE",
         _ => $"MOVED {e.Num("moved"):0} ITEMS  (4 A SECOND, 0.2 E EACH)"
     };

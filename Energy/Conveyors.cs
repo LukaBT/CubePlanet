@@ -95,6 +95,20 @@ public static class Conveyor
         inv[k] = new ItemStack(s.Item, 1, s.State); e.SetNum("p" + k, t); e.SetNum("m" + k, 0); return true;
     }
     public static bool CanTake(BlockEntity e) => e?.Inv("belt") is { } inv && inv.Any(x => x == null || x.IsEmpty) && Rear(e) >= ConveyorBehavior.Gap - 1e-9;
+    /// <summary>The machine / chest a belt line ends at (following its belts, up to 256), or null (the line ends in the open).</summary>
+    public static BlockEntity Destination(BlockEntity belt)
+    {
+        var p = belt.Pos;
+        for (int i = 0; i < 256; i++)
+        {
+            if (!Exit(p, out var q) || !q.Loaded) return null;
+            if (!IsBelt(q.Id) && !BlockStates.entities.ContainsKey(q.Key) && q.TryOffset(0, -1, 0, out var below) && below.Loaded && IsBelt(below.Id) && Slope(below) == "down") q = below;
+            if (!BlockStates.entities.TryGetValue(q.Key, out var t)) return null;
+            if (!IsBelt(t.BlockId)) return t;
+            p = q;
+        }
+        return null;
+    }
     /// <summary>Hands an item at a belt's end on: the next belt (the cell in front, or a down slope just below it), or an inventory there.</summary>
     static bool HandOn(BlockEntity e, ItemStack s)
     {
@@ -103,8 +117,7 @@ public static class Conveyor
         if (!IsBelt(q.Id) && !BlockStates.entities.ContainsKey(q.Key) && q.TryOffset(0, -1, 0, out var below) && below.Loaded && IsBelt(below.Id) && Slope(below) == "down" && Facing(below) == Facing(e.Pos)) target = below;
         if (!BlockStates.entities.TryGetValue(target.Key, out var t)) return false;
         if (IsBelt(target.Id)) return CanTake(t) && Put(t, s, 0);
-        if (!ItemsUtil.Accepts(t, s)) return false;
-        return ItemsUtil.Insert(ItemsUtil.InputFor(t, s), new ItemStack(s.Item, 1, s.State)) == 1;
+        return ItemsUtil.Feed(t, s, true);
     }
     public static void Tick(BlockEntity e, double dt)
     {
