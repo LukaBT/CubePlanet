@@ -352,9 +352,10 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 ## Rotation machines and the multimeter (Energy/Mechanical.cs, Energy/Multimeter.cs)
 * Rotation lines now have **loads** besides generators; a line shares its sources' power between them in proportion to what each wants.
 * **Gearbox**: joins shafts on all six sides (a turbine's horizontal shaft can turn down a tower, or split to several machines).
-* **Millstone** (15 E/s of rotation): iron / gold / copper ore (and deepslate ores) -> 2 dust each, 120 E per ore; dust smelts to an
-  ingot (furnace or electric furnace), so ore gives twice the ingots. **Sawmill** (15 E/s): a log -> 6 planks, 60 E each. Both take a
-  shaft on any side but the top; windows with input, progress and output. Driven by a wind turbine, a motor or a gearbox line.
+* **Millstone** (15 E/s of rotation): does the jaw crusher's work with rotation (an ore block -> crushed ore of the same mass, coral ->
+  crushed limestone, a coal seam block -> coal + tailings), 120 E a block. **Sawmill** (15 E/s): a log -> 0.6 of a block of planks and
+  wood chips (squaring a trunk and the saw cuts lose ~40 %, as in a real sawmill), 60 E a log. Both take a shaft on any side but the top;
+  windows with input, progress and two output slots. Driven by a wind turbine, a motor or a gearbox line.
 * **Mechanical Pump**: lifts water like the electric pump (same cost per unit and lift, up to 16 units/s), driven by a shaft on a side
   across its axis: a wind pump. Right click: ON / OFF.
 * **Multimeter** (item): hold it and look at any block of an energy network: the HUD shows the whole network (machines, cable blocks,
@@ -365,6 +366,42 @@ The grid is AC with three voltage levels (Energy/Grid.cs): **LV** (x1, all machi
 * `--demomill NAME [--demosecs S]` (no window) builds a world with a large windmill on a tower, a gearbox and a vertical shaft down to a
   gearbox on the ground driving a millstone (iron ore), a sawmill (oak logs) and a wind pump (a pipe down into a pool, a pipe up into a
   raised glass tank); the hotbar has a multimeter.
+
+## Mass (Items/Mass.cs)
+Every block and item has a mass in kg (shown in its tooltip), for rockets later and anything else that has to be lifted. The rule for content:
+* A block is 1 m^3 and weighs what fills it: stone 2,700 kg, iron ore 4,000 kg, oak planks 750 kg, a block of steel would be 7,850 kg (so a
+  rocket uses plates, not blocks); slabs and stairs the part they fill; leaves 25 kg; machines what a steel case with its insides weighs.
+  properties.definition.mass on the block (a multiblock: all its parts); the item that places it weighs the same; other items have their own.
+* Sizes: ingot 1/64 m^3 (a 25 cm cube: steel 123 kg, copper 140 kg), plate 1/16 block thick (one texture pixel; = 4 ingots, steel 491 kg),
+  rod 1/16 x 1/16 x 1 block (1/4 ingot), crushed ore / concentrate / slag / tailings 250 kg, gold bar 1 kg, coal and coke 25 kg.
+* **No recipe makes mass**: what comes out never weighs more than what goes in (gas and water from pipes count, burnt fuel does not); the
+  rest is what the real process loses (CO2, SO2, water, dust). Counts can be fractions (0.6 planks a log): the machine keeps the fraction and
+  hands out a whole item when it adds up. The self-test checks every recipe and that every block and item has a mass.
+* Fuel energy (fuel_time) is not by mass yet: a coal lump and a log still burn for the old times.
+
+## Metal processing (Energy/Industry.cs)
+Real processes, in order. Electric machines with three input and three output slots (industry key: power + recipes); the first recipe whose
+inputs are all there runs; gas comes from / goes to gas tanks on gas pipes at any side, water from a liquid pipe at the back. Ores are rich
+veins: iron ore 50 % Fe (real high-grade hematite), copper ore 4 % Cu, gold ore 0.1 % Au (1 kg per t, a bonanza vein).
+* **Jaw Crusher** (40 E/s): an ore block -> crushed ore of the same mass (iron 16, copper 12, gold 11.6 of 250 kg), coal seam -> 48 coal +
+  tailings, coral (calcium carbonate) -> crushed limestone, the flux for the furnaces.
+* **Ore Concentrator** (50 E/s, 1 unit of water a batch): magnetic separation (crushed iron ore -> 0.7 concentrate at 65 % Fe + tailings),
+  froth flotation (copper -> 0.13 concentrate at 28 % Cu), gravity separation (gold -> 0.225 concentrate of 20 kg at 5 % Au).
+* **Coke Oven** (heats itself): 4 coal baked without air -> 3 coke + 794 mol (1.6 kg) of hydrogen from the coke oven gas into a gas tank
+  (into the air without one).
+* **Blast Furnace** (60 E/s, hot blast): 3 iron concentrate + 8 coke + 1 crushed limestone -> 4 pig iron (4 % carbon, brittle) + slag;
+  crushed ore works too (more coke, more slag); without limestone it needs more coke and gives less iron.
+* **Air Separation Unit** (100 E/s): liquefies and distils air, ~38 mol (1.2 kg) of oxygen a second into gas tanks (real ~0.4 kWh per m^3).
+* **Oxygen Steel Furnace** (30 E/s, basic oxygen process): 8 pig iron + limestone + 2,200 mol of oxygen (real ~55 m^3 per t) -> 6.8 steel
+  ingots + slag; waits until its tanks hold the oxygen (a 30 bar tank holds ~1,230 mol: two tanks, or an air separation unit on the line).
+* **Copper Smelter** (50 E/s): 4 copper concentrate + 2,400 mol of oxygen (flash smelting and converting; the sulfur leaves as SO2) ->
+  1.95 blister copper (98.5 %) + slag. **Electrolytic Refinery** (80 E/s): blister copper -> 0.985 copper ingot (99.99 %) + anode slime,
+  which holds the gold and silver (the furnace gets 40 g of gold from a kg).
+* **Plate Rolling Mill** (80 E/s): 4 ingots -> a plate (steel or copper). **Rod Rolling Mill** (60 E/s): an ingot -> 4 rods. Plates and
+  rods are blocks you can place: a plate lies against the surface you look at (floor, wall, ceiling), a rod points the way you look.
+* The simple furnace still works the old way, with realistic losses: an iron ore block -> 6 wrought iron ingots (a bloomery keeps ~40 %
+  of the iron), pig iron -> wrought iron (puddling), copper concentrate -> blister copper, gold concentrate -> a gold bar; raw copper and
+  gold ore cannot be smelted (too little metal in them), sand -> 0.6 glass, cobblestone -> 0.85 stone.
 
 ## Electric machines, lamps, solar (Energy/Electric.cs)
 * **Electric Lamp** (0.5 E/s): lights up when powered and gives **block light** around it (level 9 at the lamp, one less per block,

@@ -573,7 +573,21 @@
           },
           "storage": {
             "scope": "block",
-            "key": "output"
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
           },
           "mode": "output_only"
         },
@@ -655,7 +669,21 @@
           },
           "storage": {
             "scope": "block",
-            "key": "output"
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
           },
           "mode": "output_only"
         },
@@ -726,6 +754,1230 @@
             200,
             255
           ]
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "jaw_crusher",
+      "id": 10,
+      "name": "Jaw Crusher",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Jaw Crusher",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "ore_concentrator",
+      "id": 11,
+      "name": "Ore Concentrator",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Ore Concentrator",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "coke_oven",
+      "id": 12,
+      "name": "Coke Oven",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Coke Oven",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "blast_furnace",
+      "id": 13,
+      "name": "Blast Furnace",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Blast Furnace",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "oxygen_furnace",
+      "id": 14,
+      "name": "Oxygen Steel Furnace",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Oxygen Steel Furnace",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "copper_smelter",
+      "id": 15,
+      "name": "Copper Smelter",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Copper Smelter",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "electrolytic_refinery",
+      "id": 16,
+      "name": "Electrolytic Refinery",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Electrolytic Refinery",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "plate_mill",
+      "id": 17,
+      "name": "Plate Rolling Mill",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Plate Rolling Mill",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "ui_panel",
+          "id_name": "player",
+          "position": {
+            "x": 0,
+            "y": 70
+          },
+          "ui_id": {
+            "namespace": "base",
+            "id_name": "player_inventory"
+          }
+        }
+      ]
+    },
+    {
+      "type": "ui",
+      "namespace": "base",
+      "id_name": "rod_mill",
+      "id": 18,
+      "name": "Rod Rolling Mill",
+      "window": {
+        "width": 196,
+        "height": 166,
+        "background": ""
+      },
+      "widgets": [
+        {
+          "type": "label",
+          "id_name": "title",
+          "text": "Rod Rolling Mill",
+          "position": {
+            "x": 8,
+            "y": 3
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input0",
+          "name": "Input",
+          "position": {
+            "x": 20,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[0]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input1",
+          "name": "Input",
+          "position": {
+            "x": 38,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[1]"
+          }
+        },
+        {
+          "type": "slot",
+          "id_name": "input2",
+          "name": "Input",
+          "position": {
+            "x": 56,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "input[2]"
+          }
+        },
+        {
+          "type": "progress_bar",
+          "id_name": "cook",
+          "position": {
+            "x": 80,
+            "y": 33
+          },
+          "size": {
+            "width": 26,
+            "height": 10
+          },
+          "current_from": "block.progress",
+          "orientation": "horizontal",
+          "max_from": "block.cook_time",
+          "color": [
+            240,
+            240,
+            240
+          ]
+        },
+        {
+          "type": "slot",
+          "id_name": "output0",
+          "name": "Output",
+          "position": {
+            "x": 116,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[0]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output1",
+          "name": "Output",
+          "position": {
+            "x": 134,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[1]"
+          },
+          "mode": "output_only"
+        },
+        {
+          "type": "slot",
+          "id_name": "output2",
+          "name": "Output",
+          "position": {
+            "x": 152,
+            "y": 29
+          },
+          "storage": {
+            "scope": "block",
+            "key": "output[2]"
+          },
+          "mode": "output_only"
         },
         {
           "type": "ui_panel",

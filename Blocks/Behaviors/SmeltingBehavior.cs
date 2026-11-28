@@ -14,7 +14,7 @@ public sealed class SmeltingBehavior : BlockBehavior
         var input = e.Inv("input"); var fuel = e.Inv("fuel"); var output = e.Inv("output");
         if (input == null || fuel == null || output == null) return;
         var r = input[0] is { IsEmpty: false } ? GameAssets.RecipeReg.SmeltingFor(input[0].Item) : null;
-        bool canOut = r != null && (output[0] == null || output[0].IsEmpty || (output[0].Item == r.Output && output[0].State == 0 && output[0].Count + r.Count <= output[0].MaxStack));
+        bool canOut = r != null && Processing.Fits(e, output, r.Outs);
         double burn = e.Num("burn");
         if (burn <= 0 && canOut && fuel[0] is { IsEmpty: false } f && f.Def?.FuelTime > 0)
         {   // light the next piece of fuel
@@ -30,7 +30,7 @@ public sealed class SmeltingBehavior : BlockBehavior
             if (prog >= r.Time)
             {
                 prog = 0;
-                if (output[0] == null || output[0].IsEmpty) output[0] = new ItemStack(r.Output, r.Count); else output[0].Count += r.Count;
+                Processing.Give(e, output, r.Output, r.Count);
                 if (--input[0].Count <= 0) input[0] = null;
             }
             e.SetNum("progress", prog);

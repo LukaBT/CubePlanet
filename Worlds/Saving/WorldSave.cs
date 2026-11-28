@@ -195,6 +195,7 @@ public static class WorldSave
         ["base:large_pipe"] = "base:large_liquid_pipe", ["base:pipe_valve"] = "base:liquid_pipe_valve", ["base:tank_wall"] = "base:liquid_tank_wall",
         ["base:tank_window"] = "base:liquid_tank_window", ["base:tank_valve"] = "base:liquid_tank_valve", ["base:hydrogen_tank"] = "base:gas_tank",
         ["base:elevator_3x3"] = "base:elevator_car_3x3", ["base:elevator_5x5"] = "base:elevator_car_5x5",
+        ["base:iron_dust"] = "base:crushed_iron_ore", ["base:gold_dust"] = "base:crushed_gold_ore", ["base:copper_dust"] = "base:crushed_copper_ore",
     };
     static int[] BuildMap(JsonObject saved, Func<string, int> current)
     {

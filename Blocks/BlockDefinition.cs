@@ -23,6 +23,7 @@ namespace CubePlanet;
 ///   random_offset [true]  cross: jitter the sprite position per block
 ///   waterlogged [false]   sits inside water (underwater plants: water faces next to it are hidden, breaking it leaves water)
 ///   lod_color [r,g,b]     colour of this block as a surface block on distant LOD terrain
+///   mass                  kg of the whole block (every block has one, see Mass: density x the volume it really fills)
 ///   render.layer [opaque] opaque (hides neighbour faces) | cutout | translucent | liquid
 ///   render.connect_group  faces between two blocks of the same group are hidden (leaves, glass, ice)
 ///   render.sway [none]    none | leaves | plant | underwater (vertex animation in the shader)
@@ -67,6 +68,8 @@ public sealed class BlockDefinition
     /// <summary>connect_solid (default true): "connecting" blocks also join full solid cubes (fences do, cables and pipes don't).</summary>
     public bool ConnectSolid = true;
     public double Emissive, Hardness = 1;
+    /// <summary>Mass in kg of the whole block (a multiblock: all its parts), properties.definition.mass; see <see cref="Mass"/>.</summary>
+    public double Mass;
     public int[] LodColor = { 128, 128, 128 };
     public JsonElement Json; // the full definition, for keys other systems read
     /// <summary>Do some states look or collide differently (rotation, overrides)? Then the game looks up a variant per state word.</summary>
@@ -146,7 +149,7 @@ public sealed class BlockDefinition
         b.RandomOffset = Bool(e, D + "random_offset", true); b.Waterlogged = Bool(e, D + "waterlogged");
         b.RenderLayer = Str(e, D + "render.layer", b.Model == "cube" ? "opaque" : b.Model == "liquid" ? "liquid" : "cutout");
         b.ConnectGroup = Str(e, D + "render.connect_group"); b.Sway = Str(e, D + "render.sway", "none");
-        b.Emissive = Num(e, D + "render.emissive"); b.CastsShadow = Bool(e, D + "render.casts_shadow", true); b.Hardness = Num(e, D + "hardness", 1);
+        b.Emissive = Num(e, D + "render.emissive"); b.CastsShadow = Bool(e, D + "render.casts_shadow", true); b.Hardness = Num(e, D + "hardness", 1); b.Mass = Num(e, D + "mass");
         if (Get(e, D + "lod_color") is { ValueKind: JsonValueKind.Array } lc && lc.GetArrayLength() >= 3) b.LodColor = lc.EnumerateArray().Take(3).Select(v => v.GetInt32()).ToArray();
         string[] models = { "cube", "cross", "liquid", "attached", "boxes" }, layers = { "opaque", "cutout", "translucent", "liquid" }, sways = { "none", "leaves", "plant", "underwater" };
         if (Array.IndexOf(models, b.Model) < 0) throw new InvalidDataException($"{who}: unknown model '{b.Model}' (use {string.Join(", ", models)})");

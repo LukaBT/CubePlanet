@@ -44,7 +44,8 @@ public static class ItemsUtil
     {
         if (e.Inv("input") is { } inp)
         {
-            bool works = GameAssets.RecipeReg.SmeltingFor(s.Item) != null || ProcessorBehavior.RecipesOf(e.BlockId).Any(r => r.Input == s.Item);
+            bool works = (BEH[e.BlockId] is SmeltingBehavior or ElectricFurnaceBehavior && GameAssets.RecipeReg.SmeltingFor(s.Item) != null)
+                || ProcessorBehavior.RecipesOf(e.BlockId).Any(r => r.Uses(s.Item)) || IndustryBehavior.RecipesOf(e.BlockId).Any(r => r.Uses(s.Item));
             if (works) return inp;
         }
         if (e.Inv("fuel") is { } fu && s.Def?.FuelTime > 0) return fu;

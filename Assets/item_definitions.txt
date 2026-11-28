@@ -2332,7 +2332,8 @@
       "properties": {
         "definition": {
           "stack_size": 64,
-          "fuel_time": 40
+          "fuel_time": 40,
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -2346,7 +2347,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 120.3125
         },
         "instance_state": {}
       }
@@ -2360,7 +2362,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 1
         },
         "instance_state": {}
       }
@@ -2374,7 +2377,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 140.0
         },
         "instance_state": {}
       }
@@ -2388,7 +2392,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 16
+          "stack_size": 16,
+          "mass": 18
         },
         "instance_state": {}
       }
@@ -2676,7 +2681,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 0.5
         },
         "instance_state": {}
       }
@@ -2728,7 +2734,8 @@
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 0.2
         },
         "instance_state": {}
       }
@@ -2762,7 +2769,8 @@
       "properties": {
         "definition": {
           "stack_size": 1,
-          "behavior": "hoe"
+          "behavior": "hoe",
+          "mass": 1.2
         },
         "instance_state": {}
       }
@@ -3018,7 +3026,8 @@
             "max_length": 48,
             "texture": 197,
             "max_voltage": "HV"
-          }
+          },
+          "mass": 50
         },
         "instance_state": {}
       }
@@ -3134,13 +3143,14 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "iron_dust",
+      "id_name": "crushed_iron_ore",
       "id": 171,
-      "name": "Iron Dust",
+      "name": "Crushed Iron Ore",
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 250
         },
         "instance_state": {}
       }
@@ -3148,13 +3158,14 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "gold_dust",
+      "id_name": "crushed_gold_ore",
       "id": 172,
-      "name": "Gold Dust",
+      "name": "Crushed Gold Ore",
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 250
         },
         "instance_state": {}
       }
@@ -3162,13 +3173,14 @@
     {
       "type": "item",
       "namespace": "base",
-      "id_name": "copper_dust",
+      "id_name": "crushed_copper_ore",
       "id": 173,
-      "name": "Copper Dust",
+      "name": "Crushed Copper Ore",
       "group_tags": [],
       "properties": {
         "definition": {
-          "stack_size": 64
+          "stack_size": 64,
+          "mass": 250
         },
         "instance_state": {}
       }
@@ -3183,7 +3195,8 @@
       "properties": {
         "definition": {
           "stack_size": 1,
-          "behavior": "multimeter"
+          "behavior": "multimeter",
+          "mass": 0.4
         },
         "instance_state": {}
       }
@@ -3396,7 +3409,8 @@
       "properties": {
         "definition": {
           "stack_size": 1,
-          "behavior": "drill"
+          "behavior": "drill",
+          "mass": 3.5
         },
         "instance_state": {
           "charge": {
@@ -3418,7 +3432,8 @@
       "properties": {
         "definition": {
           "stack_size": 1,
-          "behavior": "chainsaw"
+          "behavior": "chainsaw",
+          "mass": 6
         },
         "instance_state": {
           "charge": {
@@ -3729,7 +3744,8 @@
         "definition": {
           "stack_size": 1,
           "capacity": 8,
-          "behavior": "bucket"
+          "behavior": "bucket",
+          "mass": 1.5
         },
         "instance_state": {
           "fill": {
@@ -3800,6 +3816,440 @@
           "places_block": {
             "namespace": "base",
             "id_name": "oil_shale"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "crushed_limestone",
+      "id": 212,
+      "name": "Crushed Limestone",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 250
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "iron_concentrate",
+      "id": 213,
+      "name": "Iron Ore Concentrate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 250
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_concentrate",
+      "id": 214,
+      "name": "Copper Concentrate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 250
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "gold_concentrate",
+      "id": 215,
+      "name": "Gold Concentrate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 20
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "tailings",
+      "id": 216,
+      "name": "Tailings",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 250
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "slag",
+      "id": 217,
+      "name": "Slag",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 250
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "coke",
+      "id": 218,
+      "name": "Coke",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "fuel_time": 60,
+          "mass": 25
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "pig_iron",
+      "id": 219,
+      "name": "Pig Iron",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 112.5
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "steel_ingot",
+      "id": 220,
+      "name": "Steel Ingot",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 122.65625
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "blister_copper",
+      "id": 221,
+      "name": "Blister Copper",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 139.0625
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "anode_slime",
+      "id": 222,
+      "name": "Anode Slime",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "mass": 1
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "wood_chips",
+      "id": 223,
+      "name": "Wood Chips",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "fuel_time": 2,
+          "mass": 50
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "steel_plate",
+      "id": 224,
+      "name": "Steel Plate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "steel_plate"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_plate",
+      "id": 225,
+      "name": "Copper Plate",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "copper_plate"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "steel_rod",
+      "id": 226,
+      "name": "Steel Rod",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "steel_rod"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_rod",
+      "id": 227,
+      "name": "Copper Rod",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "copper_rod"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "jaw_crusher",
+      "id": 228,
+      "name": "Jaw Crusher",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "jaw_crusher"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "ore_concentrator",
+      "id": 229,
+      "name": "Ore Concentrator",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "ore_concentrator"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "coke_oven",
+      "id": 230,
+      "name": "Coke Oven",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "coke_oven"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "blast_furnace",
+      "id": 231,
+      "name": "Blast Furnace",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "blast_furnace"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "oxygen_furnace",
+      "id": 232,
+      "name": "Oxygen Steel Furnace",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "oxygen_furnace"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "copper_smelter",
+      "id": 233,
+      "name": "Copper Smelter",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "copper_smelter"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "electrolytic_refinery",
+      "id": 234,
+      "name": "Electrolytic Refinery",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "electrolytic_refinery"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "plate_mill",
+      "id": 235,
+      "name": "Plate Rolling Mill",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "plate_mill"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "rod_mill",
+      "id": 236,
+      "name": "Rod Rolling Mill",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "rod_mill"
+          }
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "item",
+      "namespace": "base",
+      "id_name": "air_separator",
+      "id": 237,
+      "name": "Air Separation Unit",
+      "group_tags": [],
+      "properties": {
+        "definition": {
+          "stack_size": 64,
+          "places_block": {
+            "namespace": "base",
+            "id_name": "air_separator"
           }
         },
         "instance_state": {}

@@ -102,7 +102,7 @@ public sealed class ElectricFurnaceBehavior : BlockBehavior, IEnergyMachine
     {
         var input = e.Inv("input"); var output = e.Inv("output"); if (input == null || output == null) return null;
         var r = input[0] is { IsEmpty: false } ? GameAssets.RecipeReg.SmeltingFor(input[0].Item) : null;
-        bool canOut = r != null && (output[0] == null || output[0].IsEmpty || (output[0].Item == r.Output && output[0].State == 0 && output[0].Count + r.Count <= output[0].MaxStack));
+        bool canOut = r != null && Processing.Fits(e, output, r.Outs);
         return canOut ? r : null;
     }
     public void Plan(BlockEntity e, double dt, ref EnergyPlan p) { if (Job(e) != null) p.Demand = Power(e.BlockId) * dt; }
@@ -116,7 +116,7 @@ public sealed class ElectricFurnaceBehavior : BlockBehavior, IEnergyMachine
         if (prog >= r.Time)
         {
             prog = 0; var input = e.Inv("input"); var output = e.Inv("output");
-            if (output[0] == null || output[0].IsEmpty) output[0] = new ItemStack(r.Output, r.Count); else output[0].Count += r.Count;
+            Processing.Give(e, output, r.Output, r.Count);
             if (--input[0].Count <= 0) input[0] = null;
         }
         e.SetNum("progress", prog);

@@ -265,3 +265,17 @@ texture_rows: 128
 262 dual_gas_pipe 96 256
 263 gas_tank 112 256
 264 gas_valve 128 256
+265 steel_plate 144 256
+266 copper_plate 160 256
+267 refractory_brick 176 256
+268 coke_brick 192 256
+269 crusher_front 208 256
+270 concentrator_front 224 256
+271 coke_oven_front 240 256
+272 blast_furnace_front 0 272
+273 oxygen_furnace_front 16 272
+274 air_separator_side 32 272
+275 copper_smelter_front 48 272
+276 refinery_front 64 272
+277 plate_mill_front 80 272
+278 rod_mill_front 96 272

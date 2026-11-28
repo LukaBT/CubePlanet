@@ -49,7 +49,8 @@
               "id_name": "grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -103,7 +104,8 @@
               "id_name": "stone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2700
         },
         "instance_state": {}
       }
@@ -157,7 +159,8 @@
               "id_name": "oil_shale",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2300
         },
         "instance_state": {}
       }
@@ -211,7 +214,8 @@
               "id_name": "dirt",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -269,7 +273,8 @@
               "id_name": "oak_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 750
         },
         "instance_state": {}
       }
@@ -327,7 +332,8 @@
               "id_name": "oak_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -382,7 +388,8 @@
               "id_name": "ice",
               "count": 1
             }
-          ]
+          ],
+          "mass": 917
         },
         "instance_state": {}
       }
@@ -436,7 +443,8 @@
               "id_name": "sand",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1600
         },
         "instance_state": {}
       }
@@ -490,7 +498,8 @@
               "id_name": "snow",
               "count": 1
             }
-          ]
+          ],
+          "mass": 400
         },
         "instance_state": {}
       }
@@ -527,7 +536,8 @@
           "drops": [],
           "liquid": {
             "density": 1000
-          }
+          },
+          "mass": 1000
         },
         "instance_state": {
           "level": {
@@ -572,7 +582,8 @@
           "liquid": {
             "density": 850,
             "viscosity": 2
-          }
+          },
+          "mass": 870
         },
         "instance_state": {
           "level": {
@@ -617,7 +628,8 @@
           "liquid": {
             "density": 1141,
             "boil": 0.2
-          }
+          },
+          "mass": 1141
         },
         "instance_state": {
           "level": {
@@ -678,7 +690,8 @@
               "id_name": "gravel",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1700
         },
         "instance_state": {}
       }
@@ -732,7 +745,8 @@
               "id_name": "sandstone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2300
         },
         "instance_state": {}
       }
@@ -786,7 +800,8 @@
               "id_name": "red_sand",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1600
         },
         "instance_state": {}
       }
@@ -840,7 +855,8 @@
               "id_name": "terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -894,7 +910,8 @@
               "id_name": "orange_terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -948,7 +965,8 @@
               "id_name": "yellow_terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -1002,7 +1020,8 @@
               "id_name": "white_terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -1056,7 +1075,8 @@
               "id_name": "red_terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -1110,7 +1130,8 @@
               "id_name": "brown_terracotta",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1800
         },
         "instance_state": {}
       }
@@ -1164,7 +1185,8 @@
               "id_name": "jungle_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -1218,7 +1240,8 @@
               "id_name": "savanna_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -1272,7 +1295,8 @@
               "id_name": "taiga_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -1326,7 +1350,8 @@
               "id_name": "swamp_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -1384,7 +1409,8 @@
               "id_name": "spruce_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -1442,7 +1468,8 @@
               "id_name": "jungle_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -1500,7 +1527,8 @@
               "id_name": "acacia_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -1558,7 +1586,8 @@
               "id_name": "birch_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -1616,7 +1645,8 @@
               "id_name": "birch_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 670
         },
         "instance_state": {}
       }
@@ -1674,7 +1704,8 @@
               "id_name": "spruce_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 450
         },
         "instance_state": {}
       }
@@ -1732,7 +1763,8 @@
               "id_name": "jungle_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 650
         },
         "instance_state": {}
       }
@@ -1790,7 +1822,8 @@
               "id_name": "acacia_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 830
         },
         "instance_state": {}
       }
@@ -1844,7 +1877,8 @@
               "id_name": "oak_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 750
         },
         "instance_state": {}
       }
@@ -1898,7 +1932,8 @@
               "id_name": "spruce_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 450
         },
         "instance_state": {}
       }
@@ -1952,7 +1987,8 @@
               "id_name": "acacia_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 830
         },
         "instance_state": {}
       }
@@ -2006,7 +2042,8 @@
               "id_name": "jungle_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 650
         },
         "instance_state": {}
       }
@@ -2060,7 +2097,8 @@
               "id_name": "cobblestone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2400
         },
         "instance_state": {}
       }
@@ -2114,7 +2152,8 @@
               "id_name": "mossy_cobblestone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2400
         },
         "instance_state": {}
       }
@@ -2168,7 +2207,8 @@
               "id_name": "stone_bricks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2400
         },
         "instance_state": {}
       }
@@ -2223,7 +2263,8 @@
               "id_name": "glass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2500
         },
         "instance_state": {}
       }
@@ -2277,7 +2318,8 @@
               "id_name": "cut_sandstone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2300
         },
         "instance_state": {}
       }
@@ -2331,7 +2373,8 @@
               "id_name": "cactus",
               "count": 1
             }
-          ]
+          ],
+          "mass": 700
         },
         "instance_state": {}
       }
@@ -2385,7 +2428,8 @@
               "id_name": "hay_bale",
               "count": 1
             }
-          ]
+          ],
+          "mass": 160
         },
         "instance_state": {}
       }
@@ -2439,7 +2483,8 @@
               "id_name": "red_sandstone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2300
         },
         "instance_state": {}
       }
@@ -2488,7 +2533,8 @@
               "id_name": "tall_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.5
         },
         "instance_state": {}
       }
@@ -2537,7 +2583,8 @@
               "id_name": "dry_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -2586,7 +2633,8 @@
               "id_name": "fern",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.5
         },
         "instance_state": {}
       }
@@ -2635,7 +2683,8 @@
               "id_name": "dandelion",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -2684,7 +2733,8 @@
               "id_name": "poppy",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -2733,7 +2783,8 @@
               "id_name": "cornflower",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -2782,7 +2833,8 @@
               "id_name": "allium",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -2831,7 +2883,8 @@
               "id_name": "dead_bush",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.5
         },
         "instance_state": {}
       }
@@ -2881,7 +2934,8 @@
               "id_name": "vine",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1
         },
         "instance_state": {}
       }
@@ -2930,7 +2984,8 @@
               "id_name": "cocoa",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1.5
         },
         "instance_state": {}
       }
@@ -2978,7 +3033,8 @@
               "id_name": "red_mushroom",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.1
         },
         "instance_state": {}
       }
@@ -3026,7 +3082,8 @@
               "id_name": "brown_mushroom",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.1
         },
         "instance_state": {}
       }
@@ -3076,7 +3133,8 @@
               "id_name": "sugar_cane",
               "count": 1
             }
-          ]
+          ],
+          "mass": 6
         },
         "instance_state": {}
       }
@@ -3130,7 +3188,8 @@
               "id_name": "pumpkin",
               "count": 1
             }
-          ]
+          ],
+          "mass": 600
         },
         "instance_state": {}
       }
@@ -3184,7 +3243,8 @@
               "id_name": "melon",
               "count": 1
             }
-          ]
+          ],
+          "mass": 950
         },
         "instance_state": {}
       }
@@ -3238,7 +3298,8 @@
               "id_name": "coal_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1600
         },
         "instance_state": {}
       }
@@ -3292,7 +3353,8 @@
               "id_name": "iron_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 4000
         },
         "instance_state": {}
       }
@@ -3346,7 +3408,8 @@
               "id_name": "gold_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2900
         },
         "instance_state": {}
       }
@@ -3400,7 +3463,8 @@
               "id_name": "diamond_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -3454,7 +3518,8 @@
               "id_name": "redstone_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2900
         },
         "instance_state": {}
       }
@@ -3508,7 +3573,8 @@
               "id_name": "lapis_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2800
         },
         "instance_state": {}
       }
@@ -3562,7 +3628,8 @@
               "id_name": "copper_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -3616,7 +3683,8 @@
               "id_name": "emerald_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2800
         },
         "instance_state": {}
       }
@@ -3670,7 +3738,8 @@
               "id_name": "deepslate",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2900
         },
         "instance_state": {}
       }
@@ -3724,7 +3793,8 @@
               "id_name": "deepslate_coal_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1700
         },
         "instance_state": {}
       }
@@ -3778,7 +3848,8 @@
               "id_name": "deepslate_iron_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 4000
         },
         "instance_state": {}
       }
@@ -3832,7 +3903,8 @@
               "id_name": "deepslate_gold_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2900
         },
         "instance_state": {}
       }
@@ -3886,7 +3958,8 @@
               "id_name": "deepslate_diamond_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3200
         },
         "instance_state": {}
       }
@@ -3940,7 +4013,8 @@
               "id_name": "deepslate_redstone_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3100
         },
         "instance_state": {}
       }
@@ -3994,7 +4068,8 @@
               "id_name": "deepslate_lapis_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -4048,7 +4123,8 @@
               "id_name": "deepslate_copper_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -4102,7 +4178,8 @@
               "id_name": "deepslate_emerald_ore",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -4141,7 +4218,8 @@
           "liquid": {
             "density": 3100,
             "viscosity": 6
-          }
+          },
+          "mass": 2600
         },
         "instance_state": {
           "level": {
@@ -4202,7 +4280,8 @@
               "id_name": "lush_grass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -4256,7 +4335,8 @@
               "id_name": "moss_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1300
         },
         "instance_state": {}
       }
@@ -4310,7 +4390,8 @@
               "id_name": "podzol",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1400
         },
         "instance_state": {}
       }
@@ -4364,7 +4445,8 @@
               "id_name": "packed_ice",
               "count": 1
             }
-          ]
+          ],
+          "mass": 920
         },
         "instance_state": {}
       }
@@ -4418,7 +4500,8 @@
               "id_name": "blue_ice",
               "count": 1
             }
-          ]
+          ],
+          "mass": 925
         },
         "instance_state": {}
       }
@@ -4472,7 +4555,8 @@
               "id_name": "clay",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2000
         },
         "instance_state": {}
       }
@@ -4526,7 +4610,8 @@
               "id_name": "coral_sand",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -4580,7 +4665,8 @@
               "id_name": "basalt",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {}
       }
@@ -4634,7 +4720,8 @@
               "id_name": "volcanic_ash",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1000
         },
         "instance_state": {}
       }
@@ -4689,7 +4776,8 @@
               "id_name": "magma_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2700
         },
         "instance_state": {}
       }
@@ -4743,7 +4831,8 @@
               "id_name": "obsidian",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2400
         },
         "instance_state": {}
       }
@@ -4797,7 +4886,8 @@
               "id_name": "prismarine_bricks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2600
         },
         "instance_state": {}
       }
@@ -4852,7 +4942,8 @@
               "id_name": "sea_lantern",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -4906,7 +4997,8 @@
               "id_name": "dead_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -4964,7 +5056,8 @@
               "id_name": "cherry_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 630
         },
         "instance_state": {}
       }
@@ -5018,7 +5111,8 @@
               "id_name": "cherry_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 630
         },
         "instance_state": {}
       }
@@ -5076,7 +5170,8 @@
               "id_name": "palm_log",
               "count": 1
             }
-          ]
+          ],
+          "mass": 550
         },
         "instance_state": {}
       }
@@ -5130,7 +5225,8 @@
               "id_name": "palm_planks",
               "count": 1
             }
-          ]
+          ],
+          "mass": 550
         },
         "instance_state": {}
       }
@@ -5188,7 +5284,8 @@
               "id_name": "cherry_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -5246,7 +5343,8 @@
               "id_name": "flowering_azalea_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -5304,7 +5402,8 @@
               "id_name": "azalea_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -5362,7 +5461,8 @@
               "id_name": "palm_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {}
       }
@@ -5420,7 +5520,8 @@
               "id_name": "snowy_spruce_leaves",
               "count": 1
             }
-          ]
+          ],
+          "mass": 60
         },
         "instance_state": {}
       }
@@ -5474,7 +5575,8 @@
               "id_name": "tube_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -5528,7 +5630,8 @@
               "id_name": "brain_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -5582,7 +5685,8 @@
               "id_name": "bubble_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -5636,7 +5740,8 @@
               "id_name": "fire_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -5690,7 +5795,8 @@
               "id_name": "horn_coral_block",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -5739,7 +5845,8 @@
               "id_name": "pink_petals",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -5788,7 +5895,8 @@
               "id_name": "pink_tulip",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -5837,7 +5945,8 @@
               "id_name": "bluebell",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.05
         },
         "instance_state": {}
       }
@@ -5886,7 +5995,8 @@
               "id_name": "lavender",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.1
         },
         "instance_state": {}
       }
@@ -5936,7 +6046,8 @@
               "id_name": "bamboo",
               "count": 1
             }
-          ]
+          ],
+          "mass": 8
         },
         "instance_state": {}
       }
@@ -5985,7 +6096,8 @@
               "id_name": "sweet_berry_bush",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2
         },
         "instance_state": {}
       }
@@ -6036,7 +6148,8 @@
               "id_name": "seagrass",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.5
         },
         "instance_state": {}
       }
@@ -6087,7 +6200,8 @@
               "id_name": "kelp",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1
         },
         "instance_state": {}
       }
@@ -6137,7 +6251,8 @@
               "id_name": "sea_pickle",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.2
         },
         "instance_state": {}
       }
@@ -6187,7 +6302,8 @@
               "id_name": "tube_coral_fan",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -6237,7 +6353,8 @@
               "id_name": "brain_coral_fan",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -6287,7 +6404,8 @@
               "id_name": "bubble_coral_fan",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -6337,7 +6455,8 @@
               "id_name": "fire_coral_fan",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -6387,7 +6506,8 @@
               "id_name": "horn_coral_fan",
               "count": 1
             }
-          ]
+          ],
+          "mass": 0.3
         },
         "instance_state": {}
       }
@@ -6492,7 +6612,8 @@
               "id_name": "oak_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 375
         },
         "instance_state": {
           "half": {
@@ -6606,7 +6727,8 @@
               "id_name": "stone_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1350
         },
         "instance_state": {
           "half": {
@@ -6720,7 +6842,8 @@
               "id_name": "cobblestone_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1200
         },
         "instance_state": {
           "half": {
@@ -7461,7 +7584,8 @@
             }
           ],
           "placement_facing": "away",
-          "behavior": "stairs"
+          "behavior": "stairs",
+          "mass": 562.5
         },
         "instance_state": {
           "half": {
@@ -8213,7 +8337,8 @@
             }
           ],
           "placement_facing": "away",
-          "behavior": "stairs"
+          "behavior": "stairs",
+          "mass": 1800
         },
         "instance_state": {
           "half": {
@@ -10159,7 +10284,8 @@
           "behavior": "connecting",
           "connects_to": [
             "fence"
-          ]
+          ],
+          "mass": 60
         },
         "instance_state": {
           "north": {
@@ -10319,7 +10445,8 @@
               "id_name": "oak_door",
               "count": 1
             }
-          ]
+          ],
+          "mass": 281
         },
         "instance_state": {
           "half": {
@@ -10492,7 +10619,8 @@
               "id_name": "red_bed",
               "count": 1
             }
-          ]
+          ],
+          "mass": 80
         },
         "instance_state": {
           "part": {
@@ -10582,7 +10710,8 @@
               "id_name": "chest",
               "count": 1
             }
-          ]
+          ],
+          "mass": 60
         },
         "instance_state": {
           "slots": {
@@ -10667,7 +10796,8 @@
               "id_name": "furnace",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {
           "lit": {
@@ -10772,7 +10902,8 @@
               "id_name": "oxygen_generator",
               "count": 1
             }
-          ]
+          ],
+          "mass": 400
         },
         "instance_state": {
           "fuel": {
@@ -10867,7 +10998,8 @@
               "id_name": "oak_vertical_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 375
         },
         "instance_state": {}
       }
@@ -10937,7 +11069,8 @@
               "id_name": "stone_vertical_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1350
         },
         "instance_state": {}
       }
@@ -11007,7 +11140,8 @@
               "id_name": "cobblestone_vertical_slab",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1200
         },
         "instance_state": {}
       }
@@ -11165,7 +11299,8 @@
             "capacity": 64,
             "loss": 0.003,
             "max_voltage": "LV"
-          }
+          },
+          "mass": 12
         },
         "instance_state": {
           "north": {
@@ -11345,7 +11480,8 @@
           ],
           "pipe": {
             "diameter": 0.35
-          }
+          },
+          "mass": 37
         },
         "instance_state": {
           "north": {
@@ -11522,7 +11658,8 @@
               "id_name": "gas_pipe",
               "count": 1
             }
-          ]
+          ],
+          "mass": 20
         },
         "instance_state": {
           "north": {
@@ -11754,7 +11891,8 @@
           ],
           "pipe": {
             "diameter": 0.35
-          }
+          },
+          "mass": 40
         },
         "instance_state": {
           "north": {
@@ -11986,7 +12124,8 @@
           ],
           "pipe": {
             "diameter": 0.35
-          }
+          },
+          "mass": 74
         },
         "instance_state": {
           "north": {
@@ -12058,7 +12197,8 @@
               "id_name": "liquid_turbine",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1500
         },
         "instance_state": {
           "mode": {
@@ -12132,7 +12272,8 @@
             "max_head": 60,
             "flow": 16,
             "efficiency": 0.75
-          }
+          },
+          "mass": 600
         },
         "instance_state": {
           "mode": {
@@ -12196,7 +12337,8 @@
               "id_name": "battery",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2000
         },
         "instance_state": {
           "energy": {
@@ -12248,7 +12390,8 @@
               "id_name": "spring",
               "count": 1
             }
-          ]
+          ],
+          "mass": 500
         },
         "instance_state": {
           "rate": {
@@ -12300,7 +12443,8 @@
               "id_name": "drain",
               "count": 1
             }
-          ]
+          ],
+          "mass": 500
         },
         "instance_state": {
           "flow": {
@@ -12430,7 +12574,8 @@
             110,
             90,
             50
-          ]
+          ],
+          "mass": 1400
         },
         "instance_state": {
           "moisture": {
@@ -12562,7 +12707,8 @@
             110,
             90,
             50
-          ]
+          ],
+          "mass": 2
         },
         "instance_state": {
           "age": {
@@ -12689,7 +12835,8 @@
             110,
             90,
             50
-          ]
+          ],
+          "mass": 2
         },
         "instance_state": {
           "age": {
@@ -12816,7 +12963,8 @@
             110,
             90,
             50
-          ]
+          ],
+          "mass": 2
         },
         "instance_state": {
           "age": {
@@ -12916,7 +13064,8 @@
             110,
             90,
             50
-          ]
+          ],
+          "mass": 2
         },
         "instance_state": {
           "age": {
@@ -13048,7 +13197,8 @@
           "wind_turbine": {
             "diameter": 5,
             "power": 10
-          }
+          },
+          "mass": 1500
         },
         "instance_state": {
           "angle": {
@@ -13149,7 +13299,8 @@
               "id_name": "shaft",
               "count": 1
             }
-          ]
+          ],
+          "mass": 90
         },
         "instance_state": {
           "angle": {
@@ -13239,7 +13390,8 @@
               "id_name": "generator",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2500
         },
         "instance_state": {
           "angle": {
@@ -13317,7 +13469,8 @@
               "id_name": "coal_generator",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {
           "lit": {
@@ -13455,7 +13608,8 @@
           "wind_turbine": {
             "diameter": 7,
             "power": 20
-          }
+          },
+          "mass": 6000
         },
         "instance_state": {
           "angle": {
@@ -13589,7 +13743,8 @@
           "wind_turbine": {
             "diameter": 11,
             "power": 48
-          }
+          },
+          "mass": 15000
         },
         "instance_state": {
           "angle": {
@@ -13764,7 +13919,8 @@
             "capacity": 256,
             "loss": 0.002,
             "max_voltage": "LV"
-          }
+          },
+          "mass": 15
         },
         "instance_state": {
           "north": {
@@ -13947,7 +14103,8 @@
             "capacity": 1024,
             "loss": 0.001,
             "max_voltage": "MV"
-          }
+          },
+          "mass": 12
         },
         "instance_state": {
           "north": {
@@ -14132,7 +14289,8 @@
             "loss": 0,
             "max_voltage": "MV",
             "upkeep": 0.05
-          }
+          },
+          "mass": 25
         },
         "instance_state": {
           "north": {
@@ -14209,7 +14367,8 @@
               "id_name": "transformer_lv_mv",
               "count": 1
             }
-          ]
+          ],
+          "mass": 3000
         },
         "instance_state": {
           "flow": {
@@ -14270,7 +14429,8 @@
               "id_name": "transformer_mv_hv",
               "count": 1
             }
-          ]
+          ],
+          "mass": 6000
         },
         "instance_state": {
           "flow": {
@@ -14399,7 +14559,8 @@
               "id_name": "wire_connector",
               "count": 1
             }
-          ]
+          ],
+          "mass": 30
         },
         "instance_state": {}
       }
@@ -15400,7 +15561,8 @@
               "id_name": "pylon",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2000
         },
         "instance_state": {
           "section": {
@@ -15469,7 +15631,8 @@
               "id_name": "electric_lamp",
               "count": 1
             }
-          ]
+          ],
+          "mass": 20
         },
         "instance_state": {
           "lit": {
@@ -15547,7 +15710,8 @@
               "id_name": "electric_furnace",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2500
         },
         "instance_state": {
           "lit": {
@@ -15642,7 +15806,8 @@
               "id_name": "electric_motor",
               "count": 1
             }
-          ]
+          ],
+          "mass": 800
         },
         "instance_state": {
           "angle": {
@@ -15787,7 +15952,8 @@
               "id_name": "solar_panel_small",
               "count": 1
             }
-          ]
+          ],
+          "mass": 40
         },
         "instance_state": {
           "mode": {
@@ -16079,7 +16245,8 @@
               "id_name": "solar_panel_medium",
               "count": 1
             }
-          ]
+          ],
+          "mass": 150
         },
         "instance_state": {
           "mode": {
@@ -16581,7 +16748,8 @@
               "id_name": "solar_panel_large",
               "count": 1
             }
-          ]
+          ],
+          "mass": 400
         },
         "instance_state": {
           "mode": {
@@ -16660,7 +16828,8 @@
               "id_name": "gearbox",
               "count": 1
             }
-          ]
+          ],
+          "mass": 600
         },
         "instance_state": {
           "angle": {
@@ -16775,40 +16944,237 @@
             "power": 15,
             "recipes": [
               {
-                "input": "iron_ore",
-                "output": "iron_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "iron_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_iron_ore",
+                    16
+                  ]
+                ],
+                "time": 120
               },
               {
-                "input": "deepslate_iron_ore",
-                "output": "iron_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "deepslate_iron_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_iron_ore",
+                    16
+                  ]
+                ],
+                "time": 120
               },
               {
-                "input": "gold_ore",
-                "output": "gold_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "copper_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_copper_ore",
+                    12
+                  ]
+                ],
+                "time": 120
               },
               {
-                "input": "deepslate_gold_ore",
-                "output": "gold_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "deepslate_copper_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_copper_ore",
+                    12
+                  ]
+                ],
+                "time": 120
               },
               {
-                "input": "copper_ore",
-                "output": "copper_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "gold_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_gold_ore",
+                    11.6
+                  ]
+                ],
+                "time": 120
               },
               {
-                "input": "deepslate_copper_ore",
-                "output": "copper_dust",
-                "count": 2,
-                "work": 120
+                "in": [
+                  [
+                    "deepslate_gold_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_gold_ore",
+                    11.6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "coal_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "coal",
+                    48
+                  ],
+                  [
+                    "tailings",
+                    1.6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "deepslate_coal_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "coal",
+                    48
+                  ],
+                  [
+                    "tailings",
+                    2
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "dead_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "tube_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "brain_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "bubble_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "fire_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "horn_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
+              },
+              {
+                "in": [
+                  [
+                    "coral_sand",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 120
               }
             ]
           },
@@ -16823,7 +17189,8 @@
               "id_name": "millstone",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1960
         },
         "instance_state": {
           "angle": {
@@ -16840,7 +17207,7 @@
           },
           "output": {
             "type": "inventory",
-            "slots": 1
+            "slots": 2
           },
           "progress": {
             "type": "number",
@@ -16945,40 +17312,118 @@
             "power": 15,
             "recipes": [
               {
-                "input": "oak_log",
-                "output": "oak_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "oak_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "oak_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    5.7
+                  ]
+                ],
+                "time": 60
               },
               {
-                "input": "spruce_log",
-                "output": "spruce_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "spruce_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "spruce_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    3.42
+                  ]
+                ],
+                "time": 60
               },
               {
-                "input": "acacia_log",
-                "output": "acacia_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "acacia_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "acacia_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    6.31
+                  ]
+                ],
+                "time": 60
               },
               {
-                "input": "jungle_log",
-                "output": "jungle_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "jungle_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "jungle_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    4.94
+                  ]
+                ],
+                "time": 60
               },
               {
-                "input": "cherry_log",
-                "output": "cherry_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "cherry_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "cherry_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    4.79
+                  ]
+                ],
+                "time": 60
               },
               {
-                "input": "palm_log",
-                "output": "palm_planks",
-                "count": 6,
-                "work": 60
+                "in": [
+                  [
+                    "palm_log",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "palm_planks",
+                    0.6
+                  ],
+                  [
+                    "wood_chips",
+                    4.18
+                  ]
+                ],
+                "time": 60
               }
             ]
           },
@@ -16993,7 +17438,8 @@
               "id_name": "sawmill",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1000
         },
         "instance_state": {
           "angle": {
@@ -17010,7 +17456,7 @@
           },
           "output": {
             "type": "inventory",
-            "slots": 1
+            "slots": 2
           },
           "progress": {
             "type": "number",
@@ -17074,7 +17520,8 @@
             "max_head": 60,
             "flow": 16,
             "efficiency": 0.75
-          }
+          },
+          "mass": 500
         },
         "instance_state": {
           "angle": {
@@ -17143,7 +17590,8 @@
               "id_name": "liquid_tank_wall",
               "count": 1
             }
-          ]
+          ],
+          "mass": 400
         },
         "instance_state": {}
       }
@@ -17183,7 +17631,8 @@
               "id_name": "liquid_tank_window",
               "count": 1
             }
-          ]
+          ],
+          "mass": 300
         },
         "instance_state": {}
       }
@@ -17225,7 +17674,8 @@
               "id_name": "liquid_tank_valve",
               "count": 1
             }
-          ]
+          ],
+          "mass": 450
         },
         "instance_state": {
           "form_t": {
@@ -17272,7 +17722,8 @@
               "id_name": "compressor",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1200
         },
         "instance_state": {
           "mode": {
@@ -17334,7 +17785,8 @@
             "max_head": 265,
             "flow": 4,
             "efficiency": 0.85
-          }
+          },
+          "mass": 1500
         },
         "instance_state": {
           "mode": {
@@ -17510,7 +17962,8 @@
           ],
           "pipe": {
             "diameter": 0.8
-          }
+          },
+          "mass": 150
         },
         "instance_state": {
           "north": {
@@ -17578,7 +18031,8 @@
               "id_name": "liquid_pipe_valve",
               "count": 1
             }
-          ]
+          ],
+          "mass": 80
         },
         "instance_state": {
           "closed": {
@@ -17639,7 +18093,8 @@
               "id_name": "miner",
               "count": 1
             }
-          ]
+          ],
+          "mass": 4000
         },
         "instance_state": {
           "cx": {
@@ -17720,7 +18175,8 @@
               "id_name": "electrolyzer",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2000
         },
         "instance_state": {
           "water": {
@@ -17778,7 +18234,8 @@
               "id_name": "gas_tank",
               "count": 1
             }
-          ]
+          ],
+          "mass": 800
         },
         "instance_state": {
           "gas": {
@@ -17833,7 +18290,8 @@
               "id_name": "fuel_cell",
               "count": 1
             }
-          ]
+          ],
+          "mass": 1200
         },
         "instance_state": {
           "power": {
@@ -17883,7 +18341,8 @@
               "id_name": "charger",
               "count": 1
             }
-          ]
+          ],
+          "mass": 80
         },
         "instance_state": {
           "slot": {
@@ -17962,7 +18421,8 @@
               "id_name": "grow_light",
               "count": 1
             }
-          ]
+          ],
+          "mass": 25
         },
         "instance_state": {
           "lit": {
@@ -18059,7 +18519,8 @@
               "id_name": "sprinkler",
               "count": 1
             }
-          ]
+          ],
+          "mass": 15
         },
         "instance_state": {
           "timer": {
@@ -18119,7 +18580,8 @@
               "id_name": "elevator",
               "count": 1
             }
-          ]
+          ],
+          "mass": 2500
         },
         "instance_state": {
           "energy": {
@@ -18188,7 +18650,8 @@
           "geometry": {
             "collision": "boxes",
             "selection": "boxes"
-          }
+          },
+          "mass": 60
         },
         "instance_state": {}
       }
@@ -18273,7 +18736,8 @@
           "geometry": {
             "collision": "boxes",
             "selection": "boxes"
-          }
+          },
+          "mass": 400
         },
         "instance_state": {}
       }
@@ -18358,7 +18822,8 @@
           "geometry": {
             "collision": "boxes",
             "selection": "boxes"
-          }
+          },
+          "mass": 1500
         },
         "instance_state": {}
       }
@@ -18443,7 +18908,8 @@
           "geometry": {
             "collision": "boxes",
             "selection": "boxes"
-          }
+          },
+          "mass": 3500
         },
         "instance_state": {}
       }
@@ -18486,7 +18952,8 @@
               "id_name": "elevator_stop",
               "count": 1
             }
-          ]
+          ],
+          "mass": 40
         },
         "instance_state": {}
       }
@@ -18529,7 +18996,8 @@
               "id_name": "extractor",
               "count": 1
             }
-          ]
+          ],
+          "mass": 250
         },
         "instance_state": {
           "acc": {
@@ -18934,7 +19402,8 @@
               "count": 1
             }
           ],
-          "behavior": "conveyor"
+          "behavior": "conveyor",
+          "mass": 120
         },
         "instance_state": {
           "shape": {
@@ -19018,7 +19487,8 @@
               "id_name": "status_lamp",
               "count": 1
             }
-          ]
+          ],
+          "mass": 8
         },
         "instance_state": {
           "level": {
@@ -19028,6 +19498,1684 @@
             "default": 0
           },
           "on": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "steel_plate",
+      "id": 197,
+      "name": "Steel Plate",
+      "stateless": false,
+      "group_tags": [
+        "metal"
+      ],
+      "textures": {
+        "all": 265
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.0625
+            }
+          ],
+          "rotation": "all",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            150,
+            156,
+            164
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 490.625,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.0625
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.0625
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "steel_plate",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "copper_plate",
+      "id": 198,
+      "name": "Copper Plate",
+      "stateless": false,
+      "group_tags": [
+        "metal"
+      ],
+      "textures": {
+        "all": 266
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1,
+              "h": 1,
+              "d": 0.0625
+            }
+          ],
+          "rotation": "all",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            196,
+            120,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 560.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.0625
+              }
+            ],
+            "selection": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1,
+                "h": 1,
+                "d": 0.0625
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "copper_plate",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "steel_rod",
+      "id": 199,
+      "name": "Steel Rod",
+      "stateless": false,
+      "group_tags": [
+        "metal"
+      ],
+      "textures": {
+        "all": 265
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0.46875,
+              "y": 0.46875,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.0625,
+              "d": 1
+            }
+          ],
+          "rotation": "all",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            150,
+            156,
+            164
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 30.6640625,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.46875,
+                "y": 0.46875,
+                "z": 0,
+                "w": 0.0625,
+                "h": 0.0625,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.46875,
+                "y": 0.46875,
+                "z": 0,
+                "w": 0.0625,
+                "h": 0.0625,
+                "d": 1
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "steel_rod",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "copper_rod",
+      "id": 200,
+      "name": "Copper Rod",
+      "stateless": false,
+      "group_tags": [
+        "metal"
+      ],
+      "textures": {
+        "all": 266
+      },
+      "properties": {
+        "definition": {
+          "model": "boxes",
+          "boxes": [
+            {
+              "x": 0.46875,
+              "y": 0.46875,
+              "z": 0,
+              "w": 0.0625,
+              "h": 0.0625,
+              "d": 1
+            }
+          ],
+          "rotation": "all",
+          "placement_facing": "away",
+          "render": {
+            "layer": "cutout"
+          },
+          "random_offset": false,
+          "lod_color": [
+            196,
+            120,
+            78
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 35.0,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "geometry": {
+            "collision": [
+              {
+                "x": 0.46875,
+                "y": 0.46875,
+                "z": 0,
+                "w": 0.0625,
+                "h": 0.0625,
+                "d": 1
+              }
+            ],
+            "selection": [
+              {
+                "x": 0.46875,
+                "y": 0.46875,
+                "z": 0,
+                "w": 0.0625,
+                "h": 0.0625,
+                "d": 1
+              }
+            ]
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "copper_rod",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {}
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "jaw_crusher",
+      "id": 201,
+      "name": "Jaw Crusher",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 269,
+        "side": 251,
+        "top": 250,
+        "bottom": 250
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "jaw_crusher"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            120,
+            110,
+            70
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 5000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "jaw_crusher",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 40,
+            "recipes": [
+              {
+                "in": [
+                  [
+                    "iron_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_iron_ore",
+                    16
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "deepslate_iron_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_iron_ore",
+                    16
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "copper_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_copper_ore",
+                    12
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "deepslate_copper_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_copper_ore",
+                    12
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "gold_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_gold_ore",
+                    11.6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "deepslate_gold_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_gold_ore",
+                    11.6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "coal_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "coal",
+                    48
+                  ],
+                  [
+                    "tailings",
+                    1.6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "deepslate_coal_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "coal",
+                    48
+                  ],
+                  [
+                    "tailings",
+                    2
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "dead_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "tube_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "brain_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "bubble_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "fire_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "horn_coral_block",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              },
+              {
+                "in": [
+                  [
+                    "coral_sand",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "crushed_limestone",
+                    6
+                  ]
+                ],
+                "time": 12
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "ore_concentrator",
+      "id": 202,
+      "name": "Ore Concentrator",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "liquid_pipe"
+      ],
+      "textures": {
+        "north": 270,
+        "side": 250,
+        "top": 250,
+        "bottom": 250
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "ore_concentrator"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            70,
+            110,
+            150
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 3000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "ore_concentrator",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 50,
+            "recipes": [
+              {
+                "name": "MAGNETIC SEPARATION",
+                "in": [
+                  [
+                    "crushed_iron_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "iron_concentrate",
+                    0.7
+                  ],
+                  [
+                    "tailings",
+                    0.3
+                  ]
+                ],
+                "water": 1,
+                "time": 8
+              },
+              {
+                "name": "FROTH FLOTATION",
+                "in": [
+                  [
+                    "crushed_copper_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "copper_concentrate",
+                    0.13
+                  ],
+                  [
+                    "tailings",
+                    0.87
+                  ]
+                ],
+                "water": 1,
+                "time": 8
+              },
+              {
+                "name": "GRAVITY SEPARATION",
+                "in": [
+                  [
+                    "crushed_gold_ore",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "gold_concentrate",
+                    0.225
+                  ],
+                  [
+                    "tailings",
+                    0.98
+                  ]
+                ],
+                "water": 1,
+                "time": 8
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "coke_oven",
+      "id": 203,
+      "name": "Coke Oven",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "gas_pipe"
+      ],
+      "textures": {
+        "north": 271,
+        "side": 268,
+        "top": 268,
+        "bottom": 268
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "coke_oven"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            110,
+            70,
+            55
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 4000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "coke_oven",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 0,
+            "recipes": [
+              {
+                "name": "COKING (COAL BAKED WITHOUT AIR)",
+                "in": [
+                  [
+                    "coal",
+                    4
+                  ]
+                ],
+                "out": [
+                  [
+                    "coke",
+                    3
+                  ]
+                ],
+                "gas_out": [
+                  "hydrogen",
+                  794
+                ],
+                "time": 10
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "blast_furnace",
+      "id": 204,
+      "name": "Blast Furnace",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 272,
+        "side": 267,
+        "top": 251,
+        "bottom": 251
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "blast_furnace"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            170,
+            90,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 6000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "blast_furnace",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 60,
+            "recipes": [
+              {
+                "name": "SMELTING CONCENTRATE WITH LIMESTONE",
+                "in": [
+                  [
+                    "iron_concentrate",
+                    3
+                  ],
+                  [
+                    "coke",
+                    8
+                  ],
+                  [
+                    "crushed_limestone",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "pig_iron",
+                    4
+                  ],
+                  [
+                    "slag",
+                    1.2
+                  ]
+                ],
+                "time": 40
+              },
+              {
+                "name": "SMELTING CRUSHED ORE WITH LIMESTONE",
+                "in": [
+                  [
+                    "crushed_iron_ore",
+                    4
+                  ],
+                  [
+                    "coke",
+                    10
+                  ],
+                  [
+                    "crushed_limestone",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "pig_iron",
+                    4
+                  ],
+                  [
+                    "slag",
+                    2
+                  ]
+                ],
+                "time": 40
+              },
+              {
+                "name": "SMELTING CONCENTRATE (NO LIMESTONE: MORE COKE, LESS IRON)",
+                "in": [
+                  [
+                    "iron_concentrate",
+                    3
+                  ],
+                  [
+                    "coke",
+                    10
+                  ]
+                ],
+                "out": [
+                  [
+                    "pig_iron",
+                    3
+                  ],
+                  [
+                    "slag",
+                    1
+                  ]
+                ],
+                "time": 40
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "oxygen_furnace",
+      "id": 205,
+      "name": "Oxygen Steel Furnace",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "gas_pipe"
+      ],
+      "textures": {
+        "north": 273,
+        "side": 251,
+        "top": 251,
+        "bottom": 251
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "oxygen_furnace"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            90,
+            94,
+            100
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 4000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "oxygen_furnace",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 30,
+            "recipes": [
+              {
+                "name": "BLOWING OXYGEN THROUGH PIG IRON",
+                "in": [
+                  [
+                    "pig_iron",
+                    8
+                  ],
+                  [
+                    "crushed_limestone",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "steel_ingot",
+                    6.8
+                  ],
+                  [
+                    "slag",
+                    1.2
+                  ]
+                ],
+                "gas_in": [
+                  "oxygen",
+                  2200
+                ],
+                "time": 20
+              },
+              {
+                "name": "BLOWING OXYGEN (NO LIMESTONE: LESS STEEL)",
+                "in": [
+                  [
+                    "pig_iron",
+                    8
+                  ]
+                ],
+                "out": [
+                  [
+                    "steel_ingot",
+                    6.4
+                  ],
+                  [
+                    "slag",
+                    0.5
+                  ]
+                ],
+                "gas_in": [
+                  "oxygen",
+                  2200
+                ],
+                "time": 20
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "copper_smelter",
+      "id": 206,
+      "name": "Copper Smelter",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "gas_pipe"
+      ],
+      "textures": {
+        "north": 275,
+        "side": 267,
+        "top": 251,
+        "bottom": 251
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "copper_smelter"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            90,
+            60
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 4000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "copper_smelter",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 50,
+            "recipes": [
+              {
+                "name": "FLASH SMELTING AND CONVERTING",
+                "in": [
+                  [
+                    "copper_concentrate",
+                    4
+                  ]
+                ],
+                "out": [
+                  [
+                    "blister_copper",
+                    1.95
+                  ],
+                  [
+                    "slag",
+                    2.4
+                  ]
+                ],
+                "gas_in": [
+                  "oxygen",
+                  2400
+                ],
+                "time": 30
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "electrolytic_refinery",
+      "id": 207,
+      "name": "Electrolytic Refinery",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 276,
+        "side": 250,
+        "top": 250,
+        "bottom": 250
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "electrolytic_refinery"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            90,
+            130,
+            110
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 2000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "electrolytic_refinery",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 80,
+            "recipes": [
+              {
+                "name": "ELECTROREFINING",
+                "in": [
+                  [
+                    "blister_copper",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "copper_ingot",
+                    0.985
+                  ],
+                  [
+                    "anode_slime",
+                    0.5
+                  ]
+                ],
+                "time": 30
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "plate_mill",
+      "id": 208,
+      "name": "Plate Rolling Mill",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 277,
+        "side": 251,
+        "top": 250,
+        "bottom": 250
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "plate_mill"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            100,
+            104,
+            110
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 6000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "plate_mill",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 80,
+            "recipes": [
+              {
+                "name": "ROLLING STEEL PLATE",
+                "in": [
+                  [
+                    "steel_ingot",
+                    4
+                  ]
+                ],
+                "out": [
+                  [
+                    "steel_plate",
+                    1
+                  ]
+                ],
+                "time": 15
+              },
+              {
+                "name": "ROLLING COPPER PLATE",
+                "in": [
+                  [
+                    "copper_ingot",
+                    4
+                  ]
+                ],
+                "out": [
+                  [
+                    "copper_plate",
+                    1
+                  ]
+                ],
+                "time": 15
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "rod_mill",
+      "id": 209,
+      "name": "Rod Rolling Mill",
+      "stateless": false,
+      "group_tags": [
+        "energy"
+      ],
+      "textures": {
+        "north": 278,
+        "side": 251,
+        "top": 250,
+        "bottom": 250
+      },
+      "ui_id": {
+        "namespace": "base",
+        "id_name": "rod_mill"
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "rotation": "horizontal",
+          "behavior": "industry",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            100,
+            104,
+            110
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 4000,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "rod_mill",
+              "count": 1
+            }
+          ],
+          "industry": {
+            "power": 60,
+            "recipes": [
+              {
+                "name": "ROLLING STEEL RODS",
+                "in": [
+                  [
+                    "steel_ingot",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "steel_rod",
+                    4
+                  ]
+                ],
+                "time": 6
+              },
+              {
+                "name": "ROLLING COPPER RODS",
+                "in": [
+                  [
+                    "copper_ingot",
+                    1
+                  ]
+                ],
+                "out": [
+                  [
+                    "copper_rod",
+                    4
+                  ]
+                ],
+                "time": 6
+              }
+            ]
+          }
+        },
+        "instance_state": {
+          "input": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "output": {
+            "type": "inventory",
+            "slots": 3
+          },
+          "progress": {
+            "type": "number",
+            "default": 0
+          },
+          "cook_time": {
+            "type": "number",
+            "default": 10
+          },
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "number",
+            "default": 1
+          },
+          "job": {
+            "type": "number",
+            "default": -1
+          }
+        }
+      }
+    },
+    {
+      "type": "block",
+      "namespace": "base",
+      "id_name": "air_separator",
+      "id": 210,
+      "name": "Air Separation Unit",
+      "stateless": false,
+      "group_tags": [
+        "energy",
+        "gas_pipe"
+      ],
+      "textures": {
+        "all": 274,
+        "top": 250,
+        "bottom": 250
+      },
+      "properties": {
+        "definition": {
+          "model": "cube",
+          "behavior": "air_separator",
+          "render": {
+            "layer": "opaque"
+          },
+          "lod_color": [
+            150,
+            175,
+            200
+          ],
+          "default_state": "normal",
+          "hardness": 1.0,
+          "mass": 2500,
+          "sounds": {
+            "break": "stone_break"
+          },
+          "drops": [
+            {
+              "namespace": "base",
+              "id_name": "air_separator",
+              "count": 1
+            }
+          ]
+        },
+        "instance_state": {
+          "power": {
+            "type": "number",
+            "default": 0
+          },
+          "room": {
+            "type": "number",
+            "default": 0
+          },
+          "o2_kg": {
             "type": "number",
             "default": 0
           }

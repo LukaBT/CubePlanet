@@ -51,6 +51,8 @@ public abstract class BlockBehavior
         ["solar_panel"] = () => new SolarPanelBehavior(),
         ["gearbox"] = () => new GearboxBehavior(),
         ["processor"] = () => new ProcessorBehavior(),
+        ["industry"] = () => new IndustryBehavior(),
+        ["air_separator"] = () => new AirSeparatorBehavior(),
         ["mechanical_pump"] = () => new MechanicalPumpBehavior(),
         ["tank_valve"] = () => new TankValveBehavior(),
         ["compressor"] = () => new CompressorBehavior(),

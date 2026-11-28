@@ -10,7 +10,7 @@
       "output": {
         "namespace": "base",
         "id_name": "iron_ingot",
-        "count": 1
+        "count": 6
       },
       "time": 8
     },
@@ -24,91 +24,91 @@
       "output": {
         "namespace": "base",
         "id_name": "iron_ingot",
-        "count": 1
+        "count": 6
       },
       "time": 8
     },
     {
       "type": "smelting",
-      "id_name": "gold_ingot_from_gold_ore",
+      "id_name": "iron_ingot_from_crushed_iron_ore",
       "input": {
         "namespace": "base",
-        "id_name": "gold_ore"
+        "id_name": "crushed_iron_ore"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 0.4
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "iron_ingot_from_iron_concentrate",
+      "input": {
+        "namespace": "base",
+        "id_name": "iron_concentrate"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 0.9
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "iron_ingot_from_pig_iron",
+      "input": {
+        "namespace": "base",
+        "id_name": "pig_iron"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "iron_ingot",
+        "count": 0.9
+      },
+      "time": 6
+    },
+    {
+      "type": "smelting",
+      "id_name": "blister_copper_from_copper_concentrate",
+      "input": {
+        "namespace": "base",
+        "id_name": "copper_concentrate"
+      },
+      "output": {
+        "namespace": "base",
+        "id_name": "blister_copper",
+        "count": 0.45
+      },
+      "time": 8
+    },
+    {
+      "type": "smelting",
+      "id_name": "gold_ingot_from_gold_concentrate",
+      "input": {
+        "namespace": "base",
+        "id_name": "gold_concentrate"
       },
       "output": {
         "namespace": "base",
         "id_name": "gold_ingot",
-        "count": 1
-      },
-      "time": 8
-    },
-    {
-      "type": "smelting",
-      "id_name": "gold_ingot_from_deepslate_gold_ore",
-      "input": {
-        "namespace": "base",
-        "id_name": "deepslate_gold_ore"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "gold_ingot",
-        "count": 1
-      },
-      "time": 8
-    },
-    {
-      "type": "smelting",
-      "id_name": "copper_ingot_from_copper_ore",
-      "input": {
-        "namespace": "base",
-        "id_name": "copper_ore"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "copper_ingot",
-        "count": 1
-      },
-      "time": 8
-    },
-    {
-      "type": "smelting",
-      "id_name": "copper_ingot_from_deepslate_copper_ore",
-      "input": {
-        "namespace": "base",
-        "id_name": "deepslate_copper_ore"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "copper_ingot",
-        "count": 1
-      },
-      "time": 8
-    },
-    {
-      "type": "smelting",
-      "id_name": "coal_from_coal_ore",
-      "input": {
-        "namespace": "base",
-        "id_name": "coal_ore"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "coal",
         "count": 1
       },
       "time": 6
     },
     {
       "type": "smelting",
-      "id_name": "coal_from_deepslate_coal_ore",
+      "id_name": "gold_ingot_from_anode_slime",
       "input": {
         "namespace": "base",
-        "id_name": "deepslate_coal_ore"
+        "id_name": "anode_slime"
       },
       "output": {
         "namespace": "base",
-        "id_name": "coal",
-        "count": 1
+        "id_name": "gold_ingot",
+        "count": 0.04
       },
       "time": 6
     },
@@ -122,7 +122,7 @@
       "output": {
         "namespace": "base",
         "id_name": "glass",
-        "count": 1
+        "count": 0.6
       },
       "time": 5
     },
@@ -136,7 +136,7 @@
       "output": {
         "namespace": "base",
         "id_name": "stone",
-        "count": 1
+        "count": 0.85
       },
       "time": 5
     },
@@ -150,48 +150,6 @@
       "output": {
         "namespace": "base",
         "id_name": "terracotta",
-        "count": 1
-      },
-      "time": 6
-    },
-    {
-      "type": "smelting",
-      "id_name": "iron_ingot_from_iron_dust",
-      "input": {
-        "namespace": "base",
-        "id_name": "iron_dust"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "iron_ingot",
-        "count": 1
-      },
-      "time": 6
-    },
-    {
-      "type": "smelting",
-      "id_name": "gold_ingot_from_gold_dust",
-      "input": {
-        "namespace": "base",
-        "id_name": "gold_dust"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "gold_ingot",
-        "count": 1
-      },
-      "time": 6
-    },
-    {
-      "type": "smelting",
-      "id_name": "copper_ingot_from_copper_dust",
-      "input": {
-        "namespace": "base",
-        "id_name": "copper_dust"
-      },
-      "output": {
-        "namespace": "base",
-        "id_name": "copper_ingot",
         "count": 1
       },
       "time": 6

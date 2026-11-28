@@ -6,7 +6,7 @@ namespace CubePlanet;
 /// <summary>
 /// One item from item_definitions.txt. Item IDs are their own ID space (1..65535); the item texture ID equals the item ID.
 /// properties.definition: stack_size [64], places_block {namespace, id_name} (block items), fuel_time (seconds of burning in a furnace),
-/// behavior (bucket), capacity (bucket units). properties.instance_state: packed fields (32 bits per stack, see StateSchema).
+/// behavior (bucket), capacity (bucket units), mass (kg of one item; items that place a block weigh what the block does, see Mass). properties.instance_state: packed fields (32 bits per stack, see StateSchema).
 /// </summary>
 public sealed class ItemDefinition
 {
@@ -15,7 +15,7 @@ public sealed class ItemDefinition
     public int StackSize = 64;
     public string PlacesBlock; // "namespace:id_name" or null
     public int PlacesBlockId;  // resolved by the registry (0 = none)
-    public string Behavior = ""; public double FuelTime; public int Capacity;
+    public string Behavior = ""; public double FuelTime, Mass; public int Capacity;
     public string[] Tags = Array.Empty<string>();
     public StateSchema State = new();
     public JsonElement Json;
@@ -40,7 +40,7 @@ public sealed class ItemDefinition
         it.Icon = Str(e, D + "icon");
         if (it.Icon.Length > 0 && it.Icon != "model" && it.Icon != "sprite" && it.Icon != "texture") throw new InvalidDataException($"{file}: item {it.FullName}: unknown icon '{it.Icon}' (use model, sprite, texture)");
         it.IconState = Get(e, D + "icon_state") ?? default;
-        it.Behavior = Str(e, D + "behavior"); it.FuelTime = Num(e, D + "fuel_time"); it.Capacity = (int)Num(e, D + "capacity");
+        it.Behavior = Str(e, D + "behavior"); it.FuelTime = Num(e, D + "fuel_time"); it.Capacity = (int)Num(e, D + "capacity"); it.Mass = Num(e, D + "mass");
         if (Get(e, "group_tags") is { ValueKind: JsonValueKind.Array } tags) it.Tags = tags.EnumerateArray().Select(t => t.GetString() ?? "").ToArray();
         it.State = StateSchema.Parse(Get(e, "properties.instance_state"), $"{file}: item {it.FullName}", 32);
         if (it.State.Entity.Count > 0) throw new InvalidDataException($"{file}: item {it.FullName}: item state can only hold packed fields (boolean, string with values, integer with min/max)");

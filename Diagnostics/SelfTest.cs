@@ -76,6 +76,7 @@ public static partial class SelfTest
         TankTest();
         PumpTest();
         Utilities();
+        Industry();
         LiquidTest();
         Phase4(up, fwd);
         SaveReload();
@@ -548,7 +549,7 @@ public static partial class SelfTest
         for (int i = 0; i < 20; i++) BlockActions.Tick(.1);
         Check(StateText(f0).Contains("lit=true"), "furnace is lit while it burns");
         for (int i = 0; i < 200; i++) BlockActions.Tick(.1);
-        Check(fe.Inv("output")[0]?.Item == Item("iron_ingot") && fe.Inv("output")[0].Count == 2 && fe.Inv("input")[0] == null, $"furnace smelted 2 iron ingots ({fe.Inv("output")[0]})");
+        Check(fe.Inv("output")[0]?.Item == Item("iron_ingot") && fe.Inv("output")[0].Count == 12 && fe.Inv("input")[0] == null, $"furnace smelted 2 iron ore blocks into 12 wrought iron ingots ({fe.Inv("output")[0]})");
 
         // ---- oxygen generator: coal + a full bucket -> an oxygen canister
         var o0 = Spot(26, 0); BlockActions.Place(o0, OxygenGenerator, -az, out _);

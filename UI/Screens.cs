@@ -233,6 +233,7 @@ public static partial class UI
     {
         var d = s.Def; string n = d?.Name ?? "?";
         if (d?.Behavior == "bucket" && d.State.Find("fill") is { } f) n += $" ({f.Value(s.State)}/{Math.Max(1, d.Capacity)})";
-        return s.Count > 1 ? $"{n} x{s.Count}" : n;
+        double kg = CubePlanet.Mass.OfItem(s.Item); string m = kg <= 0 ? "" : s.Count > 1 ? $"  {CubePlanet.Mass.Text(kg)} EACH, {CubePlanet.Mass.Text(kg * s.Count)}" : $"  {CubePlanet.Mass.Text(kg)}";
+        return (s.Count > 1 ? $"{n} x{s.Count}" : n) + m;
     }
 }

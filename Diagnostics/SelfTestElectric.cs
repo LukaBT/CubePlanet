@@ -57,7 +57,7 @@ public static partial class SelfTest
         int ore = GameAssets.ItemReg.Id("iron_ore"), ingot = GameAssets.ItemReg.Id("iron_ingot"); var rcp = GameAssets.RecipeReg.SmeltingFor(ore);
         fu.Inv("input")[0] = new ItemStack(ore, 2);
         Ticks((int)(rcp.Time / 2 * 2 * 10) + 15);
-        Check(fu.Inv("output")[0]?.Item == ingot && fu.Inv("output")[0].Count == 2 && fu.Inv("input")[0] == null, $"the electric furnace smelts 2 iron ore in ~{rcp.Time:0} s (a furnace needs {rcp.Time * 2:0} s)");
+        Check(fu.Inv("output")[0]?.Item == ingot && fu.Inv("output")[0].Count == 12 && fu.Inv("input")[0] == null, $"the electric furnace smelts 2 iron ore (12 ingots) in ~{rcp.Time:0} s (a furnace needs {rcp.Time * 2:0} s)");
         Clear();
 
         // ----- motor: 2 coal generators (40 E/s) -> motor (30 E/s in) -> shaft -> generator -> its own cable -> battery

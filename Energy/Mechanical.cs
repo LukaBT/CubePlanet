@@ -22,14 +22,13 @@ public sealed class GearboxBehavior : BlockBehavior, IKinetic
 
 /// <summary>
 /// A machine processing items with rotation power (millstone, sawmill): definition key "processing": {"power": E/s it takes while working,
-/// "recipes": [{"input": item, "output": item, "count", "work": E of rotation per item}]}. Takes rotation on any side but the top (a shaft
-/// from a turbine, a motor or a gearbox); inventories "input", "output"; numbers "progress" (E done), "cook_time" (E needed).
+/// "recipes": [<see cref="ProcRecipe"/>, its "time" = E of rotation per batch]}. Takes rotation on any side but the top (a shaft from a turbine,
+/// a motor or a gearbox); inventories "input", "output"; numbers "progress" (E done), "cook_time" (E needed).
 /// Slower when the line gives it less than it wants.
 /// </summary>
 public sealed class ProcessorBehavior : BlockBehavior, IKinetic, IRotationLoad
 {
-    public sealed class Recipe { public int Input, Output, Count; public double Work; }
-    sealed class Spec { public double Power = 15; public List<Recipe> Recipes = new(); }
+    sealed class Spec { public double Power = 15; public List<ProcRecipe> Recipes = new(); }
     static readonly Dictionary<int, Spec> specs = new();
     static Spec SpecOf(int id)
     {
@@ -40,47 +39,30 @@ public sealed class ProcessorBehavior : BlockBehavior, IKinetic, IRotationLoad
             if (DEFS[id] != null && DefinitionFile.Get(DEFS[id].Json, "properties.definition.processing") is { ValueKind: JsonValueKind.Object } j)
             {
                 s.Power = DefinitionFile.Num(j, "power", 15);
-                if (DefinitionFile.Get(j, "recipes") is { ValueKind: JsonValueKind.Array } rs)
-                    foreach (var r in rs.EnumerateArray())
-                    {
-                        string i = DefinitionFile.Str(r, "input"), o = DefinitionFile.Str(r, "output");
-                        if (GameAssets.ItemReg.Has(i) && GameAssets.ItemReg.Has(o))
-                            s.Recipes.Add(new Recipe { Input = GameAssets.ItemReg.Id(i), Output = GameAssets.ItemReg.Id(o), Count = (int)DefinitionFile.Num(r, "count", 1), Work = DefinitionFile.Num(r, "work", 100) });
-                    }
+                s.Recipes = Processing.Parse(DefinitionFile.Get(j, "recipes"), $"block {DEFS[id].FullName}", 100);
             }
             return specs[id] = s;
         }
     }
-    public static IReadOnlyList<Recipe> RecipesOf(int id) => SpecOf(id).Recipes;
+    public static IReadOnlyList<ProcRecipe> RecipesOf(int id) => BEH[id] is ProcessorBehavior ? SpecOf(id).Recipes : Array.Empty<ProcRecipe>();
     static readonly (int, int, int)[] ports = { (1, 0, 0), (-1, 0, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1) };
     public override void OnPlace(BlockPos p, int id) => BlockStates.EntityOrNew(p, id);
     public (int x, int y, int z)[] Ports(BlockEntity e) => ports;
-    Recipe Job(BlockEntity e)
-    {
-        var input = e.Inv("input"); var output = e.Inv("output"); if (input == null || output == null || input[0] is not { IsEmpty: false } st) return null;
-        var r = SpecOf(e.BlockId).Recipes.FirstOrDefault(x => x.Input == st.Item); if (r == null) return null;
-        bool room = output[0] == null || output[0].IsEmpty || (output[0].Item == r.Output && output[0].State == 0 && output[0].Count + r.Count <= output[0].MaxStack);
-        return room ? r : null;
-    }
+    ProcRecipe Job(BlockEntity e) => Processing.Job(e, SpecOf(e.BlockId).Recipes);
     public double Wants(BlockEntity e) => Job(e) != null ? SpecOf(e.BlockId).Power : 0;
     public void Work(BlockEntity e, double power, double dt)
     {
         e.SetNum("input_power", power); var r = Job(e); if (r == null) { e.SetNum("progress", 0); return; }
-        e.SetNum("cook_time", r.Work);
+        e.SetNum("cook_time", r.Time);
         double prog = e.Num("progress") + power * dt;
-        if (prog >= r.Work)
-        {
-            prog = 0; var input = e.Inv("input"); var output = e.Inv("output");
-            if (output[0] == null || output[0].IsEmpty) output[0] = new ItemStack(r.Output, r.Count); else output[0].Count += r.Count;
-            if (--input[0].Count <= 0) input[0] = null;
-        }
+        if (prog >= r.Time) { prog = 0; Processing.Consume(e.Inv("input"), r); Processing.GiveAll(e, e.Inv("output"), r); }
         e.SetNum("progress", prog);
     }
     public override string Describe(BlockEntity e)
     {
         var r = Job(e); if (r == null) return "IDLE (NOTHING IT CAN PROCESS, OR OUTPUT FULL)";
         if (e.Num("turbines") == 0) return "NOT DRIVEN: NEEDS A SHAFT FROM A TURBINE, MOTOR OR GEARBOX (ANY SIDE BUT THE TOP)";
-        return $"WORKING {e.Num("progress"):0} / {r.Work:0} E  ROTATION IN {e.Num("input_power"):0.0} / {SpecOf(e.BlockId).Power:0} E/S  {Kinetics.Rpm(e):0} RPM";
+        return $"WORKING {e.Num("progress"):0} / {r.Time:0} E  ROTATION IN {e.Num("input_power"):0.0} / {SpecOf(e.BlockId).Power:0} E/S  {Kinetics.Rpm(e):0} RPM";
     }
 }
 
